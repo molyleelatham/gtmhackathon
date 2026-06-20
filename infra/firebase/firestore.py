@@ -1,11 +1,11 @@
 import os
 import json
-from typing import Optional, Any, dict, list
+from typing import Optional, Any
 from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, firestore
-from ..core.models.signal import Signal
-from ..core.models.lead import Lead
+from ...packages.core.models.signal import Signal
+from ...packages.core.models.lead import Lead
 
 
 class FirestoreClient:

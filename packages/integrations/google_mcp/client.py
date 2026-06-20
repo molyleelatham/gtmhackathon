@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Optional, dict, Any
+from typing import Optional, Any
 import httpx
 
 

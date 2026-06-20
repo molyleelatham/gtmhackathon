@@ -85,13 +85,14 @@ async def health_check():
     }
 
 
-# Include routers (to be implemented)
-# from .routers import signals, leads, pipeline, integrations, icp
-# app.include_router(signals.router, prefix="/api/v1")
-# app.include_router(leads.router, prefix="/api/v1")
-# app.include_router(pipeline.router, prefix="/api/v1")
-# app.include_router(integrations.router, prefix="/api/v1")
-# app.include_router(icp.router, prefix="/api/v1")
+# Lifecycle routers: onboarding -> before-meet -> meet -> post-meet + dashboard data
+from .routers import onboarding, premeet, meet, postmeet, data
+
+app.include_router(onboarding.router)
+app.include_router(premeet.router)
+app.include_router(meet.router)
+app.include_router(postmeet.router)
+app.include_router(data.router)
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@ import websockets
 import json
 import os
 from typing import Optional, Callable, Any
-from ...core.schemas.transcript_schema import TranscriptEvent
+from ....core.schemas.transcript_schema import TranscriptEvent
 
 
 class DeepgramConferenceClient:

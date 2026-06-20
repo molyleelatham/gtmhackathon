@@ -1,8 +1,8 @@
 import re
-from typing import list, Optional
+from typing import Optional
 from datetime import datetime
-from ..core.models.signal import Signal, SignalType
-from ..core.models.icp import ICPConfig
+from ...core.models.signal import Signal, SignalType
+from ...core.models.icp import ICPConfig
 from .client import TavilyClient
 
 

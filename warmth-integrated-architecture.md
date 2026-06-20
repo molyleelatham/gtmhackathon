@@ -7,9 +7,62 @@
 
 ## System Overview
 
-Warmth now consists of two main components:
-1. **Native iOS/watchOS App** - Mobile recording with phrase trigger, manual controls, Apple Watch, and Siri shortcuts
-2. **Python Backend** - Server-side processing, CRM integration, and intelligence analysis
+Warmth now consists of three main components:
+1. **Native iOS/watchOS App** - Capture: phrase trigger, manual recording, Apple Watch, Siri shortcuts
+2. **Python Backend** - Server-side processing, the warmth lifecycle pipeline, CRM/email integrations, and ML
+3. **Web Dashboard** (`web/`) - Personal CRM to monitor and manage connections across the lifecycle
+
+> **Surface split:** capture happens on **mobile**; review/management happens on the **web dashboard**. Both clients talk to the same FastAPI backend + data layer.
+
+---
+
+## The Warmth Lifecycle
+
+Warmth runs every conference connection through a three-stage lifecycle:
+
+```
+Onboarding ──> Before meet ──────────> Meet ───────────────> Post meet
+(connect      (research, enrich,       (phrase trigger,       (Lightfern
+ calendar +    warmth-score, draft      capture signals,       follow-up with
+ email via     outreach, book          ML pipeline routes      full pipeline
+ Google MCP)   meetings)               by warmth uplift)       context)
+```
+
+**Onboarding** — connect email + Google Calendar via Google MCP; detect which events are conferences.
+`apps/lifecycle/onboarding.py`, `packages/integrations/google_calendar/`
+
+**Before meet** — build the attendee dataset (calendar-derived + directory scrape + manual), enrich firmographics via **UnifyGTM**, source the **ICP profile + ICP fit from Zero CRM** (`ZeroCRMClient.get_icp_profile` / `score_icp_fit`; the local `LeadScorer` heuristic is only a fallback when Zero is unavailable), then **build warmth on top** with the ML model (`icp_score` from Zero + `warmth_score` correlated into a prioritization score), surface highest-intent leads, draft personalized outreach (Lightfern + Gmail via MCP), and book meetings.
+`apps/lifecycle/premeet.py`
+
+**Meet** — phrase trigger ("hey it's nice to meet you") starts recording. Captured signals (name, interests, origin, background, time-per-topic, takeaways) become a `MeetingSignal`, run through the ML pipeline (`packages/ml/`), and are routed:
+- post-meet warmth **rose** vs. the pre-meet prediction → push to Zero CRM + Lightfern outreach
+- otherwise → route to the **founder community** (nearest founder/friend match)
+`apps/lifecycle/meet.py`, `apps/lifecycle/community_matcher.py`
+
+**Post meet** — Lightfern sends a follow-up email grounded in the full pipeline context (pre-meet research + captured conversation).
+`apps/lifecycle/postmeet.py`
+
+### ML pipeline (`packages/ml/`)
+
+Data-source ownership: **ICP profile + ICP fit come from Zero CRM**, **enrichment comes from UnifyGTM**, and **warmth is built on top** by Warmth's own models.
+
+Stub interfaces for the team's own models:
+- `WarmthModel` — builds warmth on top of Zero ICP fit + Unify enrichment, combining ICP fit + warmth into a prioritization score (pre-meet prediction, post-meet actual, uplift)
+- `LeadScorer` — intent scoring + a *fallback* ICP fit heuristic (used only when Zero CRM isn't available; Zero owns ICP fit)
+- `LeadClusterer` — clustering + nearest-neighbor for community matching
+- `MeetIntelligencePipeline` — orchestrates clustering → scoring → routing decision
+
+### API surface (`apps/api/routers/`)
+
+| Endpoint | Stage |
+|----------|-------|
+| `POST /api/v1/connect`, `GET /api/v1/events` | Onboarding |
+| `POST /api/v1/events/{id}/premeet`, `GET /api/v1/events/{id}/leads` | Before meet |
+| `POST /api/v1/meet/signals` | Meet (returns routing decision) |
+| `POST /api/v1/connections/{id}/followup` | Post meet |
+| `GET /api/v1/dashboard`, `/leads`, `/connections` | Web dashboard reads |
+
+The backend ships with an in-memory demo store (`apps/api/store.py`) seeded with a sample conference so the API and dashboard are demoable without external credentials.
 
 ---
 

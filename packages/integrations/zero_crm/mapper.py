@@ -1,6 +1,6 @@
-from typing import dict, Any
-from ..core.models.lead import Lead
-from ..core.schemas.zero_crm_schema import ZeroCRMPayload
+from typing import Any
+from ...core.models.lead import Lead
+from ...core.schemas.zero_crm_schema import ZeroCRMPayload
 
 
 class ZeroCRMMapper:
