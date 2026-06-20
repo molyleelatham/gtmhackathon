@@ -131,7 +131,8 @@ final class AppModel {
             company: nil,
             transcript: transcript
         ), result.matched else { return }
-        attendeeMatch = result
+        // Surface the connection as a push-style banner rather than an in-app card.
+        MatchNotifier.shared.notifyMatch(result)
         WarmthHaptics.success()
     }
 

@@ -15,6 +15,16 @@ final class SettingsStore {
         static let capturePreferences = "warmth.capturePreferences"
     }
 
+    /// Loopback/placeholder hosts that never resolve from a physical device.
+    private static let staleBaseURLs: Set<String> = [
+        "",
+        "http://127.0.0.1:8010",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "http://localhost:8010",
+        "https://api.warmth.example.com",
+    ]
+
     private let defaults: UserDefaults
 
     var baseURLString: String {
@@ -47,7 +57,13 @@ final class SettingsStore {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let stored = defaults.string(forKey: Keys.baseURL)
-        let resolved = BackendConfiguration.normalizedBaseURLString(stored ?? Self.defaultBaseURL)
+        let raw: String
+        if let stored, !Self.staleBaseURLs.contains(stored) {
+            raw = stored
+        } else {
+            raw = Self.defaultBaseURL
+        }
+        let resolved = BackendConfiguration.normalizedBaseURLString(raw)
         self.baseURLString = resolved
         self.didCompleteOnboarding = defaults.bool(forKey: Keys.onboarded)
         self.calendarConnected = defaults.bool(forKey: Keys.calendarConnected)
