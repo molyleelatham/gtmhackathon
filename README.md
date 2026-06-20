@@ -1,11 +1,15 @@
-# Warmth — Active Conference Intelligence Platform
+# Warmth — Integrated Conference Intelligence Platform
 
 > **GTM Hackathon · June 2026**
-> Stack: Python · FastAPI · Cursor SDK · Porcupine · Deepgram · Zero CRM · UnifyGTM · Google MCP
+> Stack: Python (Backend) + iOS/watchOS (Mobile) · FastAPI · Cursor SDK · Porcupine · Deepgram · Zero CRM · UnifyGTM · Google MCP
 
 ## Overview
 
-Warmth is an active conference intelligence system that works like "Siri for conferences." When you attend conferences, Warmth uses wake word detection ("Hey Anna") to start recording conversations, classify leads for you/your team/founders/community, scrape conference directories, make first connections, capture real-time conversation intelligence, and automate outbound strategies.
+Warmth is an integrated conference intelligence platform combining:
+- **Native iOS/watchOS App** - Mobile recording with wake word detection
+- **Python Backend** - Server-side processing, CRM integration, and AI analysis
+
+When you attend conferences, the iOS app uses wake word detection ("Hey Anna") to start recording conversations, while the backend processes transcriptions, extracts intelligence, and manages CRM integrations.
 
 ## Key Features
 
@@ -20,7 +24,22 @@ Warmth is an active conference intelligence system that works like "Siri for con
 
 ## Architecture
 
-See [warmth-architecture-v2.md](./warmth-architecture-v2.md) for detailed technical architecture and repository structure.
+- **Backend**: [warmth-architecture-v2.md](./warmth-architecture-v2.md) - Python backend architecture
+- **iOS**: [iOS/Warmth-iOS/README.md](./iOS/Warmth-iOS/README.md) - iOS/watchOS app documentation
+- **Integration**: [warmth-integrated-architecture.md](./warmth-integrated-architecture.md) - Full system integration
+
+## Directory Structure
+
+```
+warmth/
+├── apps/                    # Python FastAPI backend
+├── packages/                # Python packages and integrations
+├── infra/                   # Infrastructure (Firebase, GCP)
+├── iOS/                     # iOS/watchOS app (sandboxed)
+│   └── Warmth-iOS/         # Native iOS project
+├── tests/                   # Python tests
+└── scripts/                 # Utility scripts
+```
 
 ## Quick Start
 
