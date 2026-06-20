@@ -138,6 +138,18 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(updated.signalClient.baseURL.absoluteString, "https://custom.backend.test")
         XCTAssertEqual(updated.crmClient.baseURL.absoluteString, "https://custom.backend.test")
     }
+
+    func testLaunchTabUsesEventMode() {
+        settings.eventModeEnabled = true
+        model.applyLaunchTabIfNeeded()
+        XCTAssertEqual(model.selectedTab, .capture)
+    }
+
+    func testLaunchTabDefaultsToHome() {
+        settings.eventModeEnabled = false
+        model.applyLaunchTabIfNeeded()
+        XCTAssertEqual(model.selectedTab, .home)
+    }
 }
 
 /// Returns nil for every transcript — used to exercise the early-exit path in `capturePerson`.

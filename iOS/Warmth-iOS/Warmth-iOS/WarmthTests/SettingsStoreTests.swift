@@ -61,4 +61,23 @@ final class SettingsStoreTests: XCTestCase {
         store.baseURLString = "https://api.example.com/v1"
         XCTAssertEqual(store.baseURL.absoluteString, "https://api.example.com/v1")
     }
+
+    func testEventModePersists() {
+        let store = SettingsStore(defaults: defaults)
+        store.eventModeEnabled = true
+        store.eventModeDisabledOverride = true
+        let reloaded = SettingsStore(defaults: defaults)
+        XCTAssertTrue(reloaded.eventModeEnabled)
+        XCTAssertTrue(reloaded.eventModeDisabledOverride)
+    }
+
+    func testCalendarMatchToday() {
+        let formatter = ISO8601DateFormatter()
+        let today = Date()
+        let start = formatter.string(from: today)
+        let end = formatter.string(from: today)
+        let events = [CRMDetectedEvent(id: "e1", name: "Demo", startDate: start, endDate: end, location: nil)]
+        XCTAssertTrue(SettingsStore.calendarMatchToday(in: events))
+        XCTAssertTrue(SettingsStore(defaults: defaults).isAtEventToday(calendarEvents: events))
+    }
 }
