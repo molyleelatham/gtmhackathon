@@ -1,9 +1,9 @@
 import Foundation
 import SwiftUI
 
-/// The three primary destinations in the Liquid Glass tab bar.
+/// The four primary destinations in the Liquid Glass tab bar.
 enum WarmthTab: Hashable {
-    case capture, connections, settings
+    case home, capture, connections, settings
 }
 
 /// Root composition object. Owns all services and is injected into the environment
@@ -22,13 +22,29 @@ final class AppModel {
     /// Apple Watch companion bridge. Self-contained; wired to capture below.
     let watch: WatchSessionService
 
-    var selectedTab: WarmthTab = .capture
+    var selectedTab: WarmthTab = .home
+    var dashboard: CRMDashboardSummary?
+    var roster: CRMRoster?
+    var communityMembers: [CRMCommunityMember] = []
+    var calendarEvents: [CRMDetectedEvent] = []
+    var icpProfile: [CRMICPRow] = []
+    var homeError: String?
+    var routedCommunityUserIDs: Set<String> = []
     /// Shown after a roster match from a live "hi {name}" greeting.
     var attendeeMatch: AttendeeMatchResult?
     private var matchAttemptedThisCapture = false
+    private var didApplyLaunchTab = false
     /// Tunable for tests — production polls the backend while ingest finishes.
     var captureRefreshAttempts = 4
     var captureRefreshDelaySeconds = 1.2
+
+    var recentlyMet: [CRMRosterMetRow] {
+        roster?.met ?? []
+    }
+
+    var isAtEventToday: Bool {
+        settings.isAtEventToday(calendarEvents: calendarEvents)
+    }
 
     init(
         auth: any AuthProviding,
@@ -55,8 +71,14 @@ final class AppModel {
         syncWatchState()
         Task {
             await refreshRosterWatchlist()
-            await refreshConnections()
+            await refreshHome()
         }
+    }
+
+    func applyLaunchTabIfNeeded() {
+        guard !didApplyLaunchTab else { return }
+        didApplyLaunchTab = true
+        selectedTab = isAtEventToday ? .capture : .home
     }
 
     func dismissAttendeeMatch() {
@@ -115,6 +137,42 @@ final class AppModel {
 
     func refreshConnections() async {
         await crmClient.refreshConnections()
+        rebuildRoutedCommunityIDs()
+    }
+
+    func refreshHome() async {
+        homeError = nil
+        do {
+            dashboard = try await crmClient.fetchDashboard()
+            roster = try await crmClient.fetchRoster()
+            communityMembers = try await crmClient.fetchCommunityMembers()
+            calendarEvents = try await crmClient.fetchEvents()
+            await crmClient.refreshConnections()
+            rebuildRoutedCommunityIDs()
+            applyLaunchTabIfNeeded()
+        } catch {
+            homeError = error.localizedDescription
+        }
+    }
+
+    func refreshICPProfile() async {
+        do {
+            icpProfile = try await crmClient.fetchICPProfile()
+        } catch {
+            homeError = error.localizedDescription
+        }
+    }
+
+    private func rebuildRoutedCommunityIDs() {
+        var ids = Set<String>()
+        for row in roster?.met ?? [] {
+            guard let meet = row.meetResult else { continue }
+            guard meet.routedTo?.contains("community") == true else { continue }
+            for candidate in meet.matchedCandidates {
+                if let userId = candidate.userId { ids.insert(userId) }
+            }
+        }
+        routedCommunityUserIDs = ids
     }
 
     /// Poll the backend after capture — ingest runs async server-side (HTTP 202).
@@ -124,6 +182,7 @@ final class AppModel {
                 try? await Task.sleep(for: .seconds(captureRefreshDelaySeconds))
             }
             await refreshConnections()
+            await refreshHome()
         }
     }
 
@@ -192,7 +251,7 @@ final class AppModel {
     // MARK: - Previews / wiring
 
     static var preview: AppModel {
-        AppModel(
+        let model = AppModel(
             auth: MockAuthService.signedInPreview,
             speech: MockSpeechService(),
             signalClient: MockSignalClient(),
@@ -200,5 +259,8 @@ final class AppModel {
             socialGraph: MockSocialGraph(),
             sessionLog: .preview
         )
+        model.dashboard = .preview
+        model.communityMembers = CRMCommunityMember.previewList
+        return model
     }
 }

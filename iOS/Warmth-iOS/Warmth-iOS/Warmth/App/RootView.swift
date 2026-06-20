@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Root shell: shows onboarding until complete, then the Liquid Glass tab bar
-/// (Capture · Connections · Settings).
+/// (Home · Capture · Connections · Settings).
 struct RootView: View {
     @Environment(AppModel.self) private var model
     @State private var authReady = false
@@ -17,7 +17,6 @@ struct RootView: View {
             } else if model.isOnboarded && model.auth.state.isSignedIn {
                 MainTabView()
             } else if model.isOnboarded {
-                // Onboarding finished but session expired — sign in again, not full setup.
                 ReturningSignInView()
             } else {
                 OnboardingFlow()
@@ -32,13 +31,16 @@ struct RootView: View {
     }
 }
 
-/// The three-tab Liquid Glass shell.
+/// Four-tab Liquid Glass shell.
 struct MainTabView: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
         @Bindable var model = model
         TabView(selection: $model.selectedTab) {
+            Tab("Home", systemImage: "house.fill", value: WarmthTab.home) {
+                HomeView()
+            }
             Tab("Capture", systemImage: "waveform", value: WarmthTab.capture) {
                 CaptureView()
             }
@@ -54,6 +56,9 @@ struct MainTabView: View {
             if tab == .connections {
                 Task { await model.refreshConnections() }
             }
+            if tab == .home {
+                Task { await model.refreshHome() }
+            }
         }
         .onChange(of: model.speech.phase) { _, _ in
             model.syncWatchState()
@@ -64,7 +69,6 @@ struct MainTabView: View {
     }
 }
 
-/// Auth-only gate for users who finished onboarding but signed out later.
 private struct ReturningSignInView: View {
     var body: some View {
         ZStack {

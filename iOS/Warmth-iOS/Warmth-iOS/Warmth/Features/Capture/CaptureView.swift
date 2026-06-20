@@ -57,9 +57,6 @@ struct CaptureView: View {
                 .padding(.horizontal, 20)
 
                 Spacer(minLength: 16)
-
-                RecentConnectionsStrip(connections: model.crmClient.connections)
-                    .padding(.bottom, 8)
             }
             .padding(.top, 8)
             .animation(WarmthMotion.snappy, value: phase)
