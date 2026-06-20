@@ -65,6 +65,7 @@ function FilterRow({
 
 export function Connections() {
   const { data, error, loading } = useAsync(() => api.listConnections(), []);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [interest, setInterest] = useState<string | null>(null);
   const [industry, setIndustry] = useState<string | null>(null);
   const [funding, setFunding] = useState<string | null>(null);
@@ -95,6 +96,7 @@ export function Connections() {
   }, [data, interest, industry, funding]);
 
   const hasFilters = interest !== null || industry !== null || funding !== null;
+  const activeFilterCount = [interest, industry, funding].filter(Boolean).length;
 
   function clearFilters() {
     setInterest(null);
@@ -115,37 +117,68 @@ export function Connections() {
       {error && <ErrorBox message={error} />}
 
       {data && data.length > 0 && (
-        <section className="glass space-y-4 p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold text-ink-900">Filter connections</h2>
-            {hasFilters && (
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="text-xs font-semibold text-flame hover:text-ember"
-              >
-                Reset all
-              </button>
-            )}
-          </div>
-          <FilterRow
-            label="Interests"
-            options={filterOptions.interests}
-            selected={interest}
-            onSelect={setInterest}
-          />
-          <FilterRow
-            label="Industry"
-            options={filterOptions.industries}
-            selected={industry}
-            onSelect={setIndustry}
-          />
-          <FilterRow
-            label="Funding stage"
-            options={filterOptions.funding}
-            selected={funding}
-            onSelect={setFunding}
-          />
+        <section className="glass overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((open) => !open)}
+            aria-expanded={filtersOpen}
+            className="glass-interactive flex w-full items-center justify-between gap-2 p-4 text-left"
+          >
+            <span className="text-sm font-semibold text-ink-900">
+              Filter connections
+              {activeFilterCount > 0 && (
+                <span className="text-flame"> ({activeFilterCount})</span>
+              )}
+            </span>
+            <svg
+              aria-hidden
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className={`h-4 w-4 shrink-0 text-ink-muted transition-transform duration-200 ${
+                filtersOpen ? "rotate-180" : ""
+              }`}
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+
+          {filtersOpen && (
+            <div className="space-y-4 border-t border-subtle p-4">
+              {hasFilters && (
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="text-xs font-semibold text-flame hover:text-ember"
+                  >
+                    Reset all
+                  </button>
+                </div>
+              )}
+              <FilterRow
+                label="Interests"
+                options={filterOptions.interests}
+                selected={interest}
+                onSelect={setInterest}
+              />
+              <FilterRow
+                label="Industry"
+                options={filterOptions.industries}
+                selected={industry}
+                onSelect={setIndustry}
+              />
+              <FilterRow
+                label="Funding stage"
+                options={filterOptions.funding}
+                selected={funding}
+                onSelect={setFunding}
+              />
+            </div>
+          )}
         </section>
       )}
 
