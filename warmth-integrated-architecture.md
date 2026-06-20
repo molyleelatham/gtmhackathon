@@ -8,7 +8,7 @@
 ## System Overview
 
 Warmth now consists of two main components:
-1. **Native iOS/watchOS App** - Mobile recording and wake word detection
+1. **Native iOS/watchOS App** - Mobile recording with manual start/stop controls
 2. **Python Backend** - Server-side processing, CRM integration, and intelligence analysis
 
 ---
@@ -22,7 +22,7 @@ Warmth now consists of two main components:
 │  ┌──────────────────────┐    ┌──────────────────────┐             │
 │  │   iPhone App         │    │   Apple Watch        │             │
 │  │                      │◄──►│                      │             │
-│  │ - Wake Word (Hey Anna)│    │ - Widget Complications│             │
+│  │ - Manual Recording    │    │ - Widget Complications│             │
 │  │ - Audio Recording     │    │ - Remote Control      │             │
 │  │ - Real-time UI        │    │ - Status Display      │             │
 │  │ - Local Storage       │    │ - WatchConnectivity   │             │
@@ -141,7 +141,7 @@ Message: {
 ### Data Flow
 
 1. **Recording Start**
-   - iOS: Wake word detected → Start recording
+   - User starts recording from the iPhone app or Apple Watch
    - iOS: Upload audio chunks to backend via WebSocket
    - Backend: Process with Deepgram → Store in Firebase
 
@@ -213,7 +213,6 @@ Message: {
 struct AppConstants {
     static let backendAPIURL = "https://your-backend-api.com"
     static let webSocketURL = "wss://your-backend-api.com/ws/transcript"
-    static let porcupineAccessKey = "YOUR_ACCESS_KEY"
 }
 ```
 

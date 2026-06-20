@@ -1,19 +1,19 @@
 # Warmth — Integrated Conference Intelligence Platform
 
 > **GTM Hackathon · June 2026**
-> Stack: Python (Backend) + iOS/watchOS (Mobile) · FastAPI · Cursor SDK · Porcupine · Deepgram · Zero CRM · UnifyGTM · Google MCP
+> Stack: Python (Backend) + iOS/watchOS (Mobile) · FastAPI · Cursor SDK · Deepgram · Zero CRM · UnifyGTM · Google MCP
 
 ## Overview
 
 Warmth is an integrated conference intelligence platform combining:
-- **Native iOS/watchOS App** - Mobile recording with wake word detection
+- **Native iOS/watchOS App** - Mobile recording with phrase trigger ("Hi, I'm Zack") and manual start/stop controls
 - **Python Backend** - Server-side processing, CRM integration, and AI analysis
 
-When you attend conferences, the iOS app uses wake word detection ("Hey Anna") to start recording conversations, while the backend processes transcriptions, extracts intelligence, and manages CRM integrations.
+When you attend conferences, start recording from the iPhone app or Apple Watch; the backend processes transcriptions, extracts intelligence, and manages CRM integrations.
 
 ## Key Features
 
-- **🎤 Wake Word Detection**: Say "Hey Anna" to start recording (using Porcupine)
+- **🎤 Phrase + Manual Recording**: Say **"Hi, I'm Zack"** on iPhone (foreground) or tap / use Apple Watch to start and stop recording
 - **👥 Lead Classification**: Automatically route leads to me/team/founders/community
 - **📋 Directory Scraping**: Scrape conference directories for attendees by interests
 - **🤝 First Connections**: Auto-enrich and draft emails via Google MCP
@@ -70,7 +70,6 @@ uv run python apps/listener/main.py
 
 Required environment variables (see `.env.example`):
 
-- **Wake Word**: `PORCUPINE_ACCESS_KEY`
 - **ASR**: `DEEPGRAM_API_KEY`
 - **Integrations**: `ZERO_CRM_API_KEY`, `UNIFY_GTM_API_KEY`, `CURSOR_SDK_API_KEY`
 - **Google MCP**: `GOOGLE_MCP_CREDENTIALS`, `GOOGLE_MCP_SERVER_URL`
@@ -82,7 +81,6 @@ Required environment variables (see `.env.example`):
 
 ## Integrations
 
-- **Wake Word**: Porcupine (custom "Hey Anna" detection)
 - **Signal Detection**: Deepgram Nova-3 (ASR), Tavily Search
 - **Lead Classification**: Custom routing logic (me/team/founders/community)
 - **Directory Scraping**: BeautifulSoup (web), PyPDF (documents)

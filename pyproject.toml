@@ -25,7 +25,6 @@ dependencies = [
     "deepgram-sdk>=3.2.0",
     "pyaudio>=0.2.14",
     "rnnoise-python>=0.2.0",
-    "pvporcupine>=3.0.0",  # Wake word detection
     "aiofiles>=23.2.1",
     "asyncio>=3.4.3",
     "beautifulsoup4>=4.12.0",  # Web scraping
