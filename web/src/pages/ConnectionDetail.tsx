@@ -160,6 +160,16 @@ export function ConnectionDetail() {
               <pre className="mt-2 whitespace-pre-wrap text-sm text-gray-400">
                 {String(followup.body ?? "")}
               </pre>
+              {followup.gmail_compose_url ? (
+                <a
+                  href={String(followup.gmail_compose_url)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-block rounded-lg bg-warmth-warm/90 px-3 py-1.5 text-xs font-medium text-ink-900 hover:bg-warmth-warm"
+                >
+                  Open in Gmail · Lightfern polishes it there
+                </a>
+              ) : null}
               <div className="mt-2 text-xs text-gray-500">status: {String(followup.status)}</div>
             </Card>
           )}

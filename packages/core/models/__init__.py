@@ -17,6 +17,12 @@ from .event import (
 from .warmth import WarmthScore, WarmthBand
 from .meeting_signal import MeetingSignal, TopicTime
 from .pre_connection import PreMeetConnection, PreMeetStatus
+from .person import (
+    PainPoint,
+    PersonalContext,
+    PersonNode,
+    PersonKnowledgeGraph,
+)
 
 __all__ = [
     "Signal",
@@ -46,4 +52,8 @@ __all__ = [
     "TopicTime",
     "PreMeetConnection",
     "PreMeetStatus",
+    "PainPoint",
+    "PersonalContext",
+    "PersonNode",
+    "PersonKnowledgeGraph",
 ]

@@ -10,15 +10,13 @@ class RecordingEngine: NSObject, ObservableObject {
     @Published var recordingDuration: TimeInterval = 0
     
     private var audioRecorder: AVAudioRecorder?
-    private var deepgramClient: DeepgramClient?
     private var recordingTimer: Timer?
     private var recordingStartTime: Date?
-    
+
     private let audioSessionManager = AudioSessionManager.shared
-    
+
     private override init() {
         super.init()
-        deepgramClient = DeepgramClient()
     }
     
     func startRecording() {
@@ -40,13 +38,7 @@ class RecordingEngine: NSObject, ObservableObject {
             audioRecorder = try AVAudioRecorder(url: recordingURL, settings: settings)
             audioRecorder?.delegate = self
             audioRecorder?.record()
-            
-            deepgramClient?.startStreaming { [weak self] transcript in
-                DispatchQueue.main.async {
-                    self?.currentTranscript = transcript
-                }
-            }
-            
+
             recordingStartTime = Date()
             recordingTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
                 self?.updateRecordingDuration()
@@ -65,9 +57,7 @@ class RecordingEngine: NSObject, ObservableObject {
         
         audioRecorder?.stop()
         audioRecorder = nil
-        
-        deepgramClient?.stopStreaming()
-        
+
         recordingTimer?.invalidate()
         recordingTimer = nil
         
@@ -86,24 +76,10 @@ class RecordingEngine: NSObject, ObservableObject {
 
 extension RecordingEngine: AVAudioRecorderDelegate {
     func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
-        if successfully {
+        if flag {
             print("Recording finished successfully")
         } else {
             print("Recording finished with errors")
         }
-    }
-}
-
-class DeepgramClient {
-    private var webSocketTask: URLSessionWebSocketTask?
-    
-    func startStreaming(transcriptHandler: @escaping (String) -> Void) {
-        // Deepgram WebSocket streaming implementation
-        print("Starting Deepgram streaming...")
-    }
-    
-    func stopStreaming() {
-        webSocketTask?.cancel()
-        print("Stopped Deepgram streaming")
     }
 }

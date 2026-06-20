@@ -23,7 +23,11 @@ class FollowUpRequest(BaseModel):
 
 @router.post("/connections/{connection_id}/followup")
 async def send_followup(connection_id: str, req: FollowUpRequest):
-    """Generate (and optionally send) a personalized post-meet follow-up."""
+    """Draft a personalized post-meet follow-up and return a Gmail handoff link.
+
+    Does not send: returns a `draft_ready` draft with a `gmail_compose_url` for
+    the user to open in Gmail, where Lightfern completes/polishes it.
+    """
     lead = store.leads.get(req.lead_id) if req.lead_id else None
     if lead is None:
         lead = Lead(

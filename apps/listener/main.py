@@ -2,8 +2,11 @@ import asyncio
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables: local .env first (developer overrides), then fill
+# any gaps from the shared Google Secret Manager project.
 load_dotenv()
+from ...packages.core.secrets import load_secrets_into_env  # noqa: E402
+load_secrets_into_env()
 
 from ...packages.core.models.icp import ICPConfig
 from ...packages.integrations.tavily.client import TavilyClient

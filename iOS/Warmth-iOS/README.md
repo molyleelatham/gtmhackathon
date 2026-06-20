@@ -1,81 +1,148 @@
 # Warmth iOS App
 
-Native iOS/watchOS personal CRM recording app with phrase-triggered recording, manual controls, and Apple Watch integration.
+Native iOS/watchOS conference-intelligence app. The phone passively listens for
+**contact names** (wake words), opens a short on-device capture window when one
+is heard, builds a social graph from the conversation, scores the lead against
+your ICP, and pushes qualified leads to the backend → Zero CRM.
 
-## Features
+## Pipeline
 
-- **Phrase Trigger**: Say **"hey its nice to meet you"** (or **"hey it's nice to meet you"**) while the app is in the foreground to start recording (Apple Speech framework, on-device)
-- **Manual Recording**: Tap on iPhone or use Apple Watch controls to start and stop recording
-- **Siri Shortcuts**: Optional voice shortcuts for hands-free start/stop
-- **Background Recording**: Continuous recording with proper AVAudioSession management
-- **Apple Watch Control**: WidgetKit complications for remote recording control
-- **WatchConnectivity**: Seamless iPhone-Watch communication
-- **Deepgram Integration**: Real-time transcription via WebSocket
-- **CRM Integration**: Connects to backend API for data sync
+```
+AVAudioEngine (iPhone mic, 16kHz Float32)        MicrophoneStream.swift
+      ↓  raw PCM chunks  +  16kHz mono [Float]
+Soniqo WakeWordDetector (CoreML, Neural Engine)  WakeWordEngine.swift
+      keywords: ["hey anna", "hey james", contact names…]
+      ↓  on detection: name + timestamp
+┌────────────────────────────────────────────┐
+│  30-second capture window opens            │  CaptureWindow.swift
+│  SFSpeechRecognizer (on-device)            │
+│  + SFCustomLanguageModelData (ICP vocab)   │  ICPVocabulary.swift
+│       ↓  rolling transcript                │
+│  SocialGraphEngine (NLTagger)              │  SocialGraphEngine.swift
+│  ├── Named entity extraction (names, orgs) │
+│  ├── Relationship pattern detection        │
+│  ├── ICP keyword proximity scoring         │
+│  └── PersonNode graph update               │
+└────────────────────────────────────────────┘
+      ↓  Signal(person, company, relationships, score)   Signal.swift
+WatchConnectivity → Watch haptic (lead detected!)  WatchConnectivityService.swift
+      ↓
+Backend POST /api/signals → Zero CRM → follow-up sequence   SignalAPIClient.swift
+```
 
-## Phrase trigger
+`ConferenceListeningEngine.swift` is the orchestrator that wires these together
+and exposes `state` / `liveTranscript` / `lastSignal` to the UI (`ListeningView.swift`).
 
-The iPhone app listens for hardcoded phrases when active in the foreground:
+## How it works
 
-| Spoken phrase | Normalized match |
-|---------------|------------------|
-| hey its nice to meet you | `hey its nice to meet you` |
-| hey it's nice to meet you | `hey its nice to meet you` |
-| its nice to meet you | `its nice to meet you` |
+1. **Mic** — `MicrophoneStream` runs a single shared `AVAudioEngine` input tap and
+   fans every buffer out as (a) the raw `AVAudioPCMBuffer` for the recognizer and
+   (b) a downsampled 16 kHz mono `[Float]` for the wake-word detector.
+2. **Wake word** — `WakeWordEngine` wraps the Soniqo `SpeechWakeWord` detector.
+   Keywords are built **dynamically** from the watchlist (`WatchlistProvider`):
+   for each name it registers `"hey <name>"` (boost 0.6) and the bare first name
+   (boost 0.4). A detection maps back to the contact name via a phrase→name table.
+3. **Capture window** — on detection, `ConferenceListeningEngine` opens a 30 s
+   `CaptureWindow`. Recognition is on-device and biased toward ICP terms via an
+   `SFCustomLanguageModelData` model built from `ICPVocabulary` ("RevOps",
+   "Series B", …). While capturing, mic buffers are appended to the request and
+   wake-word pushes are paused to avoid re-triggering.
+4. **Social graph** — `SocialGraphEngine` runs `NLTagger` NER (personal + org
+   names), detects relationship cues ("works with", "reports to", "introduced me
+   to"), scores ICP keywords by proximity to the person/org, and accumulates
+   `PersonNode`s across windows.
+5. **Signal** — the window yields a `Signal(person, company, relationships,
+   score)`. If `score >= 50` it's a lead: the watch buzzes
+   (`WKInterfaceDevice.play(.notification)`) and the signal is `POST`ed to
+   `/api/signals`.
 
-Matching is case-insensitive and ignores punctuation. On detection, the app plays haptic feedback and calls `RecordingEngine.shared.startRecording()`.
+## Watchlist
 
-Implementation: `Warmth/Services/PhraseTriggerEngine.swift` (Apple `Speech` + `SFSpeechRecognizer` — no Porcupine or third-party wake-word SDK).
+`WatchlistProvider` seeds a sample list of first names. In production, hydrate it
+from the user's Zero CRM contacts (e.g. `GET /api/contacts`) before an event and
+call `WatchlistProvider.shared.update(names:)`, then restart the engine so the
+wake-word detector re-configures.
 
-Phrase listening stops when the app moves to background; use manual or Watch controls there.
+## ICP vocabulary
+
+`ICPVocabulary` mirrors the backend ICP config (`packages/core/models/icp.py`):
+weighted keywords used both to bias speech recognition and to score leads.
+Scoring matches the backend pre-scorer (keyword weights + conference-audio bonus,
+capped at 100).
 
 ## Structure
 
-- `Warmth/` - Main iOS app target
-- `WarmthWatch/` - watchOS app target
-- `WarmthWatchWidgetExtension/` - WidgetKit complications
-- `Shared/` - Shared code between targets
+- `Warmth/` — Main iOS app target
+  - `App/WarmthApp.swift` — app entry; starts `ConferenceListeningEngine`
+  - `Models/` — `Signal.swift`, `ICPVocabulary.swift`
+  - `Services/` — mic, wake word, capture, social graph, API client, orchestrator
+  - `Views/ListeningView.swift` — listening state + live transcript + last lead
+- `WarmthWatch/` — watchOS app target (haptic + lead banner)
+- `WarmthWatchWidgetExtension/` — WidgetKit complications
+- `Shared/` — shared code
+
+## Dependencies
+
+Add the Soniqo wake-word package via **Swift Package Manager** to the **Warmth**
+target:
+
+```
+https://github.com/soniqo/speech-swift   (product: SpeechWakeWord)
+```
+
+> **API note:** the orchestrator reads the matched phrase from
+> `WakeWordDetection.keyword`. If the package names that property differently
+> (e.g. `phrase`), update `matchedName(from:)` in `ConferenceListeningEngine.swift`.
 
 ## Integration with Backend
 
-The iOS app integrates with the Python backend via REST API:
+- **POST `/api/signals`** — primary path; sends `Signal` JSON (snake_case,
+  ISO-8601 dates). Backend forwards qualified leads to Zero CRM and starts the
+  follow-up sequence.
 
-- **POST /api/recordings** - Upload audio files
-- **GET /api/conversations** - Fetch conversation intelligence
-- **WebSocket /ws/transcript** - Real-time transcript updates
+Set the base URL via the `WARMTH_API_BASE_URL` Info.plist key (defaults to
+`http://localhost:8000`).
 
 ## Development
 
 Requires:
 - Xcode 15+
-- iOS 17+
+- iOS 17+ (uses `SFCustomLanguageModelData`)
 - watchOS 10+
 
 ## Setup
 
-1. **Firebase iOS app** (already registered in project `warmth-gtm-hackathon`):
+1. **Firebase iOS app** (registered in project `warmth-gtm-hackathon`):
    - Bundle ID: `com.warmth.gtmhackathon`
    - Config file: `Warmth-iOS/Warmth/GoogleService-Info.plist`
-   - When creating the Xcode project, use the same bundle ID and add the plist to the **Warmth** target (Copy Bundle Resources).
+   - Add the plist to the **Warmth** target (Copy Bundle Resources).
 
-2. Configure backend API URL in `AppConstants.swift`
-3. Add required Info.plist usage descriptions (no `.xcodeproj` is checked into this repo — add these when creating the Xcode project):
+2. Add the `SpeechWakeWord` SPM dependency (see **Dependencies**).
+
+3. Add required Info.plist keys (no `.xcodeproj` is checked into this repo — add
+   these when creating the Xcode project):
 
 ```xml
 <key>NSMicrophoneUsageDescription</key>
-<string>Warmth needs microphone access to record conversations and detect the phrase trigger.</string>
+<string>Warmth listens for contact names to capture conversation intelligence.</string>
 <key>NSSpeechRecognitionUsageDescription</key>
-<string>Warmth uses on-device speech recognition to detect "hey its nice to meet you" and start recording.</string>
+<string>Warmth uses on-device speech recognition to transcribe conversations after a name is heard.</string>
+<key>WARMTH_API_BASE_URL</key>
+<string>http://localhost:8000</string>
 ```
 
-3. Build and run on a **physical device** for reliable phrase detection (simulator mic/speech can be flaky)
-4. Grant microphone and speech recognition when prompted
-5. With the app in the foreground, say **"hey its nice to meet you"** — you should feel haptic feedback and recording should start
+4. Build and run on a **physical device** (simulator mic/speech and the Neural
+   Engine wake-word model are unreliable in the simulator).
+5. Grant microphone + speech recognition when prompted.
+6. With the app foregrounded, say a watchlist name (e.g. **"hey Anna"**) — a
+   capture window opens; if ICP terms are heard, the watch buzzes and a lead is
+   posted.
 
-## Testing phrase trigger
+## Testing
 
-1. Run the iOS app on device with the app visible (foreground)
-2. Accept microphone + speech recognition permissions
-3. Speak clearly: **"hey its nice to meet you"** or **"hey it's nice to meet you"**
-4. Expect medium haptic + `RecordingEngine.isRecording == true`
-5. Repeat within 3 seconds should not re-trigger (cooldown)
+1. Run on device; accept microphone + speech permissions.
+2. Say **"hey Anna"** (a seeded watchlist name). Expect `state == .capturing`.
+3. During the 30 s window, mention ICP terms ("we're scaling RevOps after our
+   Series B"). Expect a `Signal` with `score >= 50`, a watch haptic, and a
+   `POST /api/signals`.
+4. Watch face shows the 🔥 Lead banner with name + ICP score.

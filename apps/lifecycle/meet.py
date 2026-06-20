@@ -16,6 +16,7 @@ from ...packages.ml.pipeline import MeetIntelligencePipeline, RoutingDecision, R
 from ...packages.integrations.zero_crm.client import ZeroCRMClient
 from ...packages.integrations.zero_crm.mapper import ZeroCRMMapper
 from ...packages.integrations.lightfern.workflow import LightfernClient
+from ...packages.integrations.faxxing.client import FaxxingClient
 from .community_matcher import CommunityMatcher
 
 
@@ -25,11 +26,13 @@ class MeetPipeline:
         ml_pipeline: Optional[MeetIntelligencePipeline] = None,
         zero_client: Optional[ZeroCRMClient] = None,
         lightfern_client: Optional[LightfernClient] = None,
+        faxxing_client: Optional[FaxxingClient] = None,
         community_matcher: Optional[CommunityMatcher] = None,
     ):
         self.ml_pipeline = ml_pipeline or MeetIntelligencePipeline()
         self.zero_client = zero_client
         self.lightfern_client = lightfern_client or LightfernClient()
+        self.faxxing_client = faxxing_client or FaxxingClient()
         self.community_matcher = community_matcher or CommunityMatcher()
 
     async def process(
@@ -62,18 +65,32 @@ class MeetPipeline:
         signal: MeetingSignal,
         decision: RoutingDecision,
     ) -> None:
+        person = signal.personal_context
+
         if lead and self.zero_client:
             try:
-                payload = ZeroCRMMapper.lead_to_zero_payload(lead)
+                # Push the lead enriched with the evolved per-person context
+                # (communication style, values, dominant topic, pains) so the
+                # CRM record carries the narrative, not just firmographics.
+                payload = ZeroCRMMapper.lead_to_zero_payload_with_context(lead, person)
                 await self.zero_client.create_lead(payload)
             except Exception as e:  # pragma: no cover - stub resilience
                 print(f"Meet push-to-CRM stub fallback: {e}")
+
+        # Faxxing tailors the outreach sequence to the person's communication
+        # style + values captured during the meet.
+        if person is not None:
+            try:
+                decision.outreach_sequence = await self.faxxing_client.personalize_sequence(person)
+            except Exception as e:  # pragma: no cover - stub resilience
+                print(f"Meet Faxxing stub fallback: {e}")
 
         if lead:
             try:
                 await self.lightfern_client.send_followup_email(
                     lead,
                     context={
+                        "personal_context": person,
                         "interests": signal.interests,
                         "most_interesting": signal.most_interesting,
                         "what_you_learned": signal.what_you_learned,

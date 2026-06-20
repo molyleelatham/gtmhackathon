@@ -33,6 +33,35 @@ class WatchConnectivityService: NSObject, ObservableObject {
             session.transferUserInfo(message)
         }
     }
+
+    // MARK: - Lead notifications
+
+    /// Light confirmation buzz when a wake word fires and a capture window opens.
+    func notifyWakeWord(name: String?) {
+        send([
+            "action": "wakeWord",
+            "name": name ?? "",
+            "timestamp": Date().timeIntervalSince1970
+        ])
+    }
+
+    /// Strong notification when a qualified lead is detected mid-conversation.
+    func notifyLeadDetected(name: String, score: Double) {
+        send([
+            "action": "leadDetected",
+            "name": name,
+            "score": score,
+            "timestamp": Date().timeIntervalSince1970
+        ])
+    }
+
+    private func send(_ message: [String: Any]) {
+        if session.isReachable {
+            session.sendMessage(message, replyHandler: nil, errorHandler: nil)
+        } else {
+            session.transferUserInfo(message)
+        }
+    }
 }
 
 extension WatchConnectivityService: WCSessionDelegate {

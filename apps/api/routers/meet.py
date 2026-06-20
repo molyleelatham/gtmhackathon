@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from ..store import store
 from ...lifecycle.meet import MeetPipeline
 from ....packages.core.models.meeting_signal import MeetingSignal, TopicTime
+from ....packages.core.models.person import PersonNode
 
 router = APIRouter(prefix="/api/v1", tags=["meet"])
 
@@ -29,6 +30,7 @@ class MeetingSignalInput(BaseModel):
     what_you_learned: list[str] = []
     most_interesting: Optional[str] = None
     transcript_excerpt: Optional[str] = None
+    personal_context: Optional[PersonNode] = None
 
 
 @router.post("/meet/signals")
@@ -52,6 +54,7 @@ async def process_signal(payload: MeetingSignalInput):
         what_you_learned=payload.what_you_learned,
         most_interesting=payload.most_interesting,
         transcript_excerpt=payload.transcript_excerpt,
+        personal_context=payload.personal_context,
     )
 
     prior = (

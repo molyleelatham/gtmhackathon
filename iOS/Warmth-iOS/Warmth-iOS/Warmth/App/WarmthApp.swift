@@ -6,71 +6,44 @@ import Speech
 struct WarmthApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
-    @StateObject private var recordingEngine = RecordingEngine.shared
+    @StateObject private var listeningEngine = ConferenceListeningEngine.shared
     @StateObject private var watchConnectivityService = WatchConnectivityService.shared
-    @StateObject private var phraseTriggerEngine = PhraseTriggerEngine.shared
-    
-    init() {
-        setupApp()
-    }
-    
+
     var body: some Scene {
         WindowGroup {
-            MainTabView()
-                .environmentObject(recordingEngine)
+            ListeningView()
+                .environmentObject(listeningEngine)
                 .environmentObject(watchConnectivityService)
-                .environmentObject(phraseTriggerEngine)
-                .onAppear {
-                    requestPermissions()
-                }
+                .onAppear { requestPermissions() }
                 .onChange(of: scenePhase) { _, newPhase in
                     switch newPhase {
                     case .active:
-                        phraseTriggerEngine.startListening()
+                        Task { await listeningEngine.start() }
                     case .inactive, .background:
-                        phraseTriggerEngine.stopListening()
+                        listeningEngine.stop()
                     @unknown default:
                         break
                     }
                 }
         }
-        .backgroundTask(.appRefresh("recordingSync")) {
-            await syncRecordings()
-        }
     }
-    
-    private func setupApp() {
-        _ = AudioSessionManager.shared
-        _ = CoreDataManager.shared
-    }
-    
+
     private func requestPermissions() {
         AVAudioSession.sharedInstance().requestRecordPermission { granted in
-            if granted {
-                print("Microphone permission granted")
-            } else {
-                print("Microphone permission denied")
-            }
+            print(granted ? "Microphone permission granted" : "Microphone permission denied")
         }
 
         SFSpeechRecognizer.requestAuthorization { status in
             Task { @MainActor in
                 switch status {
                 case .authorized:
-                    print("Speech recognition permission granted")
-                    phraseTriggerEngine.startListening()
+                    await listeningEngine.start()
                 case .denied, .restricted:
                     print("Speech recognition permission denied")
-                case .notDetermined:
-                    break
-                @unknown default:
+                default:
                     break
                 }
             }
         }
-    }
-    
-    private func syncRecordings() async {
-        await CloudKitSyncService.shared.syncAll()
     }
 }

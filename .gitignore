@@ -68,3 +68,6 @@ gcp-credentials.json
 tmp/
 temp/
 *.tmp
+
+# Locally-saved outreach drafts (Lightfern → Gmail handoff)
+drafts/

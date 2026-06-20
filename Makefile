@@ -1,4 +1,4 @@
-.PHONY: help install test run-api run-listener test-tavily test-mic lint format
+.PHONY: help install test run-api run-listener test-tavily test-mic lint format secrets-push secrets-pull secrets-list
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -47,6 +47,18 @@ run-api: ## Run the FastAPI server
 run-listener: ## Run the listener service
 	@echo "🚀 Starting listener service..."
 	uv run python apps/listener/main.py
+
+secrets-push: ## Push local .env secrets to Google Secret Manager
+	@echo "🔐 Pushing secrets to Google Secret Manager..."
+	uv run python scripts/secrets_sync.py push --env-file .env
+
+secrets-pull: ## Pull team secrets from Google Secret Manager into .env
+	@echo "🔐 Pulling secrets from Google Secret Manager..."
+	uv run python scripts/secrets_sync.py pull --env-file .env
+
+secrets-list: ## List secrets stored in Google Secret Manager
+	@echo "🔐 Listing secrets in Google Secret Manager..."
+	uv run python scripts/secrets_sync.py list
 
 lint: ## Run linting
 	@echo "🔍 Running linting..."

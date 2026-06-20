@@ -5,10 +5,26 @@ struct RecordingStateView: View {
     
     var body: some View {
         VStack(spacing: 20) {
+            if let lead = wcService.lastLeadName {
+                VStack(spacing: 2) {
+                    Text("🔥 Lead")
+                        .font(.caption2)
+                        .foregroundColor(.orange)
+                    Text(lead)
+                        .font(.headline)
+                    Text("ICP \(Int(wcService.lastLeadScore))")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                .padding(8)
+                .background(Color.orange.opacity(0.15))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+
             if wcService.isRecording {
                 PulsingDot()
                     .frame(width: 60, height: 60)
-                
+
                 Text("Recording Active")
                     .font(.headline)
                 

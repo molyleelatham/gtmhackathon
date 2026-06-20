@@ -22,6 +22,7 @@ class RoutingDecision(BaseModel):
     cluster_id: Optional[int] = None
     warmth: Optional[WarmthScore] = None
     matched_candidates: list[dict] = Field(default_factory=list)
+    outreach_sequence: Optional[dict] = None  # Faxxing-personalised sequence
 
 
 class MeetIntelligencePipeline:

@@ -1,17 +1,70 @@
 import httpx
-from typing import Optional, Any
+import json
 import os
+from datetime import datetime
+from pathlib import Path
+from typing import Optional, Any
+from urllib.parse import urlencode
 from ...core.models.lead import Lead
 
 
+_CONTEXT_MARKER = "--- CONTEXT FOR LIGHTFERN (remove before sending) ---"
+
+
+def _csv(items: Any) -> str:
+    if not items:
+        return "—"
+    if isinstance(items, (list, tuple, set)):
+        return ", ".join(str(i) for i in items if i not in (None, ""))
+    return str(items)
+
+
+def _render_value(value: Any) -> str:
+    if value in (None, "", [], {}):
+        return ""
+    if isinstance(value, (list, tuple, set)):
+        return _csv(value)
+    if isinstance(value, dict):
+        return ", ".join(f"{k}={v}" for k, v in value.items())
+    return str(value)
+
+
+def build_gmail_compose_url(
+    to: Optional[str],
+    subject: str,
+    body: str,
+) -> str:
+    """Build a Gmail compose deep link so the user can open the draft in Gmail.
+
+    Gmail prefills `to` / `subject` / `body`; Lightfern then completes/polishes
+    the final email inside Gmail.
+    """
+    params = {"view": "cm", "fs": "1", "su": subject, "body": body}
+    if to:
+        params["to"] = to
+    return "https://mail.google.com/mail/?" + urlencode(params)
+
+
 class LightfernClient:
-    """Client for Lightfern GTM workflow triggers"""
-    
-    def __init__(self, webhook_url: Optional[str] = None):
+    """Lightfern outreach assistant.
+
+    Lightfern is NOT a send-side API. The flow is:
+      1. generate the draft (subject/body) here,
+      2. save the draft locally,
+      3. hand the user a Gmail compose link to open/copy it into Gmail,
+      4. Lightfern completes/polishes the final email inside Gmail.
+
+    `webhook_url` is optional and only used for the legacy GTM workflow triggers
+    (enrichment etc.); drafting works fully offline.
+    """
+
+    def __init__(
+        self,
+        webhook_url: Optional[str] = None,
+        drafts_dir: Optional[str] = None,
+    ):
         self.webhook_url = webhook_url or os.getenv("LIGHTFERN_WEBHOOK_URL")
-        
-        if not self.webhook_url:
-            print("Warning: LIGHTFERN_WEBHOOK_URL not set, workflow triggers disabled")
+        self.drafts_dir = Path(drafts_dir or os.getenv("WARMTH_DRAFTS_DIR", "drafts"))
     
     async def trigger_workflow(
         self,
@@ -78,17 +131,20 @@ class LightfernClient:
         context: dict[str, Any],
         purpose: str = "pre_meet_intro",
     ) -> dict[str, Any]:
-        """Personalize an outreach message using Lightfern.
+        """Generate a Gmail-ready outreach draft (we draft; Lightfern polishes).
 
         Used pre-meet (intro to a high-intent attendee using the "parasocial"
         research context) and post-meet (follow-up grounded in the captured
-        conversation signals).
+        conversation signals). Returns the draft plus a `gmail_compose_url` for
+        the user to open/copy it into Gmail, where Lightfern completes it. The
+        draft is also saved locally.
 
-        STUB: returns a templated draft. TODO: call the real Lightfern API to
-        generate copy tuned to the sender's voice + recipient context.
+        STUB body: templated copy. TODO: call the real Lightfern API to generate
+        copy tuned to the sender's voice + recipient context.
         """
         name = recipient.get("name") or "there"
         company = recipient.get("company") or "your team"
+        to = recipient.get("email") or recipient.get("to")
         interests = ", ".join(context.get("interests", [])) or "what you're building"
 
         if purpose == "post_meet_followup":
@@ -97,7 +153,7 @@ class LightfernClient:
                 f"Hi {name},\n\n"
                 f"Really enjoyed our chat about {interests}. "
                 f"Following up with what we discussed and a couple of ideas for {company}.\n\n"
-                f"[Lightfern STUB: personalized follow-up body]\n"
+                f"[Lightfern will polish this in Gmail]\n"
             )
         else:
             subject = f"Excited to connect at the conference, {name}"
@@ -105,27 +161,116 @@ class LightfernClient:
                 f"Hi {name},\n\n"
                 f"Saw you'll be at the conference and noticed your work at {company}. "
                 f"Would love to swap notes on {interests}.\n\n"
-                f"[Lightfern STUB: personalized intro body]\n"
+                f"[Lightfern will polish this in Gmail]\n"
             )
 
-        return {
-            "status": "stubbed",
+        # Quick hack: dump ALL the captured context into the draft so Lightfern
+        # (which reads the draft inside Gmail) has full per-person context to
+        # personalize from. Lives below a marker so it's easy to strip on send.
+        brief = self._render_context_brief(context)
+        if brief:
+            body += f"\n\n{_CONTEXT_MARKER}\n{brief}\n"
+
+        return self._as_draft(to=to, subject=subject, body=body, purpose=purpose)
+
+    @staticmethod
+    def _render_context_brief(context: dict[str, Any]) -> str:
+        """Render every piece of captured context as a plain-text brief.
+
+        Handles the per-person `PersonNode` specially (narrative + structured
+        traits) and renders any other scalars/lists generically.
+        """
+        if not context:
+            return ""
+
+        lines: list[str] = ["Context for Lightfern (delete before sending):"]
+
+        person = context.get("personal_context") or context.get("person")
+        if person is not None:
+            lines.append("")
+            lines.append("PERSON:")
+            # Duck-typed PersonNode (avoid a hard import / circular dep).
+            narrative = getattr(person, "to_narrative", None)
+            if callable(narrative):
+                lines.append(f"  summary: {narrative()}")
+                lines.append(f"  communication_style: {_csv(getattr(person, 'communication_style', []))}")
+                lines.append(f"  values: {_csv(getattr(person, 'values', []))}")
+                dom = getattr(person, "dominant_topic", None)
+                if dom:
+                    lines.append(f"  dominant_topic: {dom[0]} ({dom[1]})")
+                lines.append(f"  learnings: {_csv(getattr(person, 'learnings', []))}")
+                pains = getattr(person, "pain_points", []) or []
+                if pains:
+                    lines.append(
+                        "  pain_points: "
+                        + _csv([f"{p.topic} ({p.level})" for p in pains])
+                    )
+            elif isinstance(person, dict):
+                for k, v in person.items():
+                    lines.append(f"  {k}: {_render_value(v)}")
+
+        # Everything else captured during the meet.
+        for key, value in context.items():
+            if key in ("personal_context", "person"):
+                continue
+            rendered = _render_value(value)
+            if rendered:
+                lines.append(f"{key}: {rendered}")
+
+        return "\n".join(lines)
+
+    def _as_draft(
+        self,
+        to: Optional[str],
+        subject: str,
+        body: str,
+        purpose: str,
+    ) -> dict[str, Any]:
+        """Package + persist a draft and attach the Gmail handoff link."""
+        draft = {
+            "status": "draft_ready",
+            "handoff": "gmail_lightfern",  # open in Gmail; Lightfern polishes there
             "purpose": purpose,
+            "to": to,
             "subject": subject,
             "body": body,
+            "gmail_compose_url": build_gmail_compose_url(to, subject, body),
         }
+        draft["draft_id"] = self._save_draft_locally(draft)
+        return draft
+
+    def _save_draft_locally(self, draft: dict[str, Any]) -> Optional[str]:
+        """Persist the draft to the local drafts store ("save draft in app")."""
+        try:
+            self.drafts_dir.mkdir(parents=True, exist_ok=True)
+            draft_id = f"draft_{datetime.utcnow().strftime('%Y%m%dT%H%M%S%f')}"
+            path = self.drafts_dir / f"{draft_id}.json"
+            path.write_text(json.dumps({"id": draft_id, **draft}, indent=2))
+            return draft_id
+        except Exception as e:  # pragma: no cover - best-effort persistence
+            print(f"Lightfern local draft save skipped: {e}")
+            return None
 
     async def send_followup_email(
         self,
         lead: Lead,
         context: dict[str, Any],
     ) -> dict[str, Any]:
-        """Trigger a post-meet follow-up email via Lightfern, grounded in the
-        full data pipeline context (pre-meet research + captured signals).
+        """Draft a post-meet follow-up grounded in the full pipeline context.
 
-        STUB: delegates to trigger_workflow with a followup type.
+        Despite the name, this does NOT send: it generates the draft, saves it
+        locally, and returns a Gmail compose link for the user to open in Gmail,
+        where Lightfern completes/polishes the final email.
         """
-        return await self.trigger_workflow(lead, workflow_type="post_meet_followup")
+        return await self.personalize_outreach(
+            recipient={
+                "name": lead.contact_name,
+                "company": lead.company_name,
+                "email": lead.contact_email,
+            },
+            context=context,
+            purpose="post_meet_followup",
+        )
 
     async def trigger_enrichment_workflow(
         self,

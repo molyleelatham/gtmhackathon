@@ -22,6 +22,7 @@ dependencies = [
     "google-cloud-pubsub>=2.19.0",
     "google-cloud-firestore>=2.13.0",
     "google-cloud-scheduler>=1.11.0",
+    "google-cloud-secret-manager>=2.16.0",  # Team secret management
     "deepgram-sdk>=3.2.0",
     "pyaudio>=0.2.14",
     "rnnoise-python>=0.2.0",

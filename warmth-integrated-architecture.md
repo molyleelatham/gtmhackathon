@@ -39,7 +39,7 @@ Onboarding ──> Before meet ──────────> Meet ────
 - otherwise → route to the **founder community** (nearest founder/friend match)
 `apps/lifecycle/meet.py`, `apps/lifecycle/community_matcher.py`
 
-**Post meet** — Lightfern sends a follow-up email grounded in the full pipeline context (pre-meet research + captured conversation).
+**Post meet** — generate a follow-up email *draft* grounded in the full pipeline context (pre-meet research + captured conversation), save it locally, and hand the user a Gmail compose link. The user opens it in Gmail where **Lightfern** completes/polishes the final email (we draft; Lightfern polishes — we never auto-send). If Google MCP is configured we also create the draft directly in Gmail.
 `apps/lifecycle/postmeet.py`
 
 ### ML pipeline (`packages/ml/`)
