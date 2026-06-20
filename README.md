@@ -1,15 +1,26 @@
-# Warmth — Passive Social Listening × GTM Signal Intelligence
+# Warmth — Active Conference Intelligence Platform
 
 > **GTM Hackathon · June 2026**
-> Stack: Python · FastAPI · Cursor SDK · Zero CRM · UnifyGTM · Lightfern · Firebase · GCP
+> Stack: Python · FastAPI · Cursor SDK · Porcupine · Deepgram · Zero CRM · UnifyGTM · Google MCP
 
 ## Overview
 
-Warmth is a passive social listening system that detects GTM (Go-To-Market) signals from various sources including conference audio and Tavily search. It enriches leads using UnifyGTM, scores them with Cursor SDK, and routes them to Zero CRM and Lightfern workflows.
+Warmth is an active conference intelligence system that works like "Siri for conferences." When you attend conferences, Warmth uses wake word detection ("Hey Anna") to start recording conversations, classify leads for you/your team/founders/community, scrape conference directories, make first connections, capture real-time conversation intelligence, and automate outbound strategies.
+
+## Key Features
+
+- **🎤 Wake Word Detection**: Say "Hey Anna" to start recording (using Porcupine)
+- **👥 Lead Classification**: Automatically route leads to me/team/founders/community
+- **📋 Directory Scraping**: Scrape conference directories for attendees by interests
+- **🤝 First Connections**: Auto-enrich and draft emails via Google MCP
+- **🧠 Conversation Intelligence**: Capture interests, topics, values, and insights
+- **🔄 CRM Integration**: Send all intelligence to Zero CRM automatically
+- **🤖 Auto Agents**: Create automated outbound strategies
+- **👨‍👩‍👧‍👦 Community Sharing**: Share intelligence with closed groups
 
 ## Architecture
 
-See [warmth-architecture.md](./warmth-architecture.md) for detailed technical architecture and repository structure.
+See [warmth-architecture-v2.md](./warmth-architecture-v2.md) for detailed technical architecture and repository structure.
 
 ## Quick Start
 
@@ -40,18 +51,27 @@ uv run python apps/listener/main.py
 
 Required environment variables (see `.env.example`):
 
+- **Wake Word**: `PORCUPINE_ACCESS_KEY`
 - **ASR**: `DEEPGRAM_API_KEY`
-- **Integrations**: `ZERO_CRM_API_KEY`, `UNIFY_GTM_API_KEY`, `LIGHTFERN_WEBHOOK_URL`, `CURSOR_SDK_API_KEY`
+- **Integrations**: `ZERO_CRM_API_KEY`, `UNIFY_GTM_API_KEY`, `CURSOR_SDK_API_KEY`
+- **Google MCP**: `GOOGLE_MCP_CREDENTIALS`, `GOOGLE_MCP_SERVER_URL`
 - **Signal Sources**: `TAVILY_API_KEY`
 - **Firebase**: `FIREBASE_PROJECT_ID`, `FIREBASE_SERVICE_ACCOUNT_KEY`, `FIREBASE_DATABASE_URL`
 - **GCP**: `GCP_PROJECT_ID`, `GCP_SERVICE_ACCOUNT_KEY`, `GCP_REGION`, `PUBSUB_TOPIC`
+- **Community**: `COMMUNITY_GROUPS_ENABLED`, `COMMUNITY_PERMISSIONS`
+- **User Config**: `USER_ROLE`, `TEAM_SIZE`, `COMPANY_STAGE`
 
 ## Integrations
 
+- **Wake Word**: Porcupine (custom "Hey Anna" detection)
 - **Signal Detection**: Deepgram Nova-3 (ASR), Tavily Search
+- **Lead Classification**: Custom routing logic (me/team/founders/community)
+- **Directory Scraping**: BeautifulSoup (web), PyPDF (documents)
 - **Enrichment**: UnifyGTM (firmographics), Zero CRM (contacts)
-- **Scoring**: Cursor SDK (AI-powered lead scoring)
-- **Activation**: Zero CRM (lead management), Lightfern (GTM workflows)
+- **Conversation Intelligence**: Cursor SDK (AI-powered analysis)
+- **Email Automation**: Google MCP (Gmail + Google Docs)
+- **Auto Agents**: Cursor SDK (outbound strategy generation)
+- **Community Sharing**: Firebase Firestore (permissions + sharing)
 - **Infrastructure**: Firebase Firestore (database), GCP Cloud Functions (serverless)
 
 ## Development
