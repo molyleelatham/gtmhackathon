@@ -183,13 +183,13 @@ export interface Attendee {
 
 export const ATTENDEES: Attendee[] = [
   { id: "a1", name: "Sarah Mitchell", title: "VP RevOps", company: "RevLoop", industry: "B2B SaaS", icpScore: 96, interests: ["RevOps", "PLG", "Attribution"], signal: "Just closed Series B — scaling GTM team now." },
-  { id: "a2", name: "Aisha Khan", title: "Head of Sales", company: "Payflow", industry: "Fintech", icpScore: 93, interests: ["Hiring", "Sales enablement"], signal: "Hiring 3 AEs — active tooling budget." },
-  { id: "a3", name: "James Okonkwo", title: "Founder & CEO", company: "Stackframe", industry: "DevTools", icpScore: 90, interests: ["CRM", "Data quality"], signal: "Evaluating enrichment tools before Q3 board review." },
+  { id: "a2", name: "Aisha Khan", title: "Head of Sales", company: "Payflow", industry: "Fintech", icpScore: 93, interests: ["Hiring", "Sales enablement", "RevOps"], signal: "Hiring 3 AEs — active tooling budget." },
+  { id: "a3", name: "James Okonkwo", title: "Founder & CEO", company: "Stackframe", industry: "DevTools", icpScore: 90, interests: ["CRM", "Data quality", "RevOps"], signal: "Evaluating enrichment tools before Q3 board review." },
   { id: "a4", name: "Marcus Webb", title: "Co-founder", company: "Northstar SaaS", industry: "B2B SaaS", icpScore: 86, interests: ["Founder-led sales", "Events"], signal: "Published a post on event ROI today." },
-  { id: "a5", name: "Lena Fischer", title: "CRO", company: "Bright Funnel", industry: "MarTech", icpScore: 84, interests: ["Pipeline", "Forecasting"], signal: "Quoted on a SaaStr panel about pipeline gaps." },
-  { id: "a6", name: "Diego Alvarez", title: "VP Marketing", company: "Cohorted", industry: "B2B SaaS", icpScore: 81, interests: ["Demand gen", "ABM"], signal: "Running an ABM revamp this quarter." },
+  { id: "a5", name: "Lena Fischer", title: "CRO", company: "Bright Funnel", industry: "MarTech", icpScore: 84, interests: ["Pipeline", "Forecasting", "RevOps"], signal: "Quoted on a SaaStr panel about pipeline gaps." },
+  { id: "a6", name: "Diego Alvarez", title: "VP Marketing", company: "Cohorted", industry: "B2B SaaS", icpScore: 81, interests: ["Demand gen", "ABM", "Pipeline"], signal: "Running an ABM revamp this quarter." },
   { id: "a7", name: "Priya Sharma", title: "Co-founder", company: "Ledgerly", industry: "Fintech", icpScore: 74, interests: ["Fintech", "Community"], signal: "Wants to share conference intel with her network." },
-  { id: "a8", name: "Elena Vasquez", title: "Head of Growth", company: "Cloudmint", industry: "B2B SaaS", icpScore: 69, interests: ["HubSpot", "Email automation"], signal: "HubSpot user — asked about auto-drafting follow-ups." },
+  { id: "a8", name: "Elena Vasquez", title: "Head of Growth", company: "Cloudmint", industry: "B2B SaaS", icpScore: 69, interests: ["HubSpot", "Email automation", "Sales enablement"], signal: "HubSpot user — asked about auto-drafting follow-ups." },
   { id: "a9", name: "Tom Berger", title: "Founder", company: "Dataweave", industry: "Analytics", icpScore: 64, interests: ["Analytics"], signal: "Early-stage; open to an intro call." },
   { id: "a10", name: "Hannah Lee", title: "Sales Director", company: "Quotient", industry: "B2B SaaS", icpScore: 62, interests: ["Outbound", "Sequences"], signal: "Rebuilding outbound motion." },
   { id: "a11", name: "Owen Patel", title: "VP Product", company: "Gridline", industry: "DevTools", icpScore: 58, interests: ["Product-led", "Onboarding"], signal: "Curious about signal-based prioritization." },
@@ -221,6 +221,7 @@ export interface MetPerson {
   painPoints?: string[];
   goals?: string[];
   conversationExcerpt?: string;
+  conversationTranscript?: string;
   metAt: string;
 }
 
@@ -246,6 +247,14 @@ export const MET_PEOPLE: MetPerson[] = [
     goals: ["Unify GTM stack by Q3", "Cut time-to-follow-up from days to hours"],
     conversationExcerpt:
       "We're drowning in spreadsheets after every conference — I need something that just tells me who to email first.",
+    conversationTranscript: `Sarah: Thanks for stopping by — we're scaling fast post-Series B.
+You: Congrats! What's the biggest GTM headache right now?
+Sarah: Honestly, attribution. We have three tools and none of them agree after a conference.
+You: How do you prioritize who to follow up with?
+Sarah: Spreadsheets. Someone exports badges, someone else ranks in Notion — it's a mess.
+You: We built something that scores conversations in real time and drafts follow-ups.
+Sarah: That's exactly what I need. Can we do a demo the week after SaaStr?
+Sarah: We're drowning in spreadsheets after every conference — I need something that just tells me who to email first.`,
     metAt: "11:42 AM · Hall B",
   },
   {
@@ -267,6 +276,13 @@ export const MET_PEOPLE: MetPerson[] = [
     painPoints: ["Stale CRM data", "No signal layer on top of calendar"],
     goals: ["Pick enrichment vendor by August"],
     conversationExcerpt: "Our CRM is only as good as what we put in at conferences — and we put in nothing.",
+    conversationTranscript: `James: Good to meet — I'm James, founder at Stackframe.
+You: Alex — we help teams turn booth conversations into prioritized follow-ups.
+James: Our CRM is only as good as what we put in at conferences — and we put in nothing.
+You: What does your enrichment stack look like today?
+James: Clearbit plus manual research. Board wants a decision by August.
+You: Happy to send a comparison doc — we're strong on signal from live conversations.
+James: That'd help. I'm shortlisting vendors this month.`,
     metAt: "10:15 AM · Coffee bar",
   },
   {

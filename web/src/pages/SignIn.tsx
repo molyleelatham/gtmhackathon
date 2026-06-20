@@ -21,10 +21,10 @@ export function SignIn() {
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
       <div className="glass-strong w-full max-w-sm animate-fade-up p-8 text-center">
-        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-orange to-ember text-2xl font-bold shadow-glass">
+        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-orange to-ember text-2xl font-bold text-white shadow-glass">
           W
         </div>
-        <h1 className="text-xl font-semibold text-ink-900">Warmth</h1>
+        <h1 className="text-xl font-semibold text-white">Warmth</h1>
         <p className="mt-1 text-sm text-ink-muted">
           Your personal CRM for conference connections.
         </p>
@@ -32,7 +32,7 @@ export function SignIn() {
         <button
           onClick={handleSignIn}
           disabled={busy}
-          className="mt-6 flex w-full items-center justify-center gap-3 rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-gray-800 transition hover:bg-gray-100 disabled:opacity-60"
+          className="btn-secondary mt-6 flex w-full items-center justify-center gap-3 disabled:opacity-60"
         >
           <GoogleIcon />
           {busy ? "Signing in…" : "Continue with Google"}

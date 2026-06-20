@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { avatarUrl } from "../lib/avatars";
+import { useEffect, useState } from "react";
+import { avatarImageUrl, avatarPalette, personInitials } from "../lib/avatars";
 
 export function Avatar({
   name,
@@ -10,32 +10,41 @@ export function Avatar({
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 }) {
-  const [err, setErr] = useState(false);
   const sizes = {
-    sm: "h-9 w-9 text-xs",
-    md: "h-12 w-12 text-sm",
-    lg: "h-16 w-16 text-base",
-    xl: "h-24 w-24 text-xl",
+    sm: "h-9 w-9 text-[11px]",
+    md: "h-11 w-11 text-xs",
+    lg: "h-14 w-14 text-sm",
+    xl: "h-20 w-20 text-base",
   };
-  const px = { sm: 36, md: 48, lg: 64, xl: 96 }[size];
-  const initial = name.charAt(0).toUpperCase();
+  const [failed, setFailed] = useState(false);
 
-  if (err) {
+  useEffect(() => {
+    setFailed(false);
+  }, [name]);
+
+  if (failed) {
+    const [from, to] = avatarPalette(name);
+    const initials = personInitials(name);
     return (
       <div
-        className={`grid shrink-0 place-items-center rounded-full bg-gradient-to-br from-orange to-red-brand font-bold text-white ring-2 ring-white ${sizes[size]} ${className}`}
+        className={`grid shrink-0 place-items-center rounded-full font-semibold tracking-tight text-white ring-1 ring-subtle ${sizes[size]} ${className}`}
+        style={{ background: `linear-gradient(145deg, ${from} 0%, ${to} 100%)` }}
+        aria-hidden
       >
-        {initial}
+        {initials}
       </div>
     );
   }
 
   return (
     <img
-      src={avatarUrl(name, px * 2)}
-      alt={name}
-      onError={() => setErr(true)}
-      className={`shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm ${sizes[size]} ${className}`}
+      src={avatarImageUrl(name, size)}
+      alt=""
+      width={size === "sm" ? 36 : size === "md" ? 44 : size === "lg" ? 56 : 80}
+      height={size === "sm" ? 36 : size === "md" ? 44 : size === "lg" ? 56 : 80}
+      className={`shrink-0 rounded-full object-cover ring-1 ring-subtle ${sizes[size]} ${className}`}
+      onError={() => setFailed(true)}
+      aria-hidden
     />
   );
 }

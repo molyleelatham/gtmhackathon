@@ -35,10 +35,10 @@ export function LeadDrawer({
         role="dialog"
         aria-label={`${person.name} details`}
       >
-        <div className="flex items-start justify-between border-b border-white/10 px-6 py-5">
+        <div className="flex items-start justify-between border-b border-subtle px-6 py-5">
           <div>
-            <h2 className="text-xl font-semibold">{person.name}</h2>
-            <p className="mt-0.5 text-sm text-white/55">
+            <h2 className="text-xl font-semibold text-ink-900">{person.name}</h2>
+            <p className="mt-0.5 text-sm text-ink-muted">
               {person.company}
               {person.meta ? ` · ${person.meta}` : ""}
             </p>
@@ -46,7 +46,7 @@ export function LeadDrawer({
           <button
             onClick={onClose}
             aria-label="Close"
-            className="glass-interactive grid h-9 w-9 place-items-center rounded-full border border-white/12 text-white/70"
+            className="icon-btn h-9 w-9 rounded-full"
           >
             ✕
           </button>
@@ -59,13 +59,13 @@ export function LeadDrawer({
 
           {person.signal && (
             <Section title="Why they matter">
-              <p className="text-sm leading-relaxed text-white/85">{person.signal}</p>
+              <p className="text-sm leading-relaxed text-ink-800">{person.signal}</p>
             </Section>
           )}
 
           {person.background && (
             <Section title="Background">
-              <p className="text-sm leading-relaxed text-white/85">{person.background}</p>
+              <p className="text-sm leading-relaxed text-ink-800">{person.background}</p>
             </Section>
           )}
 
@@ -73,7 +73,7 @@ export function LeadDrawer({
             <Section title="What you learned">
               <ul className="space-y-1.5">
                 {person.whatYouLearned.map((item) => (
-                  <li key={item} className="flex gap-2 text-sm text-white/85">
+                  <li key={item} className="flex gap-2 text-sm text-ink-800">
                     <span className="text-orange">•</span>
                     {item}
                   </li>
@@ -84,7 +84,7 @@ export function LeadDrawer({
 
           {person.mostInteresting && (
             <Section title="Most interesting">
-              <p className="glass rounded-xl p-3 text-sm leading-relaxed text-white/90">
+              <p className="glass rounded-xl p-3 text-sm leading-relaxed text-ink-900">
                 {person.mostInteresting}
               </p>
             </Section>
@@ -94,7 +94,7 @@ export function LeadDrawer({
             <Section title="Interests">
               <div className="flex flex-wrap gap-2">
                 {person.interests.map((t) => (
-                  <span key={t} className="glass-pill border-white/12 bg-white/[0.06] text-white/70">
+                  <span key={t} className="glass-pill border-orange/30 bg-orange/10 text-flame">
                     {t}
                   </span>
                 ))}
@@ -110,7 +110,7 @@ export function LeadDrawer({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h4 className="mb-2 text-[0.7rem] font-semibold uppercase tracking-wider text-white/45">
+      <h4 className="mb-2 text-[0.7rem] font-semibold uppercase tracking-wider text-ink-faint">
         {title}
       </h4>
       {children}

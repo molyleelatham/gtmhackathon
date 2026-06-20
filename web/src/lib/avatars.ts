@@ -31,10 +31,45 @@ const COMPANY_COLORS: Record<string, string> = {
   Dataweave: "#d97706",
 };
 
-/** Portrait photo URL (Dicebear — stable per name). */
-export function avatarUrl(name: string, size = 128): string {
-  const seed = encodeURIComponent(name.replace(/\s+/g, ""));
-  return `https://api.dicebear.com/7.x/avataaars/png?seed=${seed}&size=${size}&backgroundColor=f97316,fb923c,fff7ed`;
+const AVATAR_PALETTES = [
+  ["#1c1109", "#ea580c"],
+  ["#292524", "#dc2626"],
+  ["#44403c", "#f97316"],
+  ["#1c1917", "#c2410c"],
+  ["#292524", "#d97706"],
+];
+
+/** Dicebear 7.x professional headshot style — deterministic from name. */
+export const AVATAR_STYLE = "personas";
+
+const AVATAR_PX: Record<"sm" | "md" | "lg" | "xl", number> = {
+  sm: 36,
+  md: 44,
+  lg: 56,
+  xl: 80,
+};
+
+export function avatarImageUrl(
+  name: string,
+  size: keyof typeof AVATAR_PX | number = 128,
+): string {
+  const px = typeof size === "number" ? size : AVATAR_PX[size];
+  const seed = encodeURIComponent(name.trim());
+  return `https://api.dicebear.com/7.x/${AVATAR_STYLE}/png?seed=${seed}&size=${px * 2}&backgroundColor=2a1c12`;
+}
+
+/** Two-letter initials for a professional conference look. */
+export function personInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
+export function avatarPalette(name: string): [string, string] {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  const palette = AVATAR_PALETTES[Math.abs(hash) % AVATAR_PALETTES.length];
+  return [palette[0], palette[1]];
 }
 
 /** Company logo via Clearbit with initials fallback handled in component. */
@@ -44,7 +79,7 @@ export function companyLogoUrl(company: string): string | null {
 }
 
 export function companyColor(company: string): string {
-  return COMPANY_COLORS[company] ?? "#f97316";
+  return COMPANY_COLORS[company] ?? "#78716c";
 }
 
 export function companyInitials(company: string): string {

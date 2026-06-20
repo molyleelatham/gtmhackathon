@@ -22,9 +22,7 @@ export function Layout() {
         }`}
       >
         <div className={`mb-6 flex items-center ${collapsed ? "justify-center" : "gap-3 px-1"}`}>
-          {!collapsed && (
-            <Avatar name={user?.displayName ?? "User"} size="sm" />
-          )}
+          {!collapsed && <Avatar name={user?.displayName ?? "User"} size="sm" />}
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-bold text-ink-900">
@@ -36,7 +34,7 @@ export function Layout() {
           <button
             onClick={() => setCollapsed((c) => !c)}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-black/10 text-ink-muted hover:bg-black/5"
+            className="icon-btn h-8 w-8 shrink-0"
           >
             {collapsed ? "→" : "←"}
           </button>
@@ -55,7 +53,7 @@ export function Layout() {
                 } ${
                   isActive
                     ? "border border-orange/30 bg-orange/10 font-semibold text-flame"
-                    : "border border-transparent text-ink-muted hover:bg-black/[0.04] hover:text-ink-900"
+                    : "border border-transparent text-ink-muted hover:bg-[var(--hover-overlay)] hover:text-ink-900"
                 }`
               }
             >
@@ -66,12 +64,12 @@ export function Layout() {
         </nav>
 
         {!collapsed && (
-          <div className="mt-6 rounded-xl border border-black/[0.06] bg-orange/5 px-3 py-2.5 text-xs text-ink-muted">
+          <div className="mt-6 rounded-xl border border-subtle bg-orange/5 px-3 py-2.5 text-xs text-ink-muted">
             Capture on iPhone &amp; Apple Watch. Manage here.
           </div>
         )}
 
-        <div className="mt-auto pt-4">
+        <div className="mt-auto space-y-1 pt-4">
           <NavLink
             to="/settings"
             title={collapsed ? "Settings" : undefined}
@@ -81,7 +79,7 @@ export function Layout() {
               } ${
                 isActive
                   ? "border border-orange/30 bg-orange/10 font-semibold text-flame"
-                  : "border border-black/10 bg-white text-ink-muted hover:bg-black/[0.04]"
+                  : "border border-subtle text-ink-muted hover:bg-[var(--hover-overlay)]"
               }`
             }
           >

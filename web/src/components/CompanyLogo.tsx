@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { companyColor, companyInitials, companyLogoUrl } from "../lib/avatars";
+import { companyColor, companyLogoUrl } from "../lib/avatars";
 
+/** Small company mark — shows logo image or full company name (not cryptic initials). */
 export function CompanyLogo({
   company,
   size = "sm",
@@ -10,27 +11,27 @@ export function CompanyLogo({
 }) {
   const [err, setErr] = useState(false);
   const url = companyLogoUrl(company);
-  const dim = size === "md" ? "h-8 w-8 text-xs" : "h-6 w-6 text-[10px]";
+  const imgDim = size === "md" ? "h-7 w-7" : "h-5 w-5";
 
-  if (!url || err) {
+  if (url && !err) {
     return (
-      <div
-        className={`grid shrink-0 place-items-center rounded-lg font-bold text-white ${dim}`}
-        style={{ backgroundColor: companyColor(company) }}
+      <img
+        src={url}
+        alt={`${company} logo`}
+        onError={() => setErr(true)}
+        className={`shrink-0 rounded object-contain ${imgDim}`}
         title={company}
-      >
-        {companyInitials(company)}
-      </div>
+      />
     );
   }
 
   return (
-    <img
-      src={url}
-      alt={`${company} logo`}
-      onError={() => setErr(true)}
-      className={`shrink-0 rounded-lg object-contain bg-white p-0.5 ring-1 ring-black/10 ${dim}`}
+    <span
+      className={`truncate font-medium text-ink-muted ${size === "md" ? "text-sm" : "text-[11px]"}`}
       title={company}
-    />
+      style={{ color: companyColor(company) }}
+    >
+      {company}
+    </span>
   );
 }

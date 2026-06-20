@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { Avatar } from "../components/Avatar";
 import { AudioWaveform } from "../components/AudioWaveform";
-import { CompanyLogo } from "../components/CompanyLogo";
 import { ICPBadge } from "../components/ICPBadge";
 import { AttendeeDrawer, MetDetailDrawer } from "../components/MetDetailDrawer";
+import { LightfernMark, GmailMark } from "../components/Logos";
 import { SignalChip } from "../components/SignalChip";
 import { Toggle } from "../components/Toggle";
 import { Toast } from "../components/Toast";
@@ -20,7 +20,6 @@ type TopN = 10 | 25 | 50 | "all";
 
 interface FollowState {
   done: boolean;
-  snoozed: boolean;
 }
 
 export function Dashboard() {
@@ -39,34 +38,19 @@ export function Dashboard() {
   );
   const shown = topN === "all" ? ranked : ranked.slice(0, topN);
 
-  function toggleDone(id: string, name: string) {
-    setFollow((prev) => {
-      const next = { ...(prev[id] ?? { done: false, snoozed: false }) };
-      next.done = !next.done;
-      if (next.done) {
-        next.snoozed = false;
-        setToast(`Marked ${name} as followed up`);
-      }
-      return { ...prev, [id]: next };
-    });
-  }
-
-  function snooze(id: string, name: string) {
-    setFollow((prev) => ({
-      ...prev,
-      [id]: { done: false, snoozed: true },
-    }));
-    setToast(`Snoozed ${name} for 24h`);
+  function toggleDone(id: string, name: string, next: boolean) {
+    setFollow((prev) => ({ ...prev, [id]: { done: next } }));
+    if (next) setToast(`Marked ${name} as followed up`);
   }
 
   const metFollow = selectedMet
-    ? (follow[selectedMet.id] ?? { done: false, snoozed: false })
-    : { done: false, snoozed: false };
+    ? (follow[selectedMet.id] ?? { done: false })
+    : { done: false };
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+      <header className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-bold tracking-tight text-ink-900">
             Today at the GTM Hackathon 2026
           </h1>
@@ -76,13 +60,12 @@ export function Dashboard() {
               : "Your conference roster, ranked by fit."}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex max-w-full flex-wrap items-center gap-2 sm:justify-end">
           <Toggle label="Passive audio" checked={passiveAudio} onChange={setPassiveAudio} accent />
+          <AudioWaveform active={passiveAudio} />
           <Toggle label="Signal feed" checked={showSignals} onChange={setShowSignals} />
         </div>
       </header>
-
-      <AudioWaveform active={passiveAudio} />
 
       <div className="flex gap-4">
         <div className="min-w-0 flex-1 space-y-4">
@@ -104,7 +87,7 @@ export function Dashboard() {
                   onChange={(e) =>
                     setTopN(e.target.value === "all" ? "all" : (Number(e.target.value) as TopN))
                   }
-                  className="glass-interactive rounded-lg border border-black/10 bg-white px-2 py-1 text-xs font-medium text-ink-900 outline-none"
+                  className="input-glass"
                 >
                   <option value="10">Top 10</option>
                   <option value="25">Top 25</option>
@@ -116,9 +99,15 @@ export function Dashboard() {
           </div>
 
           {tab === "attending" ? (
-            <AttendingList attendees={shown} onOpen={setSelectedAttendee} />
+            <AttendingGrid attendees={shown} onOpen={setSelectedAttendee} />
           ) : (
-            <MetList people={MET_PEOPLE} follow={follow} onOpen={setSelectedMet} />
+            <MetGrid
+              people={MET_PEOPLE}
+              follow={follow}
+              onOpen={setSelectedMet}
+              onDraft={(m) => setToast(`Drafting email to ${m.name} via Lightfern + Gmail…`)}
+              onToggleFollow={toggleDone}
+            />
           )}
         </div>
 
@@ -150,10 +139,8 @@ export function Dashboard() {
         person={selectedMet}
         onClose={() => setSelectedMet(null)}
         onDraft={(m) => setToast(`Drafting email to ${m.name} via Lightfern + Gmail…`)}
-        onToggleFollow={toggleDone}
-        onSnooze={snooze}
+        onToggleFollow={(id, name, next) => toggleDone(id, name, next)}
         followDone={metFollow.done}
-        snoozed={metFollow.snoozed}
       />
 
       <Toast message={toast} onDone={() => setToast(null)} />
@@ -184,7 +171,20 @@ function TabButton({
   );
 }
 
-function AttendingList({
+function cardKeywords(interests: string[], genuine?: string[]): string[] {
+  const seen = new Set<string>();
+  const merged: string[] = [];
+  for (const tag of [...interests, ...(genuine ?? [])]) {
+    const key = tag.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(tag);
+    if (merged.length >= 3) break;
+  }
+  return merged;
+}
+
+function AttendingGrid({
   attendees,
   onOpen,
 }: {
@@ -192,101 +192,107 @@ function AttendingList({
   onOpen: (a: Attendee) => void;
 }) {
   return (
-    <div className="glass divide-y divide-black/[0.06] overflow-hidden">
-      {attendees.map((a, i) => (
-        <button
-          key={a.id}
-          onClick={() => onOpen(a)}
-          className="flex w-full items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-orange/5"
-        >
-          <span className="w-5 shrink-0 text-sm font-semibold tabular-nums text-ink-faint">
-            {i + 1}
-          </span>
-          <Avatar name={a.name} size="lg" />
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-ink-900">{a.name}</span>
-              <CompanyLogo company={a.company} size="sm" />
+    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+      {attendees.map((a) => (
+        <button key={a.id} onClick={() => onOpen(a)} className="person-card">
+          <ICPBadge score={a.icpScore} className="person-card-badge" />
+          <div className="person-card-body">
+            <Avatar name={a.name} size="lg" />
+            <div className="person-card-info">
+              <p className="truncate font-semibold text-ink-900">{a.name}</p>
+              <p className="truncate text-xs text-ink-muted">
+                {a.title} · {a.company}
+              </p>
+              {a.interests.length > 0 && (
+                <div className="person-card-pills">
+                  {cardKeywords(a.interests).map((t) => (
+                    <span key={t} className="person-card-pill">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
-            <p className="text-xs text-ink-muted">
-              {a.title} · {a.company}
-            </p>
-            <p className="mt-0.5 truncate text-xs text-ink-faint">{a.signal}</p>
           </div>
-          <ICPBadge score={a.icpScore} />
         </button>
       ))}
     </div>
   );
 }
 
-function MetList({
+function MetGrid({
   people,
   follow,
   onOpen,
+  onDraft,
+  onToggleFollow,
 }: {
   people: MetPerson[];
   follow: Record<string, FollowState>;
   onOpen: (m: MetPerson) => void;
+  onDraft: (m: MetPerson) => void;
+  onToggleFollow: (id: string, name: string, next: boolean) => void;
 }) {
   return (
-    <div className="grid gap-3 md:grid-cols-2">
+    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
       {people.map((m) => {
-        const state = follow[m.id] ?? { done: false, snoozed: false };
+        const state = follow[m.id] ?? { done: false };
+        const keywords = cardKeywords(m.interests, m.genuineInterests);
         return (
-          <article
-            key={m.id}
-            className="glass flex flex-col p-4 transition-colors hover:border-orange/20"
-          >
-            <div className="flex items-start gap-3">
+          <div key={m.id} className="person-card">
+            <ICPBadge score={m.score} className="person-card-badge" />
+
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => onOpen(m)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onOpen(m);
+                }
+              }}
+              className="person-card-body cursor-pointer text-left"
+            >
               <Avatar name={m.name} size="lg" />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <button
-                      onClick={() => onOpen(m)}
-                      className="text-left font-semibold text-ink-900 hover:text-flame"
-                    >
-                      {m.name}
-                    </button>
-                    <div className="mt-0.5 flex items-center gap-2">
-                      <CompanyLogo company={m.company} size="sm" />
-                      <span className="text-xs text-ink-muted">
-                        {m.role} · {m.company}
+              <div className="person-card-info">
+                <p className="truncate font-semibold text-ink-900">{m.name}</p>
+                <p className="truncate text-xs text-ink-muted">
+                  {m.role} · {m.company}
+                </p>
+                {keywords.length > 0 && (
+                  <div className="person-card-pills">
+                    {keywords.map((t) => (
+                      <span key={t} className="person-card-pill">
+                        {t}
                       </span>
-                    </div>
+                    ))}
                   </div>
-                  <ICPBadge score={m.score} />
-                </div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {m.interests.slice(0, 3).map((t) => (
-                    <span
-                      key={t}
-                      className="glass-pill border-orange/25 bg-orange/10 text-flame"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-                {m.mostInteresting && (
-                  <p className="mt-2 line-clamp-2 text-sm leading-snug text-ink-800">
-                    {m.mostInteresting}
-                  </p>
                 )}
-                <p className="mt-1 text-xs text-ink-faint">{m.metAt}</p>
               </div>
             </div>
-            {(state.done || state.snoozed) && (
-              <div className="mt-3 border-t border-black/[0.06] pt-2">
-                {state.done && (
-                  <span className="text-xs font-medium text-red-brand">✓ Followed up</span>
-                )}
-                {state.snoozed && !state.done && (
-                  <span className="text-xs font-medium text-ink-muted">Snoozed</span>
-                )}
-              </div>
-            )}
-          </article>
+
+            <div className="person-card-actions">
+              <button
+                type="button"
+                onClick={() => onDraft(m)}
+                className="inline-flex items-center gap-1 rounded-lg border border-orange/40 bg-orange/10 px-2 py-1 text-[11px] font-semibold text-flame hover:bg-orange/20"
+              >
+                <LightfernMark className="h-3.5 w-3.5" variant="light" />
+                <GmailMark className="h-3.5 w-3.5" />
+                Draft
+              </button>
+              <label className="flex cursor-pointer items-center gap-1.5 text-[11px] font-medium text-ink-muted">
+                <input
+                  type="checkbox"
+                  checked={state.done}
+                  onChange={(e) => onToggleFollow(m.id, m.name, e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-subtle accent-red-brand"
+                />
+                Follow up
+              </label>
+            </div>
+          </div>
         );
       })}
     </div>
@@ -296,15 +302,20 @@ function MetList({
 function SignalFeed({ onAdd }: { onAdd: (company: string) => void }) {
   return (
     <section className="glass flex max-h-[calc(100vh-9rem)] flex-col overflow-hidden">
-      <div className="flex items-baseline justify-between border-b border-black/[0.08] px-4 py-3">
-        <h2 className="text-sm font-semibold tracking-tight text-ink-900">Signal Feed</h2>
-        <span className="text-xs text-ink-faint">Background</span>
+      <div className="border-b border-subtle px-4 py-3">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-sm font-semibold tracking-tight text-ink-900">Signal Feed</h2>
+          <span className="text-xs text-ink-faint">Background</span>
+        </div>
+        <p className="mt-1 text-[10px] text-ink-faint">
+          Tags: Hiring · Funding · Intent
+        </p>
       </div>
       <div className="flex-1 overflow-y-auto">
         {SIGNALS.map((signal) => (
           <article
             key={signal.id}
-            className="flex flex-col gap-2 border-b border-black/[0.06] p-3 last:border-0"
+            className="flex flex-col gap-2 border-b border-subtle p-3 last:border-0"
           >
             <div className="flex items-center justify-between gap-2">
               <span className="font-semibold text-ink-900">{signal.company}</span>

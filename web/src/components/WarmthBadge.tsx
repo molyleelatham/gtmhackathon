@@ -12,10 +12,18 @@ const styles: Record<WarmthBand, string> = {
   cold: "bg-warmth-cold/20 text-warmth-cold border-warmth-cold/45",
 };
 
-export function WarmthBadge({ score, band }: { score: number; band?: WarmthBand }) {
+export function WarmthBadge({
+  score,
+  band,
+  className = "",
+}: {
+  score: number;
+  band?: WarmthBand;
+  className?: string;
+}) {
   const resolved = band ?? bandFor(score);
   return (
-    <span className={`glass-pill ${styles[resolved]}`}>
+    <span className={`glass-pill ${styles[resolved]} ${className}`}>
       <span className="h-1.5 w-1.5 rounded-full bg-current" />
       {resolved.toUpperCase()} · {Math.round(score)}
     </span>

@@ -17,16 +17,16 @@ export function StatTile({
       onClick={onClick}
       className={`glass-interactive flex flex-col items-start rounded-2xl border px-4 py-3 text-left ${
         active
-          ? "border-white/30 bg-white/15 shadow-glass"
-          : "border-white/12 bg-white/[0.06]"
+          ? "border-orange/30 bg-orange/10 shadow-glass"
+          : "border-subtle bg-muted"
       }`}
     >
-      <span className="text-[0.7rem] font-medium uppercase tracking-wider text-white/55">
+      <span className="text-[0.7rem] font-medium uppercase tracking-wider text-ink-faint">
         {label}
       </span>
       <span
         className={`mt-1 text-3xl font-bold tabular-nums ${
-          accent ? "text-warmth-hot" : "text-white"
+          accent ? "text-warmth-hot" : "text-ink-900"
         }`}
       >
         {value}

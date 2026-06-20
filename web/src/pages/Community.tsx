@@ -5,7 +5,7 @@ const PERMISSION_STYLES: Record<PermissionLevel, string> = {
   admin: "border-signal-intent/45 bg-signal-intent/15 text-signal-intent",
   edit: "border-signal-funding/45 bg-signal-funding/15 text-signal-funding",
   comment: "border-signal-hiring/45 bg-signal-hiring/15 text-signal-hiring",
-  read: "border-black/10 bg-stone-100 text-ink-muted",
+  read: "border-subtle bg-muted text-ink-muted",
 };
 
 const ACTIONS: Record<PermissionLevel, string> = {
@@ -40,7 +40,7 @@ export function Community() {
                 {group.sharedLeads} shared leads
               </span>
             </div>
-            <button className="glass-interactive mt-4 w-full rounded-xl border border-black/10 bg-white py-2 text-sm font-medium text-ink-800">
+            <button type="button" className="btn-secondary mt-4 w-full py-2">
               {ACTIONS[group.permission]}
             </button>
           </GlassCard>

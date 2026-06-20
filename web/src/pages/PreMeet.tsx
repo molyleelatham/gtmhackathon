@@ -62,7 +62,7 @@ export function PreMeet() {
       <div className="glass overflow-hidden p-0">
         <table className="w-full text-sm">
           <thead className="text-left text-xs uppercase tracking-wider text-ink-faint">
-            <tr className="border-b border-black/[0.08]">
+            <tr className="border-b border-subtle">
               <th className="px-4 py-3 font-medium">Name</th>
               <th className="px-4 py-3 font-medium">Company</th>
               <th className="px-4 py-3 font-medium">ICP</th>
@@ -74,7 +74,7 @@ export function PreMeet() {
             {leads.data?.map((c) => (
               <tr
                 key={c.id}
-                className="border-b border-black/[0.06] transition-colors hover:bg-orange/5"
+                className="border-b border-subtle transition-colors hover:bg-orange/5"
               >
                 <td className="px-4 py-3">
                   <Link

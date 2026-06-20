@@ -118,7 +118,7 @@ export function ConnectionDetail() {
             <button
               onClick={simulateMeet}
               disabled={busy}
-              className="glass-interactive rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-ink-800 disabled:opacity-50"
+              className="btn-secondary disabled:opacity-50"
             >
               Simulate meet → route
             </button>
@@ -176,7 +176,7 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between border-b border-black/[0.06] py-2 text-sm last:border-0">
+    <div className="flex justify-between border-b border-subtle py-2 text-sm last:border-0">
       <span className="text-ink-faint">{label}</span>
       <span className="text-ink-900">{value}</span>
     </div>

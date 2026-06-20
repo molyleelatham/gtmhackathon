@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: "class",
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
@@ -23,18 +24,34 @@ export default {
           intent: "#f97316",
         },
         ink: {
-          900: "#160d07",
-          800: "#1c1109",
-          700: "#2a1a0e",
-          600: "#3a2615",
-          muted: "#57534e",
-          faint: "#a8a29e",
+          900: "var(--ink-primary)",
+          800: "var(--ink-primary)",
+          700: "var(--ink-primary)",
+          600: "var(--ink-primary)",
+          muted: "var(--ink-secondary)",
+          faint: "var(--ink-tertiary)",
         },
       },
       backdropBlur: { glass: "20px" },
+      ringColor: {
+        subtle: "var(--border-subtle)",
+        strong: "var(--border-strong)",
+      },
+      borderColor: {
+        subtle: "var(--border-subtle)",
+        strong: "var(--border-strong)",
+      },
+      backgroundColor: {
+        muted: "var(--surface-muted)",
+        glass: {
+          DEFAULT: "var(--surface-glass)",
+          strong: "var(--surface-glass-strong)",
+          hover: "var(--surface-glass-hover)",
+        },
+      },
       boxShadow: {
-        glass: "0 4px 24px rgba(22, 13, 7, 0.08), inset 0 1px 0 rgba(255,255,255,0.9)",
-        "glass-lg": "0 12px 40px rgba(22, 13, 7, 0.12)",
+        glass: "var(--shadow-glass)",
+        "glass-lg": "var(--shadow-glass-lg)",
       },
       keyframes: {
         "fade-up": {
