@@ -20,31 +20,31 @@ export function SignIn() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
-      <div className="w-full max-w-sm rounded-2xl border border-ink-600 bg-ink-800 p-8 text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-warmth-warm/20 text-2xl text-warmth-warm">
-          ◐
+      <div className="glass-strong w-full max-w-sm animate-fade-up p-8 text-center">
+        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-orange to-ember text-2xl font-bold text-white shadow-glass">
+          W
         </div>
-        <h1 className="text-xl font-semibold">Warmth</h1>
-        <p className="mt-1 text-sm text-gray-400">
+        <h1 className="text-xl font-semibold text-white">Warmth</h1>
+        <p className="mt-1 text-sm text-ink-muted">
           Your personal CRM for conference connections.
         </p>
 
         <button
           onClick={handleSignIn}
           disabled={busy}
-          className="mt-6 flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-gray-800 transition hover:bg-gray-100 disabled:opacity-60"
+          className="btn-secondary mt-6 flex w-full items-center justify-center gap-3 disabled:opacity-60"
         >
           <GoogleIcon />
           {busy ? "Signing in…" : "Continue with Google"}
         </button>
 
         {error && (
-          <p className="mt-4 rounded-lg border border-warmth-hot/40 bg-warmth-hot/10 p-3 text-xs text-warmth-hot">
+          <p className="glass mt-4 border-warmth-hot/40 bg-warmth-hot/10 p-3 text-xs text-warmth-hot">
             {error}
           </p>
         )}
 
-        <p className="mt-6 text-xs text-gray-500">
+        <p className="mt-6 text-xs text-ink-faint">
           Capture connections on iPhone &amp; Apple Watch. Manage them here.
         </p>
       </div>

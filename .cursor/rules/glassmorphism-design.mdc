@@ -1,0 +1,61 @@
+---
+description: Warm glassmorphism (iOS 26 "liquid glass") design language + tokens for all UI
+alwaysApply: true
+---
+
+# Warmth UI Standard — Warm Liquid Glass
+
+All user-facing UI (web `web/`, iOS, watchOS) uses a warm glassmorphism,
+iOS-26 "liquid glass" aesthetic: frosted translucent surfaces over a warm
+white background, with high-contrast black text and red/orange accents.
+
+## Color tokens (warm)
+
+Use these everywhere (web Tailwind + iOS/watchOS Swift `Color(hex:)`):
+
+| Token | Hex | Use |
+|-------|-----|-----|
+| Red brand | `#dc2626` | ICP hot, passive audio, strong connections |
+| Ember (dark orange) | `#c2410c` | primary actions, "hottest" |
+| Flame (deep orange) | `#ea580c` | accents, links, ICP warm |
+| Orange | `#f97316` | brand accent, toggles |
+| Orange light | `#fb923c` | hover/active text |
+| Amber | `#f59e0b` | status pending |
+| Warm stone | `#a8a29e` | ICP cold / low interest |
+| Ink 900–600 | `#160d07`→`#3a2615` | body text, headings |
+| Surface | `#ffffff` / `#fff8f3` | page + glass base |
+
+ICP heat ramp: **hot = red `#dc2626`**, **warm = orange `#ea580c`**,
+**cold = stone `#a8a29e`**. Background = warm orange/red radial blobs over
+white (see `web/src/index.css`). Text defaults to **ink-900** (near-black).
+
+## Typography
+
+**Space Grotesk** is the brand font everywhere.
+- Web: self-hosted at `web/public/fonts/SpaceGrotesk-VariableFont_wght.ttf`
+  (`@font-face` in `index.css`, set as Tailwind `fontFamily.sans`).
+- iOS/watchOS: add the same `.ttf` to the app bundle + Info.plist
+  `UIAppFonts`, use `Font.custom("Space Grotesk", size:)`.
+
+## How to apply (web/)
+
+Use the shared utilities/components, don't re-invent:
+
+- `.glass` / `.glass-strong` — frosted surface (`web/src/index.css`)
+- `.glass-interactive` — hover lift; `.glass-pill` — chips/badges
+- Components: `GlassCard`, `GlassPanel`, `ICPBadge`, `SignalChip`, `Toggle`,
+  `MetDetailDrawer`, `Avatar`, `CompanyLogo`, `Toast`, `Logos` in `web/src/components/`
+
+```tsx
+// ✅ GOOD — warm frosted, high-contrast black text
+<GlassCard className="p-5"><h3 className="font-semibold text-ink-900">Lead Inbox</h3></GlassCard>
+
+// ❌ BAD — flat opaque, cool grays, no blur
+<div className="rounded bg-gray-800 p-5 text-gray-400">…</div>
+```
+
+## Don'ts
+
+- No flat opaque cards or cool grays/blues/purples for primary surfaces.
+- No charts/graphs on the main dashboard canvas.
+- Don't drop contrast for "subtle glass" — keep text legible in bright venues.

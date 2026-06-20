@@ -60,4 +60,5 @@ export interface RoutingDecision {
   cluster_id?: number | null;
   warmth?: WarmthScore | null;
   matched_candidates: { user_id?: string; name?: string; interests?: string[] }[];
+  gmail_draft?: Record<string, unknown>;
 }
