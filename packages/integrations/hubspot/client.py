@@ -21,6 +21,8 @@ import os
 from typing import Any, Optional
 import httpx
 
+from .schema import HubSpotMapper
+
 
 class HubSpotClient:
     """HubSpot CRM integration for hot-leads sync.
@@ -80,9 +82,15 @@ class HubSpotClient:
         icp_score: Optional[float] = None,
         warmth_score: Optional[float] = None,
         conference_name: Optional[str] = None,
+        custom_properties: Optional[dict[str, Any]] = None,
     ) -> Optional[str]:
-        """Create a HubSpot contact; return the HubSpot object ID."""
-        props: dict[str, Any] = {}
+        """Create a HubSpot contact; return the HubSpot object ID.
+
+        ``custom_properties`` carries the merged ``warmth_*`` schema properties
+        (see ``packages/integrations/hubspot/schema.py``) so HubSpot contacts mirror
+        the Zero CRM payload field-for-field.
+        """
+        props: dict[str, Any] = dict(custom_properties or {})
         if firstname:
             props["firstname"] = firstname
         if lastname:
@@ -230,41 +238,27 @@ class HubSpotClient:
         hs_ids: list[str] = []
 
         for lead in leads:
-            full_name = lead.get("name") or ""
-            parts = full_name.strip().split(" ", 1)
-            firstname = parts[0] if parts else None
-            lastname = parts[1] if len(parts) > 1 else None
+            # Merged schema: same field set HubSpot ↔ Zero CRM (see schema.py).
+            props = HubSpotMapper.lead_dict_to_contact_properties(lead)
+            if conference_name and "warmth_notes" not in props:
+                props["warmth_notes"] = f"Conference: {conference_name}"
+            if lead.get("company_domain"):
+                props["website"] = f"https://{lead['company_domain']}"
 
             email = lead.get("email")
-            props_update = {
-                "jobtitle": lead.get("title"),
-                "company": lead.get("company_name"),
-                "website": f"https://{lead['company_domain']}" if lead.get("company_domain") else None,
-                "description": " | ".join(filter(None, [
-                    f"Conference: {conference_name}",
-                    f"ICP Score: {lead.get('icp_score', 0):.0f}/100" if lead.get("icp_score") else None,
-                    f"Warmth Score: {lead.get('predicted_warmth', 0):.0f}/100" if lead.get("predicted_warmth") else None,
-                ])),
-            }
-
             existing = await self.find_contact_by_email(email) if email else None
             if existing:
                 hs_id = existing.get("id") or existing.get("properties", {}).get("hs_object_id")
                 if hs_id:
-                    await self.update_contact(hs_id, {k: v for k, v in props_update.items() if v})
+                    await self.update_contact(hs_id, props)
                     hs_ids.append(hs_id)
                     updated += 1
             else:
                 hs_id = await self.create_contact(
-                    firstname=firstname,
-                    lastname=lastname,
+                    firstname=props.pop("firstname", None),
+                    lastname=props.pop("lastname", None),
                     email=email,
-                    jobtitle=lead.get("title"),
-                    company=lead.get("company_name"),
-                    website=f"https://{lead['company_domain']}" if lead.get("company_domain") else None,
-                    icp_score=lead.get("icp_score"),
-                    warmth_score=lead.get("predicted_warmth"),
-                    conference_name=conference_name,
+                    custom_properties=props,
                 )
                 if hs_id:
                     hs_ids.append(hs_id)
