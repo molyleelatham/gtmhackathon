@@ -72,6 +72,8 @@ struct CaptureView: View {
             }
         }
         .task {
+            // Permission for the push-style "Attendee matched" banner.
+            MatchNotifier.shared.requestAuthorization()
             // Light extra flourish; the service already fires its own haptic.
             model.speech.onWakeWordDetected = {
                 WarmthHaptics.success()

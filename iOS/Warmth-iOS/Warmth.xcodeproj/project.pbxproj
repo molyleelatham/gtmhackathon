@@ -41,6 +41,7 @@
 		5B04C36CBD8F3E73944F0C87 /* SpaceGrotesk-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E84B59D107366073425DA333 /* SpaceGrotesk-Bold.ttf */; };
 		5D3271541D7C08C6D50EC0C3 /* AppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DC7A91A4BDB60E28A974E1E /* AppModelTests.swift */; };
 		662347514130423ECE5919D3 /* WaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1B60319FD461EC64A1A09C6 /* WaveformView.swift */; };
+		6C415AD8E7A20277132487BD /* MatchNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D1FD703B05033B9C8C705AA /* MatchNotifier.swift */; };
 		6D5D965B75E1334F8D766563 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 02459226E967C2C5C3BE174F /* GoogleSignInSwift */; };
 		6DA93D544332B2B96B59406F /* ConnectionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F294EC88B2557C6B54FF150 /* ConnectionDetailView.swift */; };
 		72C61EE2A9B9B76A57F3C0BF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 35B6529B517DFDBA683FF50A /* Assets.xcassets */; };
@@ -141,6 +142,7 @@
 		35B6529B517DFDBA683FF50A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		368DBE92B0EBA826BD8CFEF2 /* OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = OFL.txt; sourceTree = "<group>"; };
 		3AA9843E30A73977284E853F /* WatchlistProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistProvider.swift; sourceTree = "<group>"; };
+		3D1FD703B05033B9C8C705AA /* MatchNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchNotifier.swift; sourceTree = "<group>"; };
 		3D79C67A6DEA7C184BC90BAA /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureView.swift; sourceTree = "<group>"; };
 		4145AFD43786E5BA008F1334 /* WarmthWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WarmthWatch.entitlements; sourceTree = "<group>"; };
 		43FEF3A1FFD17AAE0362EAFB /* SessionCaptureLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionCaptureLogTests.swift; sourceTree = "<group>"; };
@@ -383,6 +385,7 @@
 				02321B2E84BD197CA299FB57 /* API */,
 				EE9910CB96AA2819765B5763 /* Auth */,
 				EF10E47D089DBDC2DDE0E3FB /* Connectivity */,
+				F39F44DD3625B22D5332C952 /* Notifications */,
 				A43CA0E11CB97B4C1D657928 /* Session */,
 				8346177966E50D2F024722AA /* Settings */,
 				B9B195AD97D600AEC0B8B606 /* Signal */,
@@ -557,6 +560,14 @@
 				DDF374F8C04192A314E195C3 /* WarmthWatchWidget */,
 			);
 			path = "Warmth-iOS";
+			sourceTree = "<group>";
+		};
+		F39F44DD3625B22D5332C952 /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				3D1FD703B05033B9C8C705AA /* MatchNotifier.swift */,
+			);
+			path = Notifications;
 			sourceTree = "<group>";
 		};
 		F53C2C17927B8D5D7EC4BDCB /* Features */ = {
@@ -781,6 +792,7 @@
 				4F5F856CAA082894C9945A1C /* ConnectionsView.swift in Sources */,
 				83B6A07B6ABD17B0B8C7FA41 /* FinishStepView.swift in Sources */,
 				4CD2341E2290AAB5257A3C34 /* FirebaseAuthService.swift in Sources */,
+				6C415AD8E7A20277132487BD /* MatchNotifier.swift in Sources */,
 				31CB36B53EEF63C1819D3ADF /* MeshGradientBackground.swift in Sources */,
 				F4F8979A5DBD42C97F256B3D /* MockAuthService.swift in Sources */,
 				7B42BBC8764577A5034AF0BD /* MockSpeechService.swift in Sources */,
