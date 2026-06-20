@@ -1,0 +1,39 @@
+flowchart TB
+    subgraph before["Before the event"]
+        B1["Connect Google Calendar via onboarding"]
+        B2["Review ranked leads on web dashboard"]
+        B3["Send pre-meet outreach drafts"]
+        B1 --> B2 --> B3
+    end
+
+    subgraph floor["On the conference floor"]
+        F1["Meet someone new"]
+        F2["Wake phrase or tap Record"]
+        F3["Live transcript + on-device NLP"]
+        F4["Signal POSTed to backend"]
+        F1 --> F2 --> F3 --> F4
+    end
+
+    subgraph after["After the conversation"]
+        A1["ML scores warmth uplift"]
+        A2{"Routing decision"}
+        A3["Hot → CRM + Gmail draft"]
+        A4["Lukewarm → community intro"]
+        A1 --> A2
+        A2 --> A3
+        A2 --> A4
+    end
+
+    subgraph desk["Back at hotel / desk"]
+        D1["Review connections on web"]
+        D2["Lightfern polishes draft in Gmail"]
+        D3["Human approves and sends"]
+        D1 --> D2 --> D3
+    end
+
+    before --> floor --> after --> desk
+
+    style before fill:#eef6fc,stroke:#3498db
+    style floor fill:#fef5f3,stroke:#c0392b
+    style after fill:#eefaf3,stroke:#27ae60
+    style desk fill:#f6eef9,stroke:#8e44ad

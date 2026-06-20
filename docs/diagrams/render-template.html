@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Render Mermaid</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  html, body {
+    margin: 0;
+    padding: 32px;
+    background: white;
+    width: max-content;
+    height: max-content;
+  }
+  .frame { display: inline-block; }
+  .mermaid {
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  .mermaid svg {
+    max-width: none !important;
+    width: auto !important;
+    height: auto !important;
+  }
+</style>
+</head>
+<body>
+<div class="frame"><div class="mermaid" id="diagram">
+DIAGRAM_PLACEHOLDER
+</div></div>
+<script>
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'neutral',
+    securityLevel: 'loose',
+    flowchart: {
+      htmlLabels: true,
+      curve: 'basis',
+      useMaxWidth: false,
+      padding: 24,
+      nodeSpacing: 50,
+      rankSpacing: 60
+    },
+    sequence: {
+      useMaxWidth: false,
+      diagramMarginX: 40,
+      diagramMarginY: 24,
+      actorMargin: 100,
+      messageMargin: 50,
+      boxMargin: 12
+    },
+    themeVariables: {
+      fontSize: '22px',
+      fontFamily: 'Arial, Helvetica, sans-serif',
+      primaryTextColor: '#1a1a1a',
+      secondaryTextColor: '#333333',
+      tertiaryTextColor: '#444444',
+      lineColor: '#555555',
+      primaryBorderColor: '#666666'
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await mermaid.run({ nodes: [document.querySelector('.mermaid')] });
+    document.documentElement.setAttribute('data-ready', 'true');
+  });
+</script>
+</body>
+</html>

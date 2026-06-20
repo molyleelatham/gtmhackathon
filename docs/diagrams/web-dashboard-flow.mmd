@@ -1,0 +1,13 @@
+flowchart LR
+    subgraph pages["Web dashboard routes · React Router"]
+        direction TB
+        R1["/ Dashboard  ·  /events  ·  /events/:id"]
+        R2["/connections  ·  /connections/:id  ·  /community  ·  /settings"]
+    end
+
+    API["FastAPI /api/v1<br/>dashboard · connections · leads"]
+
+    pages --> API
+
+    style pages fill:#eef6fc,stroke:#3498db
+    style API fill:#fef5f3,stroke:#c0392b

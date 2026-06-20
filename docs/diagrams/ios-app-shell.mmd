@@ -1,0 +1,30 @@
+flowchart TD
+    ROOT["RootView"]
+    ONB["OnboardingFlow<br/>sign-in → permissions → calendar → finish"]
+    TABS["MainTabView"]
+    CAP["CaptureView<br/>RecordOrb · Waveform · wake word"]
+    CONN["ConnectionsView<br/>session + seeded connections"]
+    SET["SettingsView<br/>backend URL · account"]
+
+    ROOT --> ONB
+    ROOT --> TABS
+    TABS --> CAP
+    TABS --> CONN
+    TABS --> SET
+
+    subgraph services["AppModel services"]
+        AUTH["AuthProviding"]
+        SPEECH["SpeechServicing"]
+        GRAPH["SocialGraphProcessing"]
+        SIG["SignalSending"]
+        LOG["SessionCaptureLog"]
+        WATCH["WatchSessionService"]
+    end
+
+    CAP --> SPEECH
+    CAP --> GRAPH
+    GRAPH --> SIG
+    SIG --> LOG
+
+    style ROOT fill:#fef5f3,stroke:#c0392b
+    style services fill:#eef6fc,stroke:#3498db

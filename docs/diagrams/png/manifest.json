@@ -1,0 +1,12 @@
+{
+  "actor-sequence": "actor-sequence.png",
+  "backend-signal-ingest": "backend-signal-ingest.png",
+  "integration-map": "integration-map.png",
+  "ios-app-shell": "ios-app-shell.png",
+  "ios-capture-flow": "ios-capture-flow.png",
+  "ml-routing": "ml-routing.png",
+  "system-architecture": "system-architecture.png",
+  "user-journey": "user-journey.png",
+  "warmth-lifecycle": "warmth-lifecycle.png",
+  "web-dashboard-flow": "web-dashboard-flow.png"
+}

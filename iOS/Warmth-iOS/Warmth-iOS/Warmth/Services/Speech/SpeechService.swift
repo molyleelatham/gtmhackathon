@@ -98,6 +98,11 @@ final class SpeechService: SpeechServicing {
         try? await wakeWord.prepare()
         do {
             try beginAudio(transcribing: false)
+            // Mirror the web dashboard: transcribe passively so a "hi {name}" greeting
+            // matches the roster immediately, without first saying the wake phrase.
+            // Best-effort — if on-device recognition is unavailable we still listen for
+            // the wake word.
+            _ = beginTranscription()
             phase = .listening
         } catch {
             resetAfterAudioFailure(error.localizedDescription)

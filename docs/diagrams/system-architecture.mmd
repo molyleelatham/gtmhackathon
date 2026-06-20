@@ -1,0 +1,41 @@
+flowchart TB
+    subgraph clients["Client layer"]
+        direction LR
+        IOS["iPhone App<br/>SwiftUI · Speech · SocialGraphEngine"]
+        WATCH["Apple Watch<br/>Complications · WatchConnectivity"]
+        WEB["Web Dashboard<br/>React · Vite · Tailwind"]
+    end
+
+    IOS <-->|WatchConnectivity| WATCH
+    IOS -->|POST /api/signals| API
+    WEB -->|REST /api/v1/*| API
+
+    subgraph backend["FastAPI backend · apps/api"]
+        API["Routers<br/>onboarding · premeet · meet · postmeet · data · signals"]
+    end
+
+    API --> LIFE
+
+    subgraph pipelines["Lifecycle pipelines · apps/lifecycle"]
+        LIFE["Onboarding → PreMeet → Meet → PostMeet → CommunityMatcher"]
+    end
+
+    LIFE --> ML
+
+    subgraph intel["ML + integrations · packages/"]
+        ML["WarmthModel · LeadScorer · LeadClusterer · MeetIntelligencePipeline"]
+        EXT["Zero CRM · UnifyGTM · Google MCP · Lightfern · Deepgram · Tavily"]
+    end
+
+    ML --> EXT
+    ML --> DATA
+
+    subgraph storage["Data layer"]
+        DATA["DemoStore in-memory → Firestore production"]
+    end
+
+    style clients fill:#fef5f3,stroke:#c0392b
+    style backend fill:#eef6fc,stroke:#3498db
+    style pipelines fill:#eefaf3,stroke:#27ae60
+    style intel fill:#f6eef9,stroke:#8e44ad
+    style storage fill:#fef9ee,stroke:#f39c12

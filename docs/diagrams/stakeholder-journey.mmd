@@ -1,0 +1,38 @@
+flowchart TB
+    subgraph before["Before the event"]
+        B1["Connect your calendar"]
+        B2["Review who matters most"]
+        B3["Send thoughtful pre-event outreach"]
+        B1 --> B2 --> B3
+    end
+
+    subgraph floor["On the conference floor"]
+        F1["Meet someone new"]
+        F2["Say the wake phrase or tap record"]
+        F3["Warmth captures the conversation"]
+        F1 --> F2 --> F3
+    end
+
+    subgraph after["Right after"]
+        A1["Warmth scores the connection"]
+        A2{"Worth a direct follow-up?"}
+        A3["Hot lead → CRM & email draft"]
+        A4["Better as an intro → match in your network"]
+        A1 --> A2
+        A2 --> A3
+        A2 --> A4
+    end
+
+    subgraph desk["Back at your desk"]
+        D1["Review everyone you met"]
+        D2["Polish follow-up emails"]
+        D3["You approve and send"]
+        D1 --> D2 --> D3
+    end
+
+    before --> floor --> after --> desk
+
+    style before fill:#eef6fc,stroke:#3498db
+    style floor fill:#fef5f3,stroke:#c0392b
+    style after fill:#eefaf3,stroke:#27ae60
+    style desk fill:#f6eef9,stroke:#8e44ad

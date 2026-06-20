@@ -79,7 +79,10 @@ struct CaptureView: View {
             }
         }
         .onChange(of: model.speech.transcript) { _, transcript in
-            guard model.speech.phase == .recording, !transcript.isEmpty else { return }
+            // Fire during passive listening too, so "hi {name}" pops the match card
+            // without requiring the wake phrase first (mirrors the web dashboard).
+            let phase = model.speech.phase
+            guard phase == .listening || phase == .recording, !transcript.isEmpty else { return }
             Task { await model.tryMatchAttendee(from: transcript) }
         }
     }
@@ -145,12 +148,33 @@ struct CaptureView: View {
 
     private var listeningControls: some View {
         VStack(spacing: 12) {
+            passiveTranscriptHint
             EmberButton(title: "Start recording now", systemImage: "record.circle") {
                 _ = beginCaptureIfAllowed { await model.speech.startRecording() }
             }
             EmberButton(title: "Cancel", fill: false) {
                 model.speech.stopAndReset()
                 model.syncWatchState()
+            }
+        }
+    }
+
+    /// Compact live transcript shown while passively listening — surfaces that we're
+    /// hearing the room and matching greetings, mirroring the web "Live transcript" card.
+    private var passiveTranscriptHint: some View {
+        let transcript = model.speech.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+        return GlassCard {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Live transcript")
+                    .font(.Warmth.caption)
+                    .foregroundStyle(WarmthColor.inkSecondary)
+                    .textCase(.uppercase)
+                Text(transcript.isEmpty ? "Listening… try \u{201C}Hi Molly\u{201D}" : transcript)
+                    .font(.Warmth.footnote)
+                    .foregroundStyle(transcript.isEmpty ? WarmthColor.inkSecondary : WarmthColor.ink)
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .animation(WarmthMotion.gentle, value: transcript)
             }
         }
     }

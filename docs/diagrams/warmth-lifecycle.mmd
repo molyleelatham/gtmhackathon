@@ -1,0 +1,17 @@
+flowchart LR
+    OB["1 · Onboarding<br/>Connect calendar + Gmail<br/>Detect conferences"]
+    BM["2 · Before Meet<br/>Enrich · ICP fit · Warmth score<br/>Draft outreach · Book meetings"]
+    MT["3 · Meet<br/>Wake phrase · Capture signals<br/>ML routes by warmth uplift"]
+    PM["4 · Post Meet<br/>Gmail draft + Lightfern polish<br/>Human sends follow-up"]
+
+    OB --> BM --> MT --> PM
+
+    OB -.- G1["Google MCP"]
+    BM -.- Z1["Zero CRM · UnifyGTM"]
+    MT -.- Z2["MeetIntelligencePipeline"]
+    PM -.- Z3["Lightfern · Gmail"]
+
+    style OB fill:#eef6fc,stroke:#3498db
+    style BM fill:#eefaf3,stroke:#27ae60
+    style MT fill:#fef5f3,stroke:#c0392b
+    style PM fill:#f6eef9,stroke:#8e44ad

@@ -1,0 +1,18 @@
+flowchart LR
+    CAP["Meeting captured<br/>MeetingSignal from iOS"]
+    SCORE["WarmthModel scores<br/>post-meet vs pre-meet"]
+    DEC{"Warmth uplift<br/>actual − predicted"}
+
+    CAP --> SCORE --> DEC
+
+    DEC -->|"uplift > 0"| CRM["CRM + OUTREACH<br/>Zero CRM · Gmail draft"]
+    DEC -->|"uplift ≤ 0"| COMM["FOUNDER COMMUNITY<br/>LeadClusterer match"]
+
+    CRM --> WEB["Web dashboard review"]
+    COMM --> WEB
+
+    style CAP fill:#fef5f3,stroke:#c0392b
+    style SCORE fill:#eef6fc,stroke:#3498db
+    style DEC fill:#fef9ee,stroke:#f39c12
+    style CRM fill:#eefaf3,stroke:#27ae60
+    style COMM fill:#f6eef9,stroke:#8e44ad

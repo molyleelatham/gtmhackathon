@@ -1,0 +1,24 @@
+flowchart LR
+    subgraph fit["Does this person fit your business?"]
+        ICP["Profile fit<br/>Role · company · market"]
+    end
+
+    subgraph warmth["How warm is the conversation?"]
+        WARM["Rapport · intent · shared interests"]
+    end
+
+    COMB["Warmth score<br/>Fit + relationship combined"]
+
+    ICP --> COMB
+    WARM --> COMB
+
+    COMB --> DEC{"Did the meeting<br/>exceed expectations?"}
+
+    DEC -->|"Yes — hotter than expected"| HOT["Priority follow-up<br/>Add to CRM · draft email"]
+    DEC -->|"Not quite"| INTRO["Warm intro<br/>Connect them with someone in your network"]
+
+    style ICP fill:#eef6fc,stroke:#3498db
+    style WARM fill:#fef5f3,stroke:#c0392b
+    style COMB fill:#fef9ee,stroke:#f39c12
+    style HOT fill:#eefaf3,stroke:#27ae60
+    style INTRO fill:#f6eef9,stroke:#8e44ad

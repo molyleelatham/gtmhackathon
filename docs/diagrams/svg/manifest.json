@@ -1,0 +1,86 @@
+{
+  "actor-sequence": {
+    "svg": "actor-sequence.svg",
+    "png": "actor-sequence.png",
+    "width": 2099.0,
+    "height": 793.0
+  },
+  "backend-signal-ingest": {
+    "svg": "backend-signal-ingest.svg",
+    "png": "backend-signal-ingest.png",
+    "width": 2361.375,
+    "height": 228.0
+  },
+  "integration-map": {
+    "svg": "integration-map.svg",
+    "png": "integration-map.png",
+    "width": 2725.890625,
+    "height": 538.0
+  },
+  "ios-app-shell": {
+    "svg": "ios-app-shell.svg",
+    "png": "ios-app-shell.png",
+    "width": 1266.14453125,
+    "height": 1060.0
+  },
+  "ios-capture-flow": {
+    "svg": "ios-capture-flow.svg",
+    "png": "ios-capture-flow.png",
+    "width": 1915.0,
+    "height": 791.0
+  },
+  "ml-routing": {
+    "svg": "ml-routing.svg",
+    "png": "ml-routing.png",
+    "width": 1812.0625,
+    "height": 393.0
+  },
+  "stakeholder-journey": {
+    "svg": "stakeholder-journey.svg",
+    "png": "stakeholder-journey.png",
+    "width": 1177.0,
+    "height": 1220.75
+  },
+  "stakeholder-lifecycle": {
+    "svg": "stakeholder-lifecycle.svg",
+    "png": "stakeholder-lifecycle.png",
+    "width": 1380.0,
+    "height": 262.0
+  },
+  "stakeholder-touchpoints": {
+    "svg": "stakeholder-touchpoints.svg",
+    "png": "stakeholder-touchpoints.png",
+    "width": 1199.671875,
+    "height": 391.5
+  },
+  "stakeholder-warmth": {
+    "svg": "stakeholder-warmth.svg",
+    "png": "stakeholder-warmth.png",
+    "width": 1691.0,
+    "height": 437.0
+  },
+  "system-architecture": {
+    "svg": "system-architecture.svg",
+    "png": "system-architecture.png",
+    "width": 1634.66796875,
+    "height": 1429.0
+  },
+  "user-journey": {
+    "svg": "user-journey.svg",
+    "png": "user-journey.png",
+    "width": 1532.0,
+    "height": 1193.8359375
+  },
+  "warmth-lifecycle": {
+    "svg": "warmth-lifecycle.svg",
+    "png": "warmth-lifecycle.png",
+    "width": 1737.125,
+    "height": 565.25
+  },
+  "web-dashboard-flow": {
+    "svg": "web-dashboard-flow.svg",
+    "png": "web-dashboard-flow.png",
+    "width": 1084.0,
+    "height": 281.0
+  }
+}

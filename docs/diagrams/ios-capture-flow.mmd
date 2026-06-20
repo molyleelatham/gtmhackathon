@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant Watch as Apple Watch
+    participant Speech as SpeechService
+    participant NLP as SocialGraphEngine
+    participant App as AppModel
+    participant API as FastAPI /api/signals
+
+    User->>Watch: Tap complication or say wake phrase
+    Watch->>App: WatchConnectivity start capture
+    User->>Speech: "hey it's nice to meet you"
+    Speech->>Speech: AVAudioEngine + SFSpeechRecognizer
+    Speech-->>App: Live transcript chunks
+    App->>NLP: process transcript
+    NLP-->>App: PersonNode name org role interests icpScore
+    App->>App: sessionLog.record + syncWatchState
+    App->>API: POST CapturedSignal JSON
+    API-->>App: 202 connection_id warmth routing gmail_draft
+    App-->>User: ConnectionsView updates

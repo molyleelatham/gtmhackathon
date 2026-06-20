@@ -1,0 +1,24 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant iOS as iOS Capture
+    participant API as FastAPI
+    participant ML as MeetPipeline + ML
+    participant CRM as Zero CRM
+    participant Mail as Gmail draft
+    participant Comm as Community match
+    participant Web as Web Dashboard
+
+    User->>iOS: Meet person · record conversation
+    iOS->>API: POST /api/signals
+    API->>ML: MeetIntelligencePipeline
+    alt Hot lead uplift positive
+        ML->>CRM: Push lead
+        ML->>Mail: Create draft
+    else Lukewarm community route
+        ML->>Comm: Nearest founder match
+    end
+    CRM->>Web: Connection available
+    Mail->>Web: Follow-up ready
+    Comm->>Web: Intro suggestion
+    User->>Web: Review · approve · send

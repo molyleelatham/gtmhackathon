@@ -1,0 +1,15 @@
+flowchart LR
+    POST["POST /api/signals"] --> ING["ingest_captured_signal"]
+    ING --> IDEM["Idempotency check"]
+    IDEM --> STORE["Create PreMeetConnection"]
+    STORE --> AGENT["MeetStageAgent.run"]
+
+    AGENT --> ZERO["Zero CRM push"]
+    AGENT --> GMAIL["Gmail draft handoff"]
+
+    ZERO --> RESP["202 Accepted"]
+    GMAIL --> RESP
+
+    style POST fill:#fef5f3,stroke:#c0392b
+    style AGENT fill:#eef6fc,stroke:#3498db
+    style RESP fill:#eefaf3,stroke:#27ae60

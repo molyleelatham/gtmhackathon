@@ -1,0 +1,26 @@
+flowchart TB
+    WARMTH["Warmth Platform"]
+
+    WARMTH --> ZERO["Zero CRM<br/>ICP profile + fit · lead storage"]
+    WARMTH --> UNIFY["UnifyGTM<br/>Firmographic enrichment"]
+    WARMTH --> GOOG["Google MCP<br/>Calendar · Gmail · Docs"]
+    WARMTH --> LIGHT["Lightfern<br/>Email personalization"]
+    WARMTH --> DG["Deepgram Nova-3<br/>ASR transcription"]
+    WARMTH --> TAV["Tavily<br/>Passive signal search"]
+    WARMTH --> FB["Firebase<br/>Auth + Firestore"]
+    WARMTH --> GCP["GCP Cloud Run · Pub/Sub<br/>Production hosting"]
+
+    subgraph stages["Used in lifecycle"]
+        ZERO --- S1["PreMeet · Meet"]
+        UNIFY --- S2["PreMeet"]
+        GOOG --- S3["Onboarding · PostMeet"]
+        LIGHT --- S4["PreMeet · PostMeet"]
+        DG --- S5["Listener service"]
+        TAV --- S6["Passive listener"]
+    end
+
+    style WARMTH fill:#fef5f3,stroke:#c0392b,stroke-width:2px
+    style ZERO fill:#eef6fc,stroke:#3498db
+    style UNIFY fill:#eefaf3,stroke:#27ae60
+    style GOOG fill:#fef9ee,stroke:#f39c12
+    style LIGHT fill:#f6eef9,stroke:#8e44ad

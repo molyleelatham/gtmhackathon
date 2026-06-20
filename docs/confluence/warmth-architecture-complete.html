@@ -1,0 +1,545 @@
+<h1>Warmth — Complete Architecture &amp; Technical Reference</h1>
+
+<p><time datetime="2026-06-20">June 2026</time> · GTM Hackathon · Conference Intelligence Platform</p>
+
+<div data-type="panel-info"><p><strong>One-liner:</strong> Warmth turns conference networking into a scored personal CRM — capture on mobile, score with ML, route to CRM or community, follow up from the web dashboard.</p></div>
+
+<hr/>
+
+<h2>Table of contents</h2>
+<ol>
+<li><a href="#overview">Product overview</a></li>
+<li><a href="#stack">Tech stack</a></li>
+<li><a href="#system">System architecture</a></li>
+<li><a href="#lifecycle">Warmth lifecycle</a></li>
+<li><a href="#ios">iOS / watchOS architecture</a></li>
+<li><a href="#backend">Python backend architecture</a></li>
+<li><a href="#web">Web dashboard architecture</a></li>
+<li><a href="#ml">ML pipeline &amp; routing</a></li>
+<li><a href="#integrations">External integrations</a></li>
+<li><a href="#api">API reference</a></li>
+<li><a href="#data">Data models</a></li>
+<li><a href="#journey">End-to-end user journey</a></li>
+<li><a href="#deploy">Deployment &amp; infra</a></li>
+<li><a href="#security">Security</a></li>
+<li><a href="#repo">Repository map</a></li>
+<li><a href="#status">Implementation status</a></li>
+<li><a href="#jira">Jira backlog</a></li>
+</ol>
+
+<hr/>
+
+<h2 id="overview">1. Product overview</h2>
+
+<p><strong>Warmth</strong> is a conference intelligence platform for founders, sales, and GTM teams. At a conference you might meet 50+ people; Warmth helps you:</p>
+<ul>
+<li><strong>Prepare</strong> — know who is worth meeting before you walk the floor</li>
+<li><strong>Capture</strong> — record and extract intelligence during the conversation, hands-free</li>
+<li><strong>Route</strong> — decide hot lead vs. community intro using <em>warmth uplift</em></li>
+<li><strong>Follow up</strong> — draft context-rich emails (Lightfern polishes in Gmail; human sends)</li>
+</ul>
+
+<h3>Three surfaces, one backend</h3>
+<table>
+<thead><tr><th>Surface</th><th>Role</th><th>When</th></tr></thead>
+<tbody>
+<tr><td><strong>iOS + Apple Watch</strong></td><td>Capture — phrase trigger, speech, on-device NLP</td><td>On the conference floor</td></tr>
+<tr><td><strong>Web dashboard</strong></td><td>Review &amp; manage — events, leads, warmth, follow-ups</td><td>Before/after the event</td></tr>
+<tr><td><strong>Python backend</strong></td><td>Lifecycle pipelines, ML routing, integrations</td><td>Always-on server</td></tr>
+</tbody>
+</table>
+
+<div data-type="panel-note"><p><strong>Surface split:</strong> capture happens on <strong>mobile</strong>; review/management on the <strong>web dashboard</strong>. Both talk to the same FastAPI backend + data layer.</p></div>
+
+<hr/>
+
+<h2 id="stack">2. Tech stack</h2>
+
+<h3>Mobile (iOS / watchOS)</h3>
+<table>
+<thead><tr><th>Layer</th><th>Technology</th></tr></thead>
+<tbody>
+<tr><td>Language</td><td>Swift 6.0</td></tr>
+<tr><td>UI</td><td>SwiftUI, Liquid Glass design system</td></tr>
+<tr><td>State</td><td><code>@Observable</code> AppModel (composition root)</td></tr>
+<tr><td>Speech</td><td>AVAudioEngine + SFSpeechRecognizer (on-device)</td></tr>
+<tr><td>NLP</td><td>NaturalLanguage NER + regex relation extraction</td></tr>
+<tr><td>Auth</td><td>Firebase Auth + Google Sign-In</td></tr>
+<tr><td>Watch</td><td>WatchConnectivity + WidgetKit complications</td></tr>
+<tr><td>Build</td><td>XcodeGen (<code>project.yml</code>), iOS 26+, bundle <code>com.warmth.gtmhackathon</code></td></tr>
+</tbody>
+</table>
+
+<h3>Web dashboard</h3>
+<table>
+<thead><tr><th>Layer</th><th>Technology</th></tr></thead>
+<tbody>
+<tr><td>Framework</td><td>React 18 + TypeScript</td></tr>
+<tr><td>Build</td><td>Vite 5</td></tr>
+<tr><td>Styling</td><td>Tailwind CSS 3, warm glassmorphism design</td></tr>
+<tr><td>Routing</td><td>React Router 6</td></tr>
+<tr><td>Auth</td><td>Firebase Auth</td></tr>
+<tr><td>Data</td><td>Mock-backed API client (swappable to FastAPI)</td></tr>
+</tbody>
+</table>
+
+<h3>Backend</h3>
+<table>
+<thead><tr><th>Layer</th><th>Technology</th></tr></thead>
+<tbody>
+<tr><td>Runtime</td><td>Python 3.10–3.13</td></tr>
+<tr><td>API</td><td>FastAPI + Uvicorn</td></tr>
+<tr><td>Validation</td><td>Pydantic v2</td></tr>
+<tr><td>Package mgr</td><td>uv / hatchling</td></tr>
+<tr><td>Database</td><td>Firebase Firestore (prod path) + in-memory demo store</td></tr>
+<tr><td>Secrets</td><td>Google Secret Manager + <code>.env</code></td></tr>
+<tr><td>ML</td><td>WarmthModel, LeadScorer, LeadClusterer (stub contracts)</td></tr>
+<tr><td>Workers</td><td>Passive listener (Tavily), GCP Pub/Sub (planned)</td></tr>
+</tbody>
+</table>
+
+<h3>Infrastructure (target)</h3>
+<table>
+<thead><tr><th>Service</th><th>Provider</th></tr></thead>
+<tbody>
+<tr><td>API hosting</td><td>GCP Cloud Run</td></tr>
+<tr><td>Database</td><td>Firebase Firestore</td></tr>
+<tr><td>Messaging</td><td>GCP Pub/Sub</td></tr>
+<tr><td>Scheduling</td><td>GCP Cloud Scheduler</td></tr>
+<tr><td>Web hosting</td><td>Firebase Hosting / Vercel</td></tr>
+<tr><td>iOS distribution</td><td>TestFlight → App Store</td></tr>
+</tbody>
+</table>
+
+<hr/>
+
+<h2 id="system">3. System architecture</h2>
+
+<pre><code>┌─────────────────────────────────────────────────────────────────────────┐
+│                         CLIENT LAYER                                     │
+│  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────┐ │
+│  │  iPhone App         │  │  Apple Watch        │  │  Web Dashboard  │ │
+│  │  SwiftUI + Speech   │◄►│  Complications      │  │  React + Vite   │ │
+│  │  SocialGraphEngine  │  │  WatchConnectivity  │  │  Tailwind Glass │ │
+│  └──────────┬──────────┘  └──────────┬──────────┘  └────────┬────────┘ │
+│             │ POST /api/signals       │                      │ REST    │
+└─────────────┼─────────────────────────┼──────────────────────┼─────────┘
+              │                         │                      │
+              ▼                         ▼                      ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    FASTAPI BACKEND (apps/api)                            │
+│  Routers: onboarding · premeet · meet · postmeet · data · signals       │
+│  Lifespan: Firestore · ICPConfig · PassiveListener (Tavily)             │
+└─────────────────────────────────────────────────────────────────────────┘
+              │
+              ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    LIFECYCLE PIPELINES (apps/lifecycle)                  │
+│  Onboarding → PreMeet → Meet → PostMeet → CommunityMatcher              │
+└─────────────────────────────────────────────────────────────────────────┘
+              │
+              ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    ML + INTEGRATIONS (packages/)                         │
+│  WarmthModel · LeadScorer · LeadClusterer · MeetIntelligencePipeline    │
+│  Zero CRM · UnifyGTM · Google MCP · Lightfern · Deepgram · Tavily       │
+└─────────────────────────────────────────────────────────────────────────┘
+              │
+              ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    DATA LAYER                                            │
+│  DemoStore (in-memory) → Firestore (production)                         │
+└─────────────────────────────────────────────────────────────────────────┘
+</code></pre>
+
+<hr/>
+
+<h2 id="lifecycle">4. Warmth lifecycle</h2>
+
+<pre><code>Onboarding ──► Before Meet ──────────► Meet ───────────────► Post Meet
+(connect      (research, enrich,       (phrase trigger,       (Gmail draft +
+ calendar +    warmth-score, draft      capture signals,       Lightfern polish;
+ email via     outreach, book          ML routes by           human sends)
+ Google MCP)   meetings)               warmth uplift)
+</code></pre>
+
+<h3>Stage details</h3>
+<table>
+<thead><tr><th>Stage</th><th>What happens</th><th>Code</th></tr></thead>
+<tbody>
+<tr><td><strong>Onboarding</strong></td><td>Connect Google Calendar + Gmail; detect conferences</td><td><code>apps/lifecycle/onboarding.py</code></td></tr>
+<tr><td><strong>Before Meet</strong></td><td>Build attendee list, UnifyGTM enrich, Zero ICP fit, predict warmth, draft outreach</td><td><code>apps/lifecycle/premeet.py</code></td></tr>
+<tr><td><strong>Meet</strong></td><td>Capture signals → ML pipeline → route CRM or community</td><td><code>apps/lifecycle/meet.py</code>, <code>packages/ml/pipeline.py</code></td></tr>
+<tr><td><strong>Post Meet</strong></td><td>Gmail draft with full context; Lightfern polishes; user sends</td><td><code>apps/lifecycle/postmeet.py</code></td></tr>
+</tbody>
+</table>
+
+<h3>Routing decision (core product logic)</h3>
+<pre><code>                    ┌─────────────────────┐
+                    │  Meeting captured   │
+                    │  (MeetingSignal)    │
+                    └──────────┬──────────┘
+                               │
+                    ┌──────────▼──────────┐
+                    │ WarmthModel scores  │
+                    │ post-meet vs prior  │
+                    └──────────┬──────────┘
+                               │
+              ┌────────────────┴────────────────┐
+              │                                 │
+    uplift &gt; 0 (actual &gt; predicted)    uplift ≤ 0
+              │                                 │
+              ▼                                 ▼
+   ┌──────────────────────┐      ┌──────────────────────┐
+   │ CRM + OUTREACH       │      │ FOUNDER COMMUNITY    │
+   │ Zero CRM + Gmail     │      │ nearest friend match │
+   │ draft for Lightfern  │      │ via LeadClusterer    │
+   └──────────────────────┘      └──────────────────────┘
+</code></pre>
+
+<div data-type="panel-success"><p><strong>Data ownership:</strong> ICP fit = <strong>Zero CRM</strong> · Enrichment = <strong>UnifyGTM</strong> · Warmth scoring = <strong>Warmth ML</strong></p></div>
+
+<hr/>
+
+<h2 id="ios">5. iOS / watchOS architecture</h2>
+
+<h3>App shell</h3>
+<pre><code>RootView
+ ├── OnboardingFlow (sign-in → permissions → calendar → finish)
+ └── MainTabView
+      ├── CaptureView      (RecordOrb, Waveform, wake word)
+      ├── ConnectionsView  (session + seeded connections)
+      └── SettingsView     (backend URL, account)
+</code></pre>
+
+<h3>Composition root: AppModel</h3>
+<table>
+<thead><tr><th>Service</th><th>Responsibility</th></tr></thead>
+<tbody>
+<tr><td><code>AuthProviding</code></td><td>Firebase Auth, ID tokens for signals</td></tr>
+<tr><td><code>SpeechServicing</code></td><td>AVAudioEngine → wake word → SFSpeechRecognizer</td></tr>
+<tr><td><code>SocialGraphProcessing</code></td><td>On-device NLP → PersonNode</td></tr>
+<tr><td><code>SignalSending</code></td><td>POST CapturedSignal to backend + retry queue</td></tr>
+<tr><td><code>SessionCaptureLog</code></td><td>In-memory session people (merge by name)</td></tr>
+<tr><td><code>WatchSessionService</code></td><td>iPhone ↔ Watch state sync</td></tr>
+<tr><td><code>SettingsStore</code></td><td>Onboarding flag, base URL</td></tr>
+</tbody>
+</table>
+
+<h3>Capture sequence</h3>
+<pre><code>User says "hey it's nice to meet you" (or taps Record / Watch)
+        │
+        ▼
+SpeechService.startRecording()
+        │ live transcript (on-device)
+        ▼
+SocialGraphEngine.process(transcript)
+        │ PersonNode: name, org, role, interests, icpScore, relations
+        ▼
+AppModel.capturePerson()
+        ├── sessionLog.record(node)
+        └── signalClient.send(CapturedSignal)  → POST /api/signals
+        ▼
+syncWatchState() → Watch complication updates
+</code></pre>
+
+<h3>SocialGraphEngine (on-device NLP)</h3>
+<ul>
+<li><strong>NER:</strong> NLTagger → PersonalName, OrganizationName</li>
+<li><strong>Relations:</strong> regex SPO — works_at, founded, leads, interested_in</li>
+<li><strong>ICP score:</strong> keyword proximity 0–100 (RevOps, GTM, SaaS, ML, etc.)</li>
+<li><strong>Output:</strong> <code>PersonNode</code> → encoded as <code>CapturedSignal</code></li>
+</ul>
+
+<h3>Watch targets</h3>
+<ul>
+<li><code>WarmthWatch</code> — remote start/stop capture</li>
+<li><code>WarmthWatchWidget</code> — complications showing recording state + last person</li>
+<li><code>WatchConnectivity</code> — bidirectional messages via <code>WatchSessionService</code></li>
+</ul>
+
+<hr/>
+
+<h2 id="backend">6. Python backend architecture</h2>
+
+<h3>FastAPI entry (<code>apps/api/main.py</code>)</h3>
+<ul>
+<li>Lifespan: FirestoreClient, ICPConfig, PassiveListener (Tavily)</li>
+<li>CORS for web dashboard origins</li>
+<li>Health: <code>GET /health</code></li>
+</ul>
+
+<h3>Routers</h3>
+<table>
+<thead><tr><th>Router</th><th>Prefix / path</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td>onboarding</td><td><code>/api/v1</code></td><td>Connect calendar, list events</td></tr>
+<tr><td>premeet</td><td><code>/api/v1</code></td><td>Run pre-meet pipeline, list leads</td></tr>
+<tr><td>meet</td><td><code>/api/v1/meet/signals</code></td><td>Process meeting signals, return routing</td></tr>
+<tr><td>postmeet</td><td><code>/api/v1</code></td><td>Follow-up draft generation</td></tr>
+<tr><td>data</td><td><code>/api/v1/dashboard</code>, connections, leads</td><td>Web dashboard reads</td></tr>
+<tr><td>signals</td><td><code>POST /api/signals</code></td><td>iOS ingress (CapturedSignal)</td></tr>
+<tr><td>conferences</td><td>conference-specific</td><td>Conference metadata</td></tr>
+</tbody>
+</table>
+
+<h3>Signal ingest flow (<code>apps/lifecycle/signal_ingest.py</code>)</h3>
+<pre><code>POST /api/signals (CapturedSignal JSON)
+        │
+        ▼
+ingest_captured_signal()
+        ├── idempotency check (session + person)
+        ├── create PreMeetConnection in store
+        ├── MeetStageAgent.run() → ML routing
+        ├── optional Zero CRM push
+        └── Gmail draft handoff (Lightfern polishes)
+        │
+        ▼
+202 Accepted { connection_id, warmth, gmail_draft, routing }
+</code></pre>
+
+<h3>Demo store (<code>apps/api/store.py</code>)</h3>
+<p>Seeded with <strong>SaaStr Annual 2026</strong>, 3 attendees (Maya Chen, Diego Alvarez, Priya Nair), warmth scores, community members. Powers API + web without external keys.</p>
+
+<hr/>
+
+<h2 id="web">7. Web dashboard architecture</h2>
+
+<h3>Routes (<code>web/src/App.tsx</code>)</h3>
+<table>
+<thead><tr><th>Route</th><th>Page</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>/</code></td><td>Dashboard</td><td>Stats, upcoming events, top leads</td></tr>
+<tr><td><code>/events</code></td><td>Events</td><td>Detected conferences</td></tr>
+<tr><td><code>/events/:id</code></td><td>PreMeet</td><td>Ranked leads, outreach actions</td></tr>
+<tr><td><code>/connections</code></td><td>Connections</td><td>All connections by warmth</td></tr>
+<tr><td><code>/connections/:id</code></td><td>ConnectionDetail</td><td>Scores, routing, follow-up</td></tr>
+<tr><td><code>/community</code></td><td>Community</td><td>Founder network matches</td></tr>
+<tr><td><code>/settings</code></td><td>Settings</td><td>Account preferences</td></tr>
+</tbody>
+</table>
+
+<h3>Design system</h3>
+<ul>
+<li>Warm glassmorphism (<code>Glass.tsx</code>, <code>WarmthBadge</code>, <code>ConnectionWeb</code> graph)</li>
+<li>Space Grotesk typography</li>
+<li>Mock data layer (<code>mockData.ts</code>) — swap to <code>VITE_API_BASE_URL</code> for live backend</li>
+</ul>
+
+<hr/>
+
+<h2 id="ml">8. ML pipeline &amp; routing</h2>
+
+<h3>Models (<code>packages/ml/</code>)</h3>
+<table>
+<thead><tr><th>Model</th><th>Input</th><th>Output</th></tr></thead>
+<tbody>
+<tr><td><code>WarmthModel</code></td><td>ICP fit (Zero) + enrichment (Unify) + engagement signals</td><td>predicted_score, actual_score, uplift, band</td></tr>
+<tr><td><code>LeadScorer</code></td><td>ICP config + connection attrs</td><td>Intent score; fallback ICP fit</td></tr>
+<tr><td><code>LeadClusterer</code></td><td>MeetingSignal + community list</td><td>cluster_id, nearest neighbors</td></tr>
+<tr><td><code>MeetIntelligencePipeline</code></td><td>MeetingSignal + prior WarmthScore</td><td>RoutingDecision (CRM vs community)</td></tr>
+</tbody>
+</table>
+
+<h3>WarmthScore fields</h3>
+<ul>
+<li><code>icp_score</code> — 0–100 from Zero CRM</li>
+<li><code>warmth_score</code> — 0–100 relational/intent warmth</li>
+<li><code>predicted_score</code> — pre-meet combined</li>
+<li><code>actual_score</code> — post-meet combined</li>
+<li><code>uplift</code> = actual − predicted → drives routing</li>
+<li><code>band</code> — cold / warm / hot</li>
+</ul>
+
+<hr/>
+
+<h2 id="integrations">9. External integrations</h2>
+<table>
+<thead><tr><th>Integration</th><th>Owns</th><th>Used in</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td><strong>Zero CRM</strong></td><td>ICP profile + fit, lead storage</td><td>PreMeet, Meet</td><td>Stub + optional client</td></tr>
+<tr><td><strong>UnifyGTM</strong></td><td>Firmographic enrichment</td><td>PreMeet</td><td>Stub</td></tr>
+<tr><td><strong>Google MCP</strong></td><td>Calendar, Gmail, Docs</td><td>Onboarding, PostMeet</td><td>OAuth path documented</td></tr>
+<tr><td><strong>Lightfern</strong></td><td>Email personalization</td><td>PreMeet, PostMeet</td><td>Webhook stub</td></tr>
+<tr><td><strong>Deepgram</strong></td><td>ASR transcription</td><td>Listener service</td><td>Optional dep</td></tr>
+<tr><td><strong>Tavily</strong></td><td>Signal search</td><td>Passive listener</td><td>Wired in lifespan</td></tr>
+<tr><td><strong>Firebase</strong></td><td>Auth + Firestore</td><td>iOS, Web, Backend</td><td>Partial</td></tr>
+<tr><td><strong>Cursor SDK</strong></td><td>Agent extraction</td><td>MeetStageAgent</td><td>Optional</td></tr>
+</tbody>
+</table>
+
+<div data-type="panel-warning"><p><strong>Email policy:</strong> Warmth creates Gmail <em>drafts</em>. Lightfern polishes inside Gmail. The human always sends — no auto-send.</p></div>
+
+<hr/>
+
+<h2 id="api">10. API reference</h2>
+
+<h3>Lifecycle (v1)</h3>
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Stage</th></tr></thead>
+<tbody>
+<tr><td>POST</td><td><code>/api/v1/connect</code></td><td>Onboarding</td></tr>
+<tr><td>GET</td><td><code>/api/v1/events</code></td><td>Onboarding</td></tr>
+<tr><td>POST</td><td><code>/api/v1/events/{id}/premeet</code></td><td>Before meet</td></tr>
+<tr><td>GET</td><td><code>/api/v1/events/{id}/leads</code></td><td>Before meet</td></tr>
+<tr><td>POST</td><td><code>/api/v1/meet/signals</code></td><td>Meet → routing decision</td></tr>
+<tr><td>POST</td><td><code>/api/v1/connections/{id}/followup</code></td><td>Post meet</td></tr>
+<tr><td>GET</td><td><code>/api/v1/dashboard</code></td><td>Web reads</td></tr>
+<tr><td>GET</td><td><code>/api/v1/connections</code></td><td>Web reads</td></tr>
+<tr><td>GET</td><td><code>/api/v1/leads</code></td><td>Web reads</td></tr>
+</tbody>
+</table>
+
+<h3>iOS ingress</h3>
+<pre><code>POST /api/signals
+Content-Type: application/json
+
+{
+  "user": { "uid": "...", "id_token": "..." },
+  "session_id": "UUID",
+  "captured_at": "2026-06-20T12:00:00Z",
+  "person": { "name": "Maya Chen", "org": "NorthWind Labs", "role": "VP RevOps" },
+  "relations": [{ "subject": "Maya", "predicate": "works_at", "object": "NorthWind" }],
+  "interests": ["RevOps", "pipeline"],
+  "icp_keyword_score": 88,
+  "transcript_excerpt": "...",
+  "device": { "model": "iPhone", "os": "iOS 26" }
+}
+
+→ 202 { status, connection_id, warmth, gmail_draft, routing }
+</code></pre>
+
+<hr/>
+
+<h2 id="data">11. Data models</h2>
+
+<h3>Core entities</h3>
+<table>
+<thead><tr><th>Model</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>DetectedEvent</code></td><td>Conference from calendar detection</td></tr>
+<tr><td><code>PreMeetConnection</code></td><td>Attendee before meeting (enriched)</td></tr>
+<tr><td><code>MeetingSignal</code></td><td>Live capture: name, interests, topic_time, takeaways</td></tr>
+<tr><td><code>WarmthScore</code></td><td>ICP + warmth + predicted/actual/uplift</td></tr>
+<tr><td><code>Lead</code></td><td>CRM-ready lead record</td></tr>
+<tr><td><code>CapturedSignal</code></td><td>iOS wire format (Swift + Pydantic)</td></tr>
+<tr><td><code>RoutingDecision</code></td><td>CRM_AND_OUTREACH or FOUNDER_COMMUNITY</td></tr>
+</tbody>
+</table>
+
+<hr/>
+
+<h2 id="journey">12. End-to-end user journey</h2>
+
+<pre><code>BEFORE EVENT          ON THE FLOOR              AFTER
+─────────────         ──────────────            ──────
+Connect calendar  →   Meet someone         →  Review connections
+Review ranked         Say wake phrase           Approve Gmail draft
+leads on web          Live transcript           Lightfern polishes
+Send outreach         NLP extracts person       Human sends email
+drafts                Backend routes hot/cold
+</code></pre>
+
+<h3>Actor sequence</h3>
+<pre><code>User → iOS Capture → POST /api/signals → MeetPipeline → ML routing
+                                              │
+                         ┌────────────────────┼────────────────────┐
+                         ▼                    ▼                    ▼
+                    Zero CRM            Gmail draft           Community match
+                         │                    │                    │
+                         └────────────────────┼────────────────────┘
+                                              ▼
+                                    Web Dashboard review
+</code></pre>
+
+<hr/>
+
+<h2 id="deploy">13. Deployment &amp; infrastructure</h2>
+
+<h3>Local development</h3>
+<pre><code># Backend
+uv sync && uv run uvicorn apps.api.main:app --reload --port 8000
+
+# Web
+cd web && npm install && npm run dev   # http://localhost:5173
+
+# iOS
+cd iOS/Warmth-iOS && xcodegen generate
+xcodebuild build -scheme Warmth -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+</code></pre>
+
+<h3>Production target</h3>
+<ul>
+<li><strong>API:</strong> GCP Cloud Run</li>
+<li><strong>DB:</strong> Firebase Firestore</li>
+<li><strong>Secrets:</strong> Google Secret Manager</li>
+<li><strong>Web:</strong> Static deploy (Vercel / Firebase Hosting)</li>
+<li><strong>iOS:</strong> TestFlight → App Store</li>
+</ul>
+
+<hr/>
+
+<h2 id="security">14. Security</h2>
+<ul>
+<li>Firebase Auth + ID tokens on iOS signal payloads</li>
+<li>Google Secret Manager for API keys (Deepgram, Zero, Unify, Tavily)</li>
+<li>CORS restricted via <code>WEB_ALLOWED_ORIGINS</code></li>
+<li>On-device speech + NLP (privacy on capture)</li>
+<li>Gmail drafts only — no auto-send without human action</li>
+</ul>
+
+<hr/>
+
+<h2 id="repo">15. Repository map</h2>
+<pre><code>gtmhackathon/
+├── apps/
+│   ├── api/           FastAPI + routers + demo store
+│   ├── lifecycle/     Onboarding, PreMeet, Meet, PostMeet, signal_ingest
+│   ├── listener/      Passive Tavily listener
+│   └── agent/         MeetStageAgent (Cursor SDK extraction)
+├── packages/
+│   ├── core/          Pydantic models + schemas
+│   ├── ml/            WarmthModel, pipeline, clustering
+│   └── integrations/  Zero, Unify, Google MCP, Lightfern, Tavily
+├── infra/firebase/    FirestoreClient
+├── web/               React dashboard
+├── iOS/Warmth-iOS/    iOS + Watch + Widget targets
+├── tests/             Python unit tests
+└── docs/confluence/   This documentation
+</code></pre>
+
+<hr/>
+
+<h2 id="status">16. Implementation status</h2>
+<table>
+<thead><tr><th>Area</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>iOS capture pipeline</td><td><span data-type="status" data-color="green">Done</span></td></tr>
+<tr><td>iOS UI (Capture, Connections, Onboarding)</td><td><span data-type="status" data-color="green">Done</span></td></tr>
+<tr><td>Apple Watch + complications</td><td><span data-type="status" data-color="green">Done</span></td></tr>
+<tr><td>Web dashboard (mock data)</td><td><span data-type="status" data-color="green">Done</span></td></tr>
+<tr><td>Backend lifecycle + demo store</td><td><span data-type="status" data-color="green">Done</span></td></tr>
+<tr><td>Signal ingest + Gmail draft handoff</td><td><span data-type="status" data-color="green">Done</span></td></tr>
+<tr><td>Wake word (real provider)</td><td><span data-type="status" data-color="yellow">In Progress</span></td></tr>
+<tr><td>Firebase Auth E2E</td><td><span data-type="status" data-color="yellow">In Progress</span></td></tr>
+<tr><td>ML models (real training)</td><td><span data-type="status" data-color="yellow">In Progress</span></td></tr>
+<tr><td>Zero / Unify / Google MCP live</td><td><span data-type="status" data-color="neutral">To Do</span></td></tr>
+<tr><td>Firestore persistence</td><td><span data-type="status" data-color="neutral">To Do</span></td></tr>
+<tr><td>GCP production deploy</td><td><span data-type="status" data-color="neutral">To Do</span></td></tr>
+</tbody>
+</table>
+
+<hr/>
+
+<h2 id="jira">17. Jira backlog</h2>
+<p>Full sprint backlog tracked in Jira project <strong>KAN</strong>:</p>
+<ul>
+<li><strong>Epic:</strong> <a href="https://dzak.atlassian.net/browse/KAN-1">KAN-1 — Warmth — Conference Intelligence Platform</a></li>
+<li><strong>Board:</strong> <a href="https://dzak.atlassian.net/jira/software/projects/KAN/boards/1">KAN Board</a></li>
+</ul>
+
+<p>Child issues KAN-2 through KAN-32 cover Done / In Progress / To Do work across iOS, backend, integrations, and deploy.</p>
+
+<hr/>
+
+<p><em>Generated from the gtmhackathon repository · branch cursor/warmth-ios-enhancements</em></p>

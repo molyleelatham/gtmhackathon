@@ -1,0 +1,19 @@
+flowchart LR
+    subgraph mobile["On the go · iPhone & Apple Watch"]
+        CAP["Capture conversations<br/>hands-free while you network"]
+    end
+
+    subgraph web["At your desk · Web dashboard"]
+        REV["Review connections<br/>Prioritize follow-ups<br/>Track every event"]
+    end
+
+    subgraph brain["Warmth intelligence"]
+        INTEL["Scores · routes · drafts<br/>Works quietly in the background"]
+    end
+
+    CAP --> INTEL --> REV
+    REV -.->|"Plan before the event"| CAP
+
+    style mobile fill:#fef5f3,stroke:#c0392b
+    style web fill:#eef6fc,stroke:#3498db
+    style brain fill:#eefaf3,stroke:#27ae60
