@@ -100,11 +100,18 @@ struct CRMConnectionDetail: Sendable {
     let connection: CRMConnection
     let warmth: CRMWarmthScore?
     let gmailDraft: [String: String]?
+    let meetResult: CRMMeetResult?
 
-    init(connection: CRMConnection, warmth: CRMWarmthScore?, gmailDraft: [String: String]?) {
+    init(
+        connection: CRMConnection,
+        warmth: CRMWarmthScore?,
+        gmailDraft: [String: String]?,
+        meetResult: CRMMeetResult? = nil
+    ) {
         self.connection = connection
         self.warmth = warmth
         self.gmailDraft = gmailDraft
+        self.meetResult = meetResult
     }
 }
 

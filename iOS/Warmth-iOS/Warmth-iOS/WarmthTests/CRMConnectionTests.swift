@@ -52,6 +52,22 @@ final class WarmthAPIClientTests: XCTestCase {
         XCTAssertEqual(client.connections.first?.name, "Sam")
         XCTAssertEqual(client.fetchState, .loaded)
     }
+
+    func testSendFollowupUsesPostEndpoint() async throws {
+        MockURLProtocol.requestHandler = { request in
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertTrue(request.url?.path.contains("/followup") == true)
+            let payload = #"{"subject":"Hello","body":"Thanks for meeting."}"#
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (response, Data(payload.utf8))
+        }
+
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [MockURLProtocol.self]
+        let client = WarmthAPIClient(baseURL: URL(string: "https://api.test")!, session: URLSession(configuration: config))
+        let draft = try await client.sendFollowup(connectionId: "conn_1")
+        XCTAssertEqual(draft.subject, "Hello")
+    }
 }
 
 private final class MockURLProtocol: URLProtocol {

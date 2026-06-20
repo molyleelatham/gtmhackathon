@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Full profile for one CRM connection — fetches warmth + draft from the backend
 /// so iOS stays in sync with the web dashboard detail page.
@@ -8,9 +11,13 @@ struct ConnectionDetailView: View {
 
     @State private var detail: CRMConnectionDetail?
     @State private var loadError: String?
+    @State private var followUpDraft: CRMFollowUpDraft?
+    @State private var showFollowUpSheet = false
+    @State private var followUpError: String?
 
     private var display: CRMConnection { detail?.connection ?? connection }
     private var warmth: CRMWarmthScore? { detail?.warmth }
+    private var meetResult: CRMMeetResult? { detail?.meetResult }
     private var draftBody: String? {
         detail?.gmailDraft?["body"] ?? display.draftBody
     }
@@ -26,11 +33,24 @@ struct ConnectionDetailView: View {
                 VStack(spacing: 18) {
                     header
 
+                    if let routing = routingBadge {
+                        section("Routing") {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(routing.title)
+                                    .warmthText(.Warmth.headline, color: routing.tint)
+                                if let narrative = routing.subtitle {
+                                    Text(narrative)
+                                        .warmthText(.Warmth.body, color: WarmthColor.inkSecondary)
+                                }
+                            }
+                        }
+                    }
+
                     if !display.interests.isEmpty {
                         section("Interest knowledge graph") {
                             KnowledgeGraphMiniView(
                                 personName: display.name,
-                                interests: display.interests,
+                                interests: graphInterests,
                                 values: []
                             )
                             .frame(height: 240)
@@ -61,14 +81,37 @@ struct ConnectionDetailView: View {
                         }
                     }
 
-                    if let draftSubject, let draftBody {
+                    if draftSubject != nil || draftBody != nil || followUpDraft != nil {
                         section("Outreach draft") {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(draftSubject)
-                                    .warmthText(.Warmth.headline)
-                                Text(draftBody)
-                                    .warmthText(.Warmth.body, color: WarmthColor.inkSecondary)
-                                    .fixedSize(horizontal: false, vertical: true)
+                            VStack(alignment: .leading, spacing: 12) {
+                                if let subject = followUpDraft?.subject ?? draftSubject {
+                                    Text(subject)
+                                        .warmthText(.Warmth.headline)
+                                }
+                                if let body = followUpDraft?.body ?? draftBody {
+                                    Text(body)
+                                        .warmthText(.Warmth.body, color: WarmthColor.inkSecondary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                HStack(spacing: 12) {
+                                    EmberButton(title: "Generate draft", systemImage: "sparkles", fill: false) {
+                                        Task { await generateFollowUp() }
+                                    }
+                                    if followUpDraft != nil || draftBody != nil {
+                                        EmberButton(title: "Copy", systemImage: "doc.on.doc", fill: false) {
+                                            copyDraft()
+                                        }
+                                        ShareLink(item: shareDraftText) {
+                                            Label("Share", systemImage: "square.and.arrow.up")
+                                                .font(.Warmth.footnote)
+                                                .foregroundStyle(WarmthColor.emberRed)
+                                        }
+                                    }
+                                }
+                                if let followUpError {
+                                    Text(followUpError)
+                                        .warmthText(.Warmth.footnote, color: WarmthColor.emberRed)
+                                }
                             }
                         }
                     }
@@ -99,6 +142,60 @@ struct ConnectionDetailView: View {
             return Int(predicted.rounded())
         }
         return display.predictedWarmth
+    }
+
+    private var graphInterests: [String] {
+        if let meet = meetResult, !meet.interests.isEmpty { return meet.interests }
+        return display.interests
+    }
+
+    private var shareDraftText: String {
+        let subject = followUpDraft?.subject ?? draftSubject ?? "Follow-up"
+        let body = followUpDraft?.body ?? draftBody ?? ""
+        return "Subject: \(subject)\n\n\(body)"
+    }
+
+    private struct RoutingBadge {
+        let title: String
+        let subtitle: String?
+        let tint: Color
+    }
+
+    private var routingBadge: RoutingBadge? {
+        guard let routed = meetResult?.routedTo else { return nil }
+        if routed.contains("community") {
+            return RoutingBadge(
+                title: "Founder community",
+                subtitle: meetResult?.narrative,
+                tint: WarmthColor.amber
+            )
+        }
+        if routed.contains("crm") || routed.contains("outreach") {
+            return RoutingBadge(
+                title: "CRM & outreach",
+                subtitle: meetResult?.narrative,
+                tint: WarmthColor.emberOrange
+            )
+        }
+        return RoutingBadge(title: routed.replacingOccurrences(of: "_", with: " ").capitalized, subtitle: meetResult?.narrative, tint: WarmthColor.inkSecondary)
+    }
+
+    @MainActor
+    private func generateFollowUp() async {
+        followUpError = nil
+        do {
+            followUpDraft = try await model.crmClient.sendFollowup(connectionId: connection.id)
+            WarmthHaptics.success()
+        } catch {
+            followUpError = error.localizedDescription
+        }
+    }
+
+    private func copyDraft() {
+        #if canImport(UIKit)
+        UIPasteboard.general.string = shareDraftText
+        WarmthHaptics.success()
+        #endif
     }
 
     @MainActor
