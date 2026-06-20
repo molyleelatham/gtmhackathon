@@ -144,7 +144,7 @@ export function ConnectionDetail() {
 
   return (
     <div className="space-y-5">
-      <Link to="/connections" className="text-sm text-ink-muted hover:text-flame">
+      <Link to="/app/connections" className="text-sm text-ink-muted hover:text-flame">
         ← Connections
       </Link>
 

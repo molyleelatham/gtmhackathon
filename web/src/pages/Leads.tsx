@@ -74,7 +74,7 @@ export function Leads() {
       {data && data.length === 0 && (
         <p className="text-sm text-ink-faint">
           No CRM leads yet — run a meet simulation or ingest an iOS signal from{" "}
-          <Link to="/pipeline" className="text-flame hover:text-ember">
+          <Link to="/app/pipeline" className="text-flame hover:text-ember">
             Pipeline
           </Link>
           .

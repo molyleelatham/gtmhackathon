@@ -10,7 +10,7 @@ options:
 settings:
   base:
     SWIFT_VERSION: "6.0"
-    MARKETING_VERSION: "0.1.0"
+    MARKETING_VERSION: "0.2.0"
     CURRENT_PROJECT_VERSION: "1"
     DEVELOPMENT_TEAM: 6Q3AVN73Z6
     CODE_SIGN_STYLE: Automatic
@@ -24,6 +24,9 @@ packages:
   GoogleSignIn:
     url: https://github.com/google/GoogleSignIn-iOS
     from: "9.0.0"
+  SpeechWakeWord:
+    url: https://github.com/soniqo/speech-swift
+    branch: main
 
 # NOTE: WarmthWatch / WarmthWatchWidget targets are included for standalone watch
 # builds. The iOS app does not embed them until watchOS simulators/runtimes are
@@ -40,14 +43,8 @@ targets:
           - "**/.DS_Store"
           # Legacy duplicate of Services/SocialGraph/SocialGraphEngine.swift
           - "Services/SocialGraphEngine.swift"
-          - "Services/EventListeningEngine.swift"
-          - "Services/WakeWordEngine.swift"
           - "Services/SignalAPIClient.swift"
-          - "Services/AudioSessionManager.swift"
-          - "Services/CaptureWindow.swift"
-          - "Services/MicrophoneStream.swift"
           - "Models/Signal.swift"
-          - "Models/ICPVocabulary.swift"
           - "Views/ListeningView.swift"
     dependencies:
       - package: Firebase
@@ -58,6 +55,8 @@ targets:
         product: GoogleSignIn
       - package: GoogleSignIn
         product: GoogleSignInSwift
+      - package: SpeechWakeWord
+        product: SpeechWakeWord
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.warmth.gtmhackathon
@@ -79,8 +78,8 @@ targets:
           - UIInterfaceOrientationPortrait
         UIBackgroundModes:
           - audio
-        NSMicrophoneUsageDescription: "Warmth listens for your trigger phrase and transcribes conversations entirely on-device."
-        NSSpeechRecognitionUsageDescription: "Warmth uses on-device speech recognition to know when a conversation starts and to transcribe it."
+        NSMicrophoneUsageDescription: "Warmth records conversations on-device when you start capture via Siri, watch, or the in-app button."
+        NSSpeechRecognitionUsageDescription: "Warmth uses on-device speech recognition to transcribe introductions after you start capture."
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         CFBundleURLTypes:

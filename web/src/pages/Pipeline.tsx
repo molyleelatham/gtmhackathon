@@ -113,7 +113,7 @@ export function Pipeline() {
           </p>
         </div>
         <Link
-          to="/?demo=1"
+          to="/app?demo=1"
           className="glass-interactive inline-flex shrink-0 items-center gap-2 self-start rounded-xl border border-orange/45 bg-orange/15 px-4 py-2.5 text-sm font-semibold text-flame"
         >
           <span className="h-2 w-2 rounded-full bg-flame" />
@@ -275,11 +275,11 @@ export function Pipeline() {
 
       <p className="text-xs text-ink-faint">
         Meet encode/process endpoints are on each{" "}
-        <Link to="/connections" className="text-flame hover:text-ember">
+        <Link to="/app/connections" className="text-flame hover:text-ember">
           connection detail
         </Link>{" "}
         page. Pre-meet runs from{" "}
-        <Link to="/events" className="text-flame hover:text-ember">
+        <Link to="/app/events" className="text-flame hover:text-ember">
           Events
         </Link>
         .

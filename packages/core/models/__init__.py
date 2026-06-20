@@ -5,7 +5,6 @@ from .enrichment import EnrichedLead
 from .conversation import ConversationIntelligence
 from .connection import FirstConnection, ConnectionStatus
 from .event_directory import EventDirectory, EventAttendee
-from .event import Conference
 from .community import CommunityGroup, CommunityShare, PermissionLevel
 from .agent import AutoAgent, AgentStatus, AgentType
 from .event import (

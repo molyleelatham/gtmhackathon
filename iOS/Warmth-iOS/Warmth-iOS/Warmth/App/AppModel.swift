@@ -19,8 +19,8 @@ final class AppModel {
     let socialGraph: any SocialGraphProcessing
     let sessionLog: SessionCaptureLog
     let settings: SettingsStore
-    /// Apple Watch companion bridge. Self-contained; wired to capture below.
     let watch: WatchSessionService
+    let eventListening: EventListeningEngine
 
     var selectedTab: WarmthTab = .home
     var dashboard: CRMDashboardSummary?
@@ -30,11 +30,14 @@ final class AppModel {
     var icpProfile: [CRMICPRow] = []
     var homeError: String?
     var routedCommunityUserIDs: Set<String> = []
-    /// Shown after a roster match from a live "hi {name}" greeting.
     var attendeeMatch: AttendeeMatchResult?
+    /// Person name supplied by Siri ("I'm meeting Sarah").
+    var pendingCapturePersonName: String?
+    var isPassiveFloorListeningActive = false
+    var passiveFloorTranscript = ""
+
     private var matchAttemptedThisCapture = false
     private var didApplyLaunchTab = false
-    /// Tunable for tests — production polls the backend while ingest finishes.
     var captureRefreshAttempts = 4
     var captureRefreshDelaySeconds = 1.2
 
@@ -54,7 +57,8 @@ final class AppModel {
         socialGraph: any SocialGraphProcessing,
         sessionLog: SessionCaptureLog = SessionCaptureLog(),
         settings: SettingsStore = SettingsStore(),
-        watch: WatchSessionService = WatchSessionService()
+        watch: WatchSessionService = WatchSessionService(),
+        eventListening: EventListeningEngine = EventListeningEngine()
     ) {
         self.auth = auth
         self.speech = speech
@@ -64,10 +68,25 @@ final class AppModel {
         self.sessionLog = sessionLog
         self.settings = settings
         self.watch = watch
+        self.eventListening = eventListening
         applyBackendURL(settings.baseURL)
 
-        watch.onStartRequested = { [weak self] in self?.startCaptureFromWatch() }
-        watch.onStopRequested = { [weak self] in self?.stopCaptureFromWatch() }
+        eventListening.onCaptureComplete = { [weak self] transcript, _ in
+            await self?.capturePerson(from: transcript)
+        }
+        eventListening.onStateChange = { [weak self] state in
+            self?.isPassiveFloorListeningActive = state != .idle
+        }
+        eventListening.onLiveTranscriptChange = { [weak self] text in
+            self?.passiveFloorTranscript = text
+        }
+
+        watch.onStartRequested = { [weak self] in
+            Task { @MainActor in await self?.startCapture(source: .watch) }
+        }
+        watch.onStopRequested = { [weak self] in
+            Task { @MainActor in await self?.stopCapture(source: .watch) }
+        }
         syncWatchState()
         Task {
             await refreshRosterWatchlist()
@@ -88,19 +107,24 @@ final class AppModel {
     func prepareNewCapture() {
         matchAttemptedThisCapture = false
         attendeeMatch = nil
+        pendingCapturePersonName = nil
     }
 
-    /// Hydrate the on-device name watchlist from the backend roster.
     func refreshRosterWatchlist() async {
         let names = await signalClient.fetchRosterFirstNames()
         guard !names.isEmpty else { return }
         WatchlistProvider.shared.update(names: names)
+        eventListening.watchlist = names
     }
 
-    /// Detect "hi {name}" in the live transcript and match against the event roster.
     func tryMatchAttendee(from transcript: String) async {
         guard !matchAttemptedThisCapture else { return }
         guard let name = Self.extractGreetingName(from: transcript) else { return }
+        await matchAttendee(named: name, transcript: transcript)
+    }
+
+    func matchAttendee(named name: String, transcript: String? = nil) async {
+        guard !matchAttemptedThisCapture else { return }
         matchAttemptedThisCapture = true
         guard let result = await signalClient.matchAttendee(
             name: name,
@@ -129,7 +153,6 @@ final class AppModel {
         return nil
     }
 
-    /// Keep upload + CRM read clients pointed at the same backend host.
     func applyBackendURL(_ url: URL) {
         signalClient.updateBaseURL(url)
         crmClient.updateBaseURL(url)
@@ -175,7 +198,6 @@ final class AppModel {
         routedCommunityUserIDs = ids
     }
 
-    /// Poll the backend after capture — ingest runs async server-side (HTTP 202).
     func refreshConnectionsAfterCapture() async {
         for attempt in 0..<captureRefreshAttempts {
             if attempt > 0, captureRefreshDelaySeconds > 0 {
@@ -183,6 +205,98 @@ final class AppModel {
             }
             await refreshConnections()
             await refreshHome()
+        }
+    }
+
+    // MARK: - Unified capture router
+
+    func startCapture(source: CaptureSource, personName: String? = nil) async {
+        let method = source.activationMethod
+        switch method {
+        case .siri:
+            guard settings.capturePreferences.isEnabled(.siri)
+                || settings.capturePreferences.isEnabled(.actionButton) else { return }
+        default:
+            guard settings.capturePreferences.isEnabled(method) else { return }
+        }
+        guard isOnboarded else { return }
+
+        prepareNewCapture()
+        if let personName, !personName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let trimmed = personName.trimmingCharacters(in: .whitespacesAndNewlines)
+            pendingCapturePersonName = trimmed
+            await matchAttendee(named: trimmed)
+        }
+
+        selectedTab = .capture
+        await stopPassiveFloorListening()
+
+        guard await speech.requestPermissions(), speech.hasMicrophoneAccess else {
+            syncWatchState()
+            return
+        }
+        await speech.startRecording()
+        syncWatchState()
+    }
+
+    func stopCapture(source: CaptureSource) async {
+        guard speech.phase == .recording else { return }
+
+        let transcript = speech.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+        speech.stopAndReset()
+        pendingCapturePersonName = nil
+        if !transcript.isEmpty {
+            await capturePerson(from: transcript)
+        }
+        syncWatchState()
+        await resumePassiveFloorListeningIfNeeded()
+    }
+
+    func startCaptureFromWatch() {
+        Task { await startCapture(source: .watch) }
+    }
+
+    func stopCaptureFromWatch() {
+        Task { await stopCapture(source: .watch) }
+    }
+
+    func startManualCapture() async {
+        await startCapture(source: .manual)
+    }
+
+    func stopManualCapture() async {
+        await stopCapture(source: .manual)
+    }
+
+    // MARK: - Passive floor listening
+
+    func startPassiveFloorListeningIfNeeded() async {
+        guard settings.capturePreferences.isEnabled(.passiveFloorListening) else { return }
+        guard speech.phase == .idle else { return }
+        guard eventListening.state == .idle else { return }
+
+        eventListening.watchlist = WatchlistProvider.shared.names
+        await eventListening.start()
+    }
+
+    func stopPassiveFloorListening() async {
+        guard eventListening.state != .idle else { return }
+        eventListening.stop()
+    }
+
+    func resumePassiveFloorListeningIfNeeded() async {
+        guard speech.phase == .idle else { return }
+        await startPassiveFloorListeningIfNeeded()
+    }
+
+    func handleScenePhase(_ phase: ScenePhase) async {
+        switch phase {
+        case .active:
+            await startPassiveFloorListeningIfNeeded()
+        case .background, .inactive:
+            await stopPassiveFloorListening()
+        @unknown default:
+            break
         }
     }
 
@@ -203,30 +317,9 @@ final class AppModel {
         watch.updateState(
             isRecording: speech.phase == .recording,
             elapsed: speech.elapsed,
-            lastPersonName: last?.name,
+            lastPersonName: pendingCapturePersonName ?? last?.name,
             lastPersonOrg: last?.org
         )
-    }
-
-    func startCaptureFromWatch() {
-        matchAttemptedThisCapture = false
-        Task { @MainActor in
-            guard await speech.requestPermissions(), speech.hasMicrophoneAccess else {
-                syncWatchState()
-                return
-            }
-            await speech.startRecording()
-            syncWatchState()
-        }
-    }
-
-    func stopCaptureFromWatch() {
-        let transcript = speech.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
-        speech.stopAndReset()
-        if !transcript.isEmpty {
-            Task { await capturePerson(from: transcript) }
-        }
-        syncWatchState()
     }
 
     var isOnboarded: Bool { settings.didCompleteOnboarding }
@@ -235,7 +328,6 @@ final class AppModel {
         settings.didCompleteOnboarding = true
     }
 
-    /// Capture a person extracted from a transcript: log it + upload a signal.
     func capturePerson(from transcript: String) async {
         matchAttemptedThisCapture = false
         guard let node = socialGraph.process(transcript: transcript) else { return }

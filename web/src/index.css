@@ -56,6 +56,7 @@ body,
 
 html {
   background-color: #ffe8dc;
+  scroll-behavior: smooth;
 }
 html.dark {
   background-color: #1a120c;
@@ -210,6 +211,95 @@ h3 {
   }
   .icon-btn:hover {
     background: var(--hover-overlay);
+  }
+
+  .landing-section {
+    @apply mx-auto w-full max-w-5xl px-4 sm:px-6;
+  }
+
+  /* Apple-style scroll reveals — warm landing page */
+  .scroll-reveal {
+    transition:
+      opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+      filter 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .scroll-reveal-up {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  .scroll-reveal-up.scroll-reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .scroll-reveal-fade {
+    opacity: 0;
+  }
+  .scroll-reveal-fade.scroll-reveal-visible {
+    opacity: 1;
+  }
+
+  .scroll-reveal-scale {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  .scroll-reveal-scale.scroll-reveal-visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .scroll-reveal-blur {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(10px);
+  }
+  .scroll-reveal-blur.scroll-reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+
+  .scroll-reveal-up-scale {
+    opacity: 0;
+    transform: translateY(32px) scale(0.96);
+  }
+  .scroll-reveal-up-scale.scroll-reveal-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .nav-enter {
+    animation: nav-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes nav-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-reveal,
+    .scroll-reveal-up,
+    .scroll-reveal-fade,
+    .scroll-reveal-scale,
+    .scroll-reveal-blur,
+    .scroll-reveal-up-scale {
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+      transition: none !important;
+    }
+    .nav-enter {
+      animation: none;
+    }
   }
 }
 

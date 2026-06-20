@@ -184,7 +184,7 @@ export function Connections() {
 
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {filtered.map((c) => (
-          <Link key={c.id} to={`/connections/${c.id}`} className="person-card">
+          <Link key={c.id} to={`/app/connections/${c.id}`} className="person-card">
             <WarmthBadge score={c.predicted_warmth} className="person-card-badge" />
             <div className="person-card-body">
               <Avatar name={c.name ?? "Unknown"} size="md" />

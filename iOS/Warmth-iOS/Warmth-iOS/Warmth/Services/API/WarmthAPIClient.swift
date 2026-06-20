@@ -34,11 +34,17 @@ final class WarmthAPIClient: CRMProviding {
 
     private let session: URLSession
     private let decoder: JSONDecoder
+    private weak var auth: (any AuthProviding)?
 
-    init(baseURL: URL, session: URLSession = .shared) {
+    init(baseURL: URL, session: URLSession = .shared, auth: (any AuthProviding)? = nil) {
         self.baseURL = baseURL
         self.session = session
+        self.auth = auth
         self.decoder = JSONDecoder()
+    }
+
+    func bindAuth(_ auth: any AuthProviding) {
+        self.auth = auth
     }
 
     func updateBaseURL(_ url: URL) {
@@ -57,43 +63,49 @@ final class WarmthAPIClient: CRMProviding {
     }
 
     func connectionDetail(id: String) async throws -> CRMConnectionDetail {
-        let url = baseURL.appendingPathComponent("api/v1/connections/\(id)")
-        let (data, response) = try await session.data(from: url)
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/v1/connections/\(id)"))
+        await auth?.applyAuthorization(to: &request)
+        let (data, response) = try await session.data(for: request)
         try validate(response)
         return try parseDetail(data)
     }
 
     func fetchDashboard() async throws -> CRMDashboardSummary {
-        let url = baseURL.appendingPathComponent("api/v1/dashboard")
-        let (data, response) = try await session.data(from: url)
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/v1/dashboard"))
+        await auth?.applyAuthorization(to: &request)
+        let (data, response) = try await session.data(for: request)
         try validate(response)
         return try decoder.decode(CRMDashboardSummary.self, from: data)
     }
 
     func fetchRoster() async throws -> CRMRoster {
-        let url = baseURL.appendingPathComponent("api/v1/dashboard/roster")
-        let (data, response) = try await session.data(from: url)
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/v1/dashboard/roster"))
+        await auth?.applyAuthorization(to: &request)
+        let (data, response) = try await session.data(for: request)
         try validate(response)
         return try parseRoster(data)
     }
 
     func fetchCommunityMembers() async throws -> [CRMCommunityMember] {
-        let url = baseURL.appendingPathComponent("api/v1/community/members")
-        let (data, response) = try await session.data(from: url)
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/v1/community/members"))
+        await auth?.applyAuthorization(to: &request)
+        let (data, response) = try await session.data(for: request)
         try validate(response)
         return try decoder.decode([CRMCommunityMember].self, from: data)
     }
 
     func fetchEvents() async throws -> [CRMDetectedEvent] {
-        let url = baseURL.appendingPathComponent("api/v1/events")
-        let (data, response) = try await session.data(from: url)
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/v1/events"))
+        await auth?.applyAuthorization(to: &request)
+        let (data, response) = try await session.data(for: request)
         try validate(response)
         return try decoder.decode([CRMDetectedEvent].self, from: data)
     }
 
     func fetchICPProfile() async throws -> [CRMICPRow] {
-        let url = baseURL.appendingPathComponent("api/v1/icp")
-        let (data, response) = try await session.data(from: url)
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/v1/icp"))
+        await auth?.applyAuthorization(to: &request)
+        let (data, response) = try await session.data(for: request)
         try validate(response)
         return try decoder.decode([CRMICPRow].self, from: data)
     }
@@ -103,6 +115,7 @@ final class WarmthAPIClient: CRMProviding {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = Data("{}".utf8)
+        await auth?.applyAuthorization(to: &request)
         let (data, response) = try await session.data(for: request)
         try validate(response)
         let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
@@ -117,6 +130,7 @@ final class WarmthAPIClient: CRMProviding {
         let url = baseURL.appendingPathComponent("api/v1/connections")
         var request = URLRequest(url: url)
         request.timeoutInterval = 15
+        await auth?.applyAuthorization(to: &request)
         let (data, response) = try await session.data(for: request)
         try validate(response)
         return try decoder.decode([CRMConnection].self, from: data)

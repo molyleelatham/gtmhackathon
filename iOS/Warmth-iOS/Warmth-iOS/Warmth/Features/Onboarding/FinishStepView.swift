@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Step 5 — celebratory finish. Tapping "Start capturing" completes onboarding.
+/// Step 6 — celebratory finish. Tapping "Start capturing" completes onboarding.
 struct FinishStepView: View {
     @Environment(AppModel.self) private var model
     let finish: () -> Void
@@ -28,7 +28,7 @@ struct FinishStepView: View {
                     .warmthText(.Warmth.largeTitle)
                     .multilineTextAlignment(.center)
 
-                Text("Just say “\(WakeWord.phrase)” and Warmth will remember every introduction for you.")
+                Text(finishCopy)
                     .warmthText(.Warmth.callout, color: WarmthColor.inkSecondary)
                     .multilineTextAlignment(.center)
             }
@@ -46,6 +46,28 @@ struct FinishStepView: View {
             return "You're all set, \(name)."
         }
         return "You're all set."
+    }
+
+    private var finishCopy: String {
+        let prefs = model.settings.capturePreferences
+        var hints: [String] = []
+        if prefs.isEnabled(.siri) {
+            hints.append("“Hey Siri, I'm meeting someone with Warmth”")
+        }
+        if prefs.isEnabled(.watch) {
+            hints.append("tap your watch")
+        }
+        if prefs.isEnabled(.manual) {
+            hints.append("tap the ember orb")
+        }
+        guard !hints.isEmpty else {
+            return "Open Capture when you're ready to record an introduction."
+        }
+        if hints.count == 1 {
+            return "Try \(hints[0]) when you meet someone new."
+        }
+        let last = hints.removeLast()
+        return "Try \(hints.joined(separator: ", ")), or \(last) when you meet someone new."
     }
 }
 

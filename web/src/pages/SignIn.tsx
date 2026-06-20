@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { WarmthLogo } from "../components/WarmthLogo";
 import { useAuth } from "../lib/auth";
 
 export function SignIn() {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, user } = useAuth();
+  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (user) navigate("/app", { replace: true });
+  }, [user, navigate]);
 
   async function handleSignIn() {
     setBusy(true);
@@ -21,9 +28,7 @@ export function SignIn() {
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
       <div className="glass-strong w-full max-w-sm animate-fade-up p-8 text-center">
-        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-orange to-ember text-2xl font-bold text-white shadow-glass">
-          W
-        </div>
+        <WarmthLogo size="md" className="mx-auto mb-4" />
         <h1 className="text-xl font-semibold text-white">Warmth</h1>
         <p className="mt-1 text-sm text-ink-muted">
           Your personal CRM for event connections.
@@ -47,6 +52,10 @@ export function SignIn() {
         <p className="mt-6 text-xs text-ink-faint">
           Pick any Google account each time you sign in. Capture on iPhone &amp; Apple Watch.
         </p>
+
+        <Link to="/" className="mt-4 inline-block text-xs text-flame hover:text-ember">
+          ← Back to landing
+        </Link>
       </div>
     </div>
   );

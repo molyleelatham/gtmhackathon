@@ -1,35 +1,42 @@
 import Foundation
 import AVFoundation
-import Speech
 import Combine
+import SpeechWakeWord
 
-/// Orchestrates the passive event-listening pipeline:
-///
-///   mic (16 kHz) → wake word → 30s capture window → social graph → Signal
-///                → watch haptic + POST /api/signals
+/// Orchestrates passive event-listening:
+///   mic (16 kHz) → contact-name wake word → 30s capture window → callback
 @MainActor
 final class EventListeningEngine: ObservableObject {
-    static let shared = EventListeningEngine()
-
     enum State: Equatable {
         case idle
-        case listening          // waiting for a wake word
-        case capturing(name: String?)   // inside a 30s window
+        case listening
+        case capturing(name: String?)
     }
 
     @Published private(set) var state: State = .idle
     @Published private(set) var liveTranscript = ""
-    @Published private(set) var lastSignal: Signal?
 
     private let mic = MicrophoneStream()
     private let wakeWord = WakeWordEngine()
     private let capture = CaptureWindow()
-    private let graph = SocialGraphEngine()
-    private let api = SignalAPIClient.shared
-    private let watch = WatchConnectivityService.shared
 
     /// Names the wake word should listen for (contacts + ICP first names).
     var watchlist: [String] = WatchlistProvider.shared.names
+
+    /// Called when a 30s capture window finishes with a non-empty transcript.
+    var onCaptureComplete: ((String, String?) async -> Void)?
+    var onStateChange: ((State) -> Void)?
+    var onLiveTranscriptChange: ((String) -> Void)?
+
+    private func publishState(_ newState: State) {
+        state = newState
+        onStateChange?(newState)
+    }
+
+    private func publishTranscript(_ text: String) {
+        liveTranscript = text
+        onLiveTranscriptChange?(text)
+    }
 
     private var isCapturing: Bool {
         if case .capturing = state { return true }
@@ -47,7 +54,7 @@ final class EventListeningEngine: ObservableObject {
             try await wakeWord.configure(names: watchlist)
 
             capture.onPartialTranscript = { [weak self] text in
-                self?.liveTranscript = text
+                Task { @MainActor in self?.publishTranscript(text) }
             }
 
             mic.onFrame = { [weak self] raw, frame16k in
@@ -56,19 +63,18 @@ final class EventListeningEngine: ObservableObject {
             }
 
             try mic.start()
-            state = .listening
-            print("EventListeningEngine: listening for \(watchlist.count) names")
+            publishState(.listening)
         } catch {
             print("EventListeningEngine: failed to start: \(error)")
-            state = .idle
+            publishState(.idle)
         }
     }
 
     func stop() {
         mic.stop()
         capture.end()
-        state = .idle
-        liveTranscript = ""
+        publishState(.idle)
+        publishTranscript("")
     }
 
     // MARK: - Audio routing
@@ -87,21 +93,17 @@ final class EventListeningEngine: ObservableObject {
         }
     }
 
-    /// Best-effort mapping of a detection back to a contact name via the
-    /// phrase→name table built in `WakeWordEngine.configure`.
-    private func matchedName(from detection: WakeWordDetection) -> String? {
-        let phrase = (detection.keyword as String?)?.lowercased() ?? ""
+    private func matchedName(from detection: KeywordDetection) -> String? {
+        let phrase = detection.phrase.lowercased()
         return wakeWord.phraseToName[phrase]
     }
 
     // MARK: - Capture window
 
     private func openCaptureWindow(for name: String?) {
-        state = .capturing(name: name)
-        liveTranscript = ""
-
-        // Light haptic to confirm the wake word fired.
-        watch.notifyWakeWord(name: name)
+        publishState(.capturing(name: name))
+        publishTranscript("")
+        WarmthHaptics.wakeWord()
 
         capture.begin(duration: 30) { [weak self] transcript in
             Task { @MainActor in self?.finishCapture(transcript: transcript, focusName: name) }
@@ -109,29 +111,14 @@ final class EventListeningEngine: ObservableObject {
     }
 
     private func finishCapture(transcript: String, focusName: String?) {
-        // Reset wake-word state so trailing audio doesn't immediately re-trigger.
         wakeWord.resetSession()
 
-        if let signal = graph.ingest(transcript: transcript, focusName: focusName) {
-            lastSignal = signal
-            handle(signal: signal)
+        let trimmed = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty, let onCaptureComplete {
+            Task { await onCaptureComplete(trimmed, focusName) }
         }
 
-        state = mic.isRunning ? .listening : .idle
-        liveTranscript = ""
-    }
-
-    private func handle(signal: Signal) {
-        // Fire-and-forget: the phone is intentionally "dumb". The backend owns
-        // authoritative scoring (TGN/GCN, centrality, warm-intro paths) and the
-        // CRM (≥70) / Faxxing + Lightfern (≥80) thresholds. We send EVERY signal.
-        Task { await api.send(signal) }
-
-        // Instant on-device hint while the backend processes asynchronously.
-        // The authoritative lead confirmation arrives later via the dashboard /
-        // push channel, not from this POST.
-        if signal.isPreScoreHint {
-            watch.notifyLeadDetected(name: signal.person.name, score: signal.score)
-        }
+        publishState(mic.isRunning ? .listening : .idle)
+        publishTranscript("")
     }
 }

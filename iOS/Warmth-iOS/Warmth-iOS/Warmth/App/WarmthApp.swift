@@ -8,16 +8,20 @@ struct WarmthApp: App {
 
     init() {
         FirebaseApp.configure()
+        let auth = FirebaseAuthService()
         let settings = SettingsStore()
+        let signalClient = SignalClient(baseURL: settings.baseURL, auth: auth)
+        let crmClient = WarmthAPIClient(baseURL: settings.baseURL, auth: auth)
         let appModel = AppModel(
-            auth: FirebaseAuthService(),
+            auth: auth,
             speech: SpeechService(),
-            signalClient: SignalClient(baseURL: settings.baseURL),
-            crmClient: WarmthAPIClient(baseURL: settings.baseURL),
+            signalClient: signalClient,
+            crmClient: crmClient,
             socialGraph: SocialGraphEngine(),
             settings: settings
         )
         _model = State(initialValue: appModel)
+        AppModelRegistry.register(appModel)
     }
 
     var body: some Scene {

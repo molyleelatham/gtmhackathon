@@ -37,9 +37,9 @@
 		<true/>
 	</dict>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Warmth listens for your trigger phrase and transcribes conversations entirely on-device.</string>
+	<string>Warmth records conversations on-device when you start capture via Siri, watch, or the in-app button.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Warmth uses on-device speech recognition to know when a conversation starts and to transcribe it.</string>
+	<string>Warmth uses on-device speech recognition to transcribe introductions after you start capture.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>SpaceGrotesk-Light.ttf</string>

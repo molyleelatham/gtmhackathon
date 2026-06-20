@@ -11,13 +11,19 @@ final class SignalClient: SignalSending {
 
     private let session: URLSession
     private let encoder = CapturedSignal.makeEncoder()
+    private weak var auth: (any AuthProviding)?
     /// Signals awaiting retry.
     private var queue: [CapturedSignal] = []
     private let maxQueue = 100
 
-    init(baseURL: URL, session: URLSession = .shared) {
+    init(baseURL: URL, session: URLSession = .shared, auth: (any AuthProviding)? = nil) {
         self.baseURL = baseURL
         self.session = session
+        self.auth = auth
+    }
+
+    func bindAuth(_ auth: any AuthProviding) {
+        self.auth = auth
     }
 
     func updateBaseURL(_ url: URL) { baseURL = url }
@@ -48,6 +54,7 @@ final class SignalClient: SignalSending {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = body
         request.timeoutInterval = 10
+        await auth?.applyAuthorization(to: &request)
 
         do {
             let (_, response) = try await session.data(for: request)
@@ -85,6 +92,7 @@ final class SignalClient: SignalSending {
         guard let body = try? JSONSerialization.data(withJSONObject: payload) else { return nil }
 
         request.httpBody = body
+        await auth?.applyAuthorization(to: &request)
         do {
             let (data, response) = try await session.data(for: request)
             guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { return nil }
@@ -100,6 +108,7 @@ final class SignalClient: SignalSending {
         let endpoint = baseURL.appendingPathComponent("api/v1/connections")
         var request = URLRequest(url: endpoint)
         request.timeoutInterval = 8
+        await auth?.applyAuthorization(to: &request)
         do {
             let (data, response) = try await session.data(for: request)
             guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { return [] }

@@ -2,12 +2,8 @@ import Foundation
 @preconcurrency import AVFoundation
 import Speech
 
-/// Real capture pipeline: AVAudioEngine (16 kHz mono tap) → wake-word provider
-/// (gates activation) → on-device SFSpeechRecognizer (live transcription).
-///
-/// All published state is mutated on the main actor; the audio tap hops back to the
-/// main actor to update levels/transcript. Third-party wake-word detection is injected
-/// via `WakeWordProviding` so a resolution failure can't break capture.
+/// Real capture pipeline: AVAudioEngine (16 kHz mono tap) → on-device
+/// SFSpeechRecognizer (live transcription).
 @MainActor
 @Observable
 final class SpeechService: SpeechServicing {
@@ -17,11 +13,9 @@ final class SpeechService: SpeechServicing {
     private(set) var elapsed: TimeInterval = 0
     var permissionError: String?
     private(set) var permissionsDenied = false
-    var onWakeWordDetected: (() -> Void)?
 
     var hasMicrophoneAccess: Bool { MicrophoneAccess.isGranted }
 
-    private let wakeWord: any WakeWordProviding
     private let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
     private let pipeline = SpeechAudioPipeline()
 
@@ -32,10 +26,6 @@ final class SpeechService: SpeechServicing {
     private var timerTask: Task<Void, Never>?
     private var startDate: Date?
     private var isTransitioning = false
-
-    init(wakeWord: any WakeWordProviding = StubWakeWordProvider()) {
-        self.wakeWord = wakeWord
-    }
 
     // MARK: - Permissions
 
@@ -88,27 +78,6 @@ final class SpeechService: SpeechServicing {
 
     // MARK: - Lifecycle
 
-    func startListening() async {
-        guard phase == .idle, !isTransitioning else { return }
-        guard hasMicrophoneAccess, checkPermissions() else { return }
-
-        isTransitioning = true
-        defer { isTransitioning = false }
-
-        try? await wakeWord.prepare()
-        do {
-            try beginAudio(transcribing: false)
-            // Mirror the web dashboard: transcribe passively so a "hi {name}" greeting
-            // matches the roster immediately, without first saying the wake phrase.
-            // Best-effort — if on-device recognition is unavailable we still listen for
-            // the wake word.
-            _ = beginTranscription()
-            phase = .listening
-        } catch {
-            resetAfterAudioFailure(error.localizedDescription)
-        }
-    }
-
     func startRecording() async {
         guard phase != .recording, !isTransitioning else { return }
         guard hasMicrophoneAccess, checkPermissions() else { return }
@@ -116,10 +85,9 @@ final class SpeechService: SpeechServicing {
         isTransitioning = true
         defer { isTransitioning = false }
 
-        if phase == .idle { try? await wakeWord.prepare() }
         do {
             if !pipeline.isRunning {
-                try beginAudio(transcribing: true)
+                try beginAudio()
             } else if !beginTranscription() {
                 throw SpeechCaptureError.recognizerUnavailable
             }
@@ -137,7 +105,6 @@ final class SpeechService: SpeechServicing {
         request?.endAudio(); request = nil
         pipeline.stop()
         deactivateAudioSession()
-        wakeWord.reset()
         phase = .idle
         transcript = ""
         audioLevel = 0
@@ -176,7 +143,6 @@ final class SpeechService: SpeechServicing {
         request = nil
         pipeline.stop()
         deactivateAudioSession()
-        wakeWord.reset()
         phase = .idle
         transcript = ""
         audioLevel = 0
@@ -189,29 +155,21 @@ final class SpeechService: SpeechServicing {
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 
-    private func beginAudio(transcribing: Bool) throws {
+    private func beginAudio() throws {
         guard hasMicrophoneAccess, checkPermissions() else {
             throw SpeechCaptureError.permissionsMissing
         }
 
-        let wakeWord = self.wakeWord
-        let targetFormat = self.targetFormat
-
         try pipeline.start(
-            wakeWord: wakeWord,
-            targetFormat: targetFormat,
             onLevel: { [weak self] level in
                 Task { @MainActor in self?.audioLevel = level }
             },
             onBuffer: { [weak self] buffer in
                 Task { @MainActor in self?.request?.append(buffer) }
-            },
-            onWakeWord: { [weak self] in
-                Task { @MainActor in self?.handleWakeWordFired() }
             }
         )
 
-        if transcribing, !beginTranscription() {
+        if !beginTranscription() {
             pipeline.stop()
             deactivateAudioSession()
             throw SpeechCaptureError.recognizerUnavailable
@@ -244,13 +202,6 @@ final class SpeechService: SpeechServicing {
             }
         }
         return true
-    }
-
-    private func handleWakeWordFired() {
-        guard phase == .listening, !isTransitioning else { return }
-        WarmthHaptics.wakeWord()
-        onWakeWordDetected?()
-        Task { await startRecording() }
     }
 
     private func startTimer() {
@@ -296,8 +247,7 @@ private enum MicrophoneAccess {
 
 // MARK: - Off-main-actor audio pipeline
 
-/// Owns AVAudioEngine lifecycle on a dedicated queue. `installTap` must not run on
-/// `@MainActor` — the realtime tap thread mismatch crashes on physical devices.
+/// Owns AVAudioEngine lifecycle on a dedicated queue.
 final class SpeechAudioPipeline: @unchecked Sendable {
     private let queue = DispatchQueue(label: "com.warmth.audio-pipeline", qos: .userInitiated)
     private var engine: AVAudioEngine?
@@ -326,22 +276,13 @@ final class SpeechAudioPipeline: @unchecked Sendable {
     }
 
     func start(
-        wakeWord: any WakeWordProviding,
-        targetFormat: AVAudioFormat?,
         onLevel: @escaping @Sendable (Double) -> Void,
-        onBuffer: @escaping @Sendable (AVAudioPCMBuffer) -> Void,
-        onWakeWord: @escaping @Sendable () -> Void
+        onBuffer: @escaping @Sendable (AVAudioPCMBuffer) -> Void
     ) throws {
         var thrown: Error?
         queue.sync {
             do {
-                try self.startLocked(
-                    wakeWord: wakeWord,
-                    targetFormat: targetFormat,
-                    onLevel: onLevel,
-                    onBuffer: onBuffer,
-                    onWakeWord: onWakeWord
-                )
+                try self.startLocked(onLevel: onLevel, onBuffer: onBuffer)
             } catch {
                 thrown = error
                 self.stopLocked()
@@ -355,11 +296,8 @@ final class SpeechAudioPipeline: @unchecked Sendable {
     }
 
     private func startLocked(
-        wakeWord: any WakeWordProviding,
-        targetFormat: AVAudioFormat?,
         onLevel: @escaping @Sendable (Double) -> Void,
-        onBuffer: @escaping @Sendable (AVAudioPCMBuffer) -> Void,
-        onWakeWord: @escaping @Sendable () -> Void
+        onBuffer: @escaping @Sendable (AVAudioPCMBuffer) -> Void
     ) throws {
         stopLocked()
 
@@ -375,8 +313,6 @@ final class SpeechAudioPipeline: @unchecked Sendable {
         )
         try session.setActive(true, options: .notifyOthersOnDeactivation)
 
-        // The hardware input route must exist before we touch `inputNode`, otherwise
-        // AVAudioEngine asserts ("inputNode != nullptr || outputNode != nullptr").
         guard session.isInputAvailable else {
             throw PipelineError.microphoneUnavailable
         }
@@ -384,28 +320,14 @@ final class SpeechAudioPipeline: @unchecked Sendable {
         let engine = AVAudioEngine()
         self.engine = engine
 
-        // Access `inputNode` (which lazily instantiates the IO unit) and install the
-        // tap BEFORE calling `prepare()`/`start()`. Calling `prepare()` on a brand-new
-        // engine that has no IO node attached is what crashed on device.
         let input = engine.inputNode
         guard let inputFormat = Self.resolveInputFormat(for: input) else {
             throw PipelineError.microphoneUnavailable
         }
-        guard let targetFormat else {
-            throw PipelineError.unsupportedFormat
-        }
-        guard let converter = AVAudioConverter(from: inputFormat, to: targetFormat) else {
-            throw PipelineError.converterFailed
-        }
 
-        let audioConverter = converter
         input.installTap(onBus: 0, bufferSize: 1024, format: inputFormat) { buffer, _ in
             onLevel(Self.rms(of: buffer))
             onBuffer(buffer)
-            if let converted = Self.convert(buffer, converter: audioConverter, targetFormat: targetFormat),
-               wakeWord.process(converted) {
-                onWakeWord()
-            }
         }
         tapInstalled = true
 
@@ -441,31 +363,6 @@ final class SpeechAudioPipeline: @unchecked Sendable {
         Thread.sleep(forTimeInterval: 0.05)
         let retry = input.outputFormat(forBus: 0)
         return valid(retry) ? retry : nil
-    }
-
-    /// Reference box so the converter input block captures a `let` instead of a
-    /// mutable `var` (which Swift 6 flags in concurrently-executing code).
-    private final class FeedState { var fed = false }
-
-    private static func convert(
-        _ buffer: AVAudioPCMBuffer,
-        converter: AVAudioConverter,
-        targetFormat: AVAudioFormat
-    ) -> [Float]? {
-        guard buffer.format.sampleRate > 0 else { return nil }
-        let ratio = targetFormat.sampleRate / buffer.format.sampleRate
-        let capacity = AVAudioFrameCount(Double(buffer.frameLength) * ratio + 64)
-        guard let out = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: capacity) else { return nil }
-        let state = FeedState()
-        var err: NSError?
-        converter.convert(to: out, error: &err) { _, status in
-            if state.fed { status.pointee = .noDataNow; return nil }
-            state.fed = true
-            status.pointee = .haveData
-            return buffer
-        }
-        guard err == nil, let channel = out.floatChannelData?[0] else { return nil }
-        return Array(UnsafeBufferPointer(start: channel, count: Int(out.frameLength)))
     }
 
     private static func rms(of buffer: AVAudioPCMBuffer) -> Double {

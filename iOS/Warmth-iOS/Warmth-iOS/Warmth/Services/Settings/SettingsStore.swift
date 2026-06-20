@@ -4,7 +4,7 @@ import Foundation
 @MainActor
 @Observable
 final class SettingsStore {
-    static let defaultBaseURL = "http://127.0.0.1:8010"
+    static let defaultBaseURL = BackendConfiguration.defaultBaseURL
 
     private enum Keys {
         static let baseURL = "warmth.backendBaseURL"
@@ -12,6 +12,7 @@ final class SettingsStore {
         static let calendarConnected = "warmth.calendarConnected"
         static let eventModeEnabled = "warmth.eventModeEnabled"
         static let eventModeDisabledOverride = "warmth.eventModeDisabledOverride"
+        static let capturePreferences = "warmth.capturePreferences"
     }
 
     private let defaults: UserDefaults
@@ -38,13 +39,37 @@ final class SettingsStore {
         didSet { defaults.set(eventModeDisabledOverride, forKey: Keys.eventModeDisabledOverride) }
     }
 
+    /// Which capture activation methods the user has enabled.
+    var capturePreferences: CaptureActivationPreferences {
+        didSet { persistCapturePreferences() }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        self.baseURLString = defaults.string(forKey: Keys.baseURL) ?? Self.defaultBaseURL
+        let stored = defaults.string(forKey: Keys.baseURL)
+        let resolved = BackendConfiguration.normalizedBaseURLString(stored ?? Self.defaultBaseURL)
+        self.baseURLString = resolved
         self.didCompleteOnboarding = defaults.bool(forKey: Keys.onboarded)
         self.calendarConnected = defaults.bool(forKey: Keys.calendarConnected)
         self.eventModeEnabled = defaults.bool(forKey: Keys.eventModeEnabled)
         self.eventModeDisabledOverride = defaults.bool(forKey: Keys.eventModeDisabledOverride)
+        self.capturePreferences = Self.loadCapturePreferences(from: defaults)
+        if stored != resolved {
+            defaults.set(resolved, forKey: Keys.baseURL)
+        }
+    }
+
+    private static func loadCapturePreferences(from defaults: UserDefaults) -> CaptureActivationPreferences {
+        guard let data = defaults.data(forKey: Keys.capturePreferences),
+              let decoded = try? JSONDecoder().decode(CaptureActivationPreferences.self, from: data) else {
+            return .default
+        }
+        return decoded
+    }
+
+    private func persistCapturePreferences() {
+        guard let data = try? JSONEncoder().encode(capturePreferences) else { return }
+        defaults.set(data, forKey: Keys.capturePreferences)
     }
 
     /// Validated URL, falling back to the default if the user typed something invalid.

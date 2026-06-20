@@ -3,6 +3,7 @@ import AVFoundation
 
 /// Centralized AVAudioSession configuration shared by the listening pipeline
 /// and manual recording.
+@MainActor
 final class AudioSessionManager {
     static let shared = AudioSessionManager()
 
@@ -15,7 +16,7 @@ final class AudioSessionManager {
         try session.setCategory(
             .playAndRecord,
             mode: .measurement,
-            options: [.defaultToSpeaker, .allowBluetooth, .duckOthers]
+            options: [.defaultToSpeaker, .allowBluetoothHFP, .duckOthers]
         )
         try session.setActive(true, options: .notifyOthersOnDeactivation)
     }

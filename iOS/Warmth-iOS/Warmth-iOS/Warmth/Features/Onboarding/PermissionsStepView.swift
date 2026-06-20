@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// Step 3 — request microphone + on-device speech access and explain the wake phrase.
+/// Step 3 — request microphone + on-device speech access.
 struct PermissionsStepView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.scenePhase) private var scenePhase
@@ -28,18 +28,13 @@ struct PermissionsStepView: View {
             }
 
             GlassCard {
-                HStack(spacing: 12) {
-                    Image(systemName: "quote.opening")
-                        .font(.Warmth.title2)
-                        .foregroundStyle(WarmthColor.emberOrange)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Your wake phrase")
-                            .warmthText(.Warmth.caption, color: WarmthColor.inkSecondary)
-                        Text("“\(WakeWord.phrase)”")
-                            .warmthText(.Warmth.headline)
-                    }
-                    Spacer(minLength: 0)
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("Siri, watch, or tap to start", systemImage: "sparkles")
+                        .warmthText(.Warmth.headline)
+                    Text("On the next step you'll choose how you want to trigger capture — Siri, Action Button, Apple Watch, or the in-app orb.")
+                        .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             statusNote
@@ -90,7 +85,6 @@ struct PermissionsStepView: View {
         }
     }
 
-    /// Re-read OS permission flags without prompting or advancing.
     private func syncGrantedState() {
         granted = model.speech.checkPermissions()
     }

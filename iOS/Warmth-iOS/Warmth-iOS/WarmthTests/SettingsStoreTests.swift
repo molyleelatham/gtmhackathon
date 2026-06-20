@@ -21,9 +21,15 @@ final class SettingsStoreTests: XCTestCase {
 
     func testDefaultsWhenKeysMissing() {
         let store = SettingsStore(defaults: defaults)
-        XCTAssertEqual(store.baseURLString, SettingsStore.defaultBaseURL)
+        XCTAssertEqual(store.baseURLString, BackendConfiguration.productionBaseURL)
         XCTAssertFalse(store.didCompleteOnboarding)
         XCTAssertFalse(store.calendarConnected)
+    }
+
+    func testMigratesLocalhostToProduction() {
+        defaults.set("http://127.0.0.1:8010", forKey: "warmth.backendBaseURL")
+        let store = SettingsStore(defaults: defaults)
+        XCTAssertEqual(store.baseURLString, BackendConfiguration.productionBaseURL)
     }
 
     func testLoadsPersistedValues() {
@@ -69,6 +75,23 @@ final class SettingsStoreTests: XCTestCase {
         let reloaded = SettingsStore(defaults: defaults)
         XCTAssertTrue(reloaded.eventModeEnabled)
         XCTAssertTrue(reloaded.eventModeDisabledOverride)
+    }
+
+    func testCapturePreferencesDefault() {
+        let store = SettingsStore(defaults: defaults)
+        XCTAssertTrue(store.capturePreferences.isEnabled(.siri))
+        XCTAssertTrue(store.capturePreferences.isEnabled(.watch))
+        XCTAssertTrue(store.capturePreferences.isEnabled(.manual))
+        XCTAssertFalse(store.capturePreferences.isEnabled(.passiveFloorListening))
+    }
+
+    func testCapturePreferencesPersists() {
+        let store = SettingsStore(defaults: defaults)
+        store.capturePreferences.setEnabled(.passiveFloorListening, enabled: true)
+        store.capturePreferences.setEnabled(.siri, enabled: false)
+        let reloaded = SettingsStore(defaults: defaults)
+        XCTAssertTrue(reloaded.capturePreferences.isEnabled(.passiveFloorListening))
+        XCTAssertFalse(reloaded.capturePreferences.isEnabled(.siri))
     }
 
     func testCalendarMatchToday() {

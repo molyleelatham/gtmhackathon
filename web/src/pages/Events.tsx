@@ -47,7 +47,7 @@ export function Events() {
           >
             {connecting ? "Connecting…" : "Connect calendar"}
           </button>
-          <Link to="/pipeline" className="btn-secondary">
+          <Link to="/app/pipeline" className="btn-secondary">
             Event pipeline
           </Link>
         </div>
@@ -62,7 +62,7 @@ export function Events() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {data?.map((e) => (
-          <Link key={e.id} to={`/events/${e.id}`} className="glass glass-interactive p-5">
+          <Link key={e.id} to={`/app/events/${e.id}`} className="glass glass-interactive p-5">
             <div className="flex items-start justify-between">
               <h2 className="text-lg font-medium text-ink-900">{e.name}</h2>
               <span className="glass-pill border-orange/25 bg-orange/10 text-flame">

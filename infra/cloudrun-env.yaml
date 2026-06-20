@@ -1,0 +1,9 @@
+GCP_PROJECT_ID: warmth-gtm-hackathon
+WEB_ALLOWED_ORIGINS: "https://warmth-gtm-hackathon.web.app,https://warmth-gtm-hackathon.firebaseapp.com"
+DISABLE_OPENAPI: "true"
+# Set to "true" once web + iOS send Authorization: Bearer <firebase_id_token>
+REQUIRE_FIREBASE_AUTH: "true"
+# Public ingest path — per-IP and per Firebase token (when Authorization present)
+SIGNAL_RATE_LIMIT_ENABLED: "true"
+SIGNAL_RATE_LIMIT_IP_PER_MINUTE: "30"
+SIGNAL_RATE_LIMIT_TOKEN_PER_MINUTE: "60"

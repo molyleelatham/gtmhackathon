@@ -12,7 +12,6 @@ struct ConnectionDetailView: View {
     @State private var detail: CRMConnectionDetail?
     @State private var loadError: String?
     @State private var followUpDraft: CRMFollowUpDraft?
-    @State private var showFollowUpSheet = false
     @State private var followUpError: String?
 
     private var display: CRMConnection { detail?.connection ?? connection }
@@ -81,37 +80,38 @@ struct ConnectionDetailView: View {
                         }
                     }
 
-                    if draftSubject != nil || draftBody != nil || followUpDraft != nil {
-                        section("Outreach draft") {
-                            VStack(alignment: .leading, spacing: 12) {
-                                if let subject = followUpDraft?.subject ?? draftSubject {
-                                    Text(subject)
-                                        .warmthText(.Warmth.headline)
+                    section("Outreach draft") {
+                        VStack(alignment: .leading, spacing: 12) {
+                            if let subject = followUpDraft?.subject ?? draftSubject {
+                                Text(subject)
+                                    .warmthText(.Warmth.headline)
+                            }
+                            if let body = followUpDraft?.body ?? draftBody {
+                                Text(body)
+                                    .warmthText(.Warmth.body, color: WarmthColor.inkSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            } else if followUpDraft == nil && draftBody == nil {
+                                Text("Generate a follow-up draft from this connection's warmth and interests.")
+                                    .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
+                            }
+                            HStack(spacing: 12) {
+                                EmberButton(title: "Generate draft", systemImage: "sparkles", fill: false) {
+                                    Task { await generateFollowUp() }
                                 }
-                                if let body = followUpDraft?.body ?? draftBody {
-                                    Text(body)
-                                        .warmthText(.Warmth.body, color: WarmthColor.inkSecondary)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
-                                HStack(spacing: 12) {
-                                    EmberButton(title: "Generate draft", systemImage: "sparkles", fill: false) {
-                                        Task { await generateFollowUp() }
+                                if followUpDraft != nil || draftBody != nil {
+                                    EmberButton(title: "Copy", systemImage: "doc.on.doc", fill: false) {
+                                        copyDraft()
                                     }
-                                    if followUpDraft != nil || draftBody != nil {
-                                        EmberButton(title: "Copy", systemImage: "doc.on.doc", fill: false) {
-                                            copyDraft()
-                                        }
-                                        ShareLink(item: shareDraftText) {
-                                            Label("Share", systemImage: "square.and.arrow.up")
-                                                .font(.Warmth.footnote)
-                                                .foregroundStyle(WarmthColor.emberRed)
-                                        }
+                                    ShareLink(item: shareDraftText) {
+                                        Label("Share", systemImage: "square.and.arrow.up")
+                                            .font(.Warmth.footnote)
+                                            .foregroundStyle(WarmthColor.emberRed)
                                     }
                                 }
-                                if let followUpError {
-                                    Text(followUpError)
-                                        .warmthText(.Warmth.footnote, color: WarmthColor.emberRed)
-                                }
+                            }
+                            if let followUpError {
+                                Text(followUpError)
+                                    .warmthText(.Warmth.footnote, color: WarmthColor.emberRed)
                             }
                         }
                     }

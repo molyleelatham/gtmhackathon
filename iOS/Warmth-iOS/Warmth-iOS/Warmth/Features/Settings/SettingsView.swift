@@ -1,7 +1,6 @@
 import SwiftUI
 
 /// Settings tab: scrollable Liquid Glass cards over the ambient mesh gradient.
-/// Covers account, backend wiring, the wake phrase, permissions and calendar.
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
 
@@ -16,7 +15,7 @@ struct SettingsView: View {
                         EventModeSection()
                         BackendSection()
                         ICPProfileSection()
-                        WakePhraseSection()
+                        CaptureMethodsSection()
                         PermissionsSection()
                         CalendarSection()
                         SettingsFooter()
@@ -173,7 +172,7 @@ private struct EventModeSection: View {
                 }
                 .tint(WarmthColor.emberRed)
 
-                Text("Warmth checks your calendar (`GET /api/v1/events`) and opens Capture when an event is active today, unless you force Home.")
+                Text("Warmth checks your calendar and opens Capture when an event is active today. Enable floor listening below for contact-name detection at events.")
                     .warmthText(.Warmth.caption, color: WarmthColor.inkSecondary)
             }
         }
@@ -192,7 +191,7 @@ private struct BackendSection: View {
             VStack(alignment: .leading, spacing: 14) {
                 SectionHeader(title: "Backend", systemImage: "server.rack")
 
-                Text("Where captured signals are uploaded.")
+                Text("Where captured signals are uploaded. Defaults to the hosted Warmth API (same as the web dashboard).")
                     .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
 
                 TextField("Base URL", text: $settings.baseURLString)
@@ -306,35 +305,28 @@ private struct ICPProfileSection: View {
     }
 }
 
-// MARK: - 5. Wake phrase
+// MARK: - Capture methods
 
-private struct WakePhraseSection: View {
+private struct CaptureMethodsSection: View {
+    @Environment(AppModel.self) private var model
+
     var body: some View {
+        @Bindable var settings = model.settings
+
         GlassCard {
-            VStack(alignment: .leading, spacing: 12) {
-                SectionHeader(title: "Wake phrase", systemImage: "waveform.badge.mic")
+            VStack(alignment: .leading, spacing: 14) {
+                SectionHeader(title: "Capture methods", systemImage: "hand.tap.fill")
 
-                Text("“\(WakeWord.phrase)”")
-                    .font(.Warmth.title2)
-                    .italic()
-                    .foregroundStyle(WarmthColor.ink)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 14)
-                    .background(WarmthColor.amber.opacity(0.18), in: .rect(cornerRadius: 14, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .strokeBorder(WarmthColor.amber.opacity(0.42), lineWidth: 0.5)
-                    )
-
-                Text("Say this when you meet someone new and Warmth will start listening to capture the conversation.")
-                    .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
+                CaptureMethodsPicker(
+                    preferences: $settings.capturePreferences,
+                    showsSetupHints: true
+                )
             }
         }
     }
 }
 
-// MARK: - 4. Permissions
+// MARK: - Permissions
 
 private struct PermissionsSection: View {
     @Environment(AppModel.self) private var model

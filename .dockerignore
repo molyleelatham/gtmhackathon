@@ -1,0 +1,42 @@
+# Python / local dev
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Git / IDE
+.git/
+.gitignore
+.cursor/
+.vscode/
+
+# Frontend (built separately for Firebase Hosting)
+web/node_modules/
+web/dist/
+
+# iOS (not part of API container)
+iOS/
+
+# Local secrets and artifacts
+.env
+.env.*
+!.env.example
+infra/secrets/
+google-gmail-oauth.json
+google-oauth-client.json
+drafts/
+
+# Docs and demo assets (not needed at runtime)
+docs/
+*.pdf
+*.html
+*.xlsx
+*.png
+*.svg
+*.mmd
+
+# Tests
+tests/
