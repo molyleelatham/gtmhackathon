@@ -1,0 +1,60 @@
+[project]
+name = "warmth"
+version = "0.1.0"
+description = "Passive Social Listening × GTM Signal Intelligence"
+authors = [
+    {name = "Warmth Team", email = "team@warmth.ai"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "httpx>=0.25.0",
+    "websockets>=12.0",
+    "python-multipart>=0.0.6",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "python-dotenv>=1.0.0",
+    "firebase-admin>=6.3.0",
+    "google-cloud-pubsub>=2.19.0",
+    "google-cloud-firestore>=2.13.0",
+    "google-cloud-scheduler>=1.11.0",
+    "deepgram-sdk>=3.2.0",
+    "pyaudio>=0.2.14",
+    "rnnoise-python>=0.2.0",
+    "aiofiles>=23.2.1",
+    "asyncio>=3.4.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.3",
+    "pytest-asyncio>=0.21.1",
+    "pytest-cov>=4.1.0",
+    "black>=23.12.0",
+    "ruff>=0.1.8",
+    "mypy>=1.7.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "N", "W"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
