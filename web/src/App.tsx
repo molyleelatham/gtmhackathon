@@ -5,6 +5,8 @@ import { Events } from "./pages/Events";
 import { PreMeet } from "./pages/PreMeet";
 import { Connections } from "./pages/Connections";
 import { ConnectionDetail } from "./pages/ConnectionDetail";
+import { Community } from "./pages/Community";
+import { Settings } from "./pages/Settings";
 import { SignIn } from "./pages/SignIn";
 import { useAuth } from "./lib/auth";
 
@@ -13,7 +15,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-gray-500">
+      <div className="flex min-h-screen items-center justify-center text-sm text-ink-faint">
         Loading…
       </div>
     );
@@ -31,6 +33,8 @@ export default function App() {
         <Route path="events/:eventId" element={<PreMeet />} />
         <Route path="connections" element={<Connections />} />
         <Route path="connections/:connectionId" element={<ConnectionDetail />} />
+        <Route path="community" element={<Community />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
     </Routes>
   );

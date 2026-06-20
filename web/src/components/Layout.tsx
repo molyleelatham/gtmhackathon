@@ -1,29 +1,43 @@
+import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../lib/auth";
+import { Avatar } from "./Avatar";
 
 const nav = [
-  { to: "/", label: "Dashboard", end: true },
-  { to: "/events", label: "Events" },
-  { to: "/connections", label: "Connections" },
-];
-
-const stages = [
-  { key: "before_meet", label: "Before meet", desc: "Research · enrich · outreach" },
-  { key: "meet", label: "Meet", desc: "Capture · score · route" },
-  { key: "post_meet", label: "Post meet", desc: "Follow-up · CRM sync" },
+  { to: "/", label: "Dashboard", icon: "◫", end: true },
+  { to: "/connections", label: "Connections", icon: "👥" },
+  { to: "/events", label: "Events", icon: "📅" },
+  { to: "/community", label: "Community Sharing", icon: "◎" },
 ];
 
 export function Layout() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="flex w-64 shrink-0 flex-col border-r border-ink-700 bg-ink-800 p-5">
-        <div className="mb-8 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-warmth-warm/20 text-warmth-warm">
-            ◐
-          </div>
-          <span className="text-lg font-semibold">Warmth</span>
+    <div className="flex min-h-screen gap-3 p-3">
+      <aside
+        className={`glass-strong flex shrink-0 flex-col p-3 transition-all duration-300 ${
+          collapsed ? "w-[4.5rem]" : "w-64"
+        }`}
+      >
+        <div className={`mb-6 flex items-center ${collapsed ? "justify-center" : "gap-3 px-1"}`}>
+          {!collapsed && <Avatar name={user?.displayName ?? "User"} size="sm" />}
+          {!collapsed && (
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold text-ink-900">
+                {user?.displayName ?? "Signed in"}
+              </p>
+              <p className="text-xs text-ink-faint">Founder</p>
+            </div>
+          )}
+          <button
+            onClick={() => setCollapsed((c) => !c)}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="icon-btn h-8 w-8 shrink-0"
+          >
+            {collapsed ? "→" : "←"}
+          </button>
         </div>
 
         <nav className="space-y-1">
@@ -32,71 +46,53 @@ export function Layout() {
               key={item.to}
               to={item.to}
               end={item.end}
+              title={collapsed ? item.label : undefined}
               className={({ isActive }) =>
-                `block rounded-lg px-3 py-2 text-sm ${
+                `flex items-center rounded-xl py-2.5 text-sm transition-all ${
+                  collapsed ? "justify-center px-2" : "gap-3 px-3"
+                } ${
                   isActive
-                    ? "bg-ink-600 text-white"
-                    : "text-gray-400 hover:bg-ink-700 hover:text-gray-200"
+                    ? "border border-orange/30 bg-orange/10 font-semibold text-flame"
+                    : "border border-transparent text-ink-muted hover:bg-[var(--hover-overlay)] hover:text-ink-900"
                 }`
               }
             >
-              {item.label}
+              <span className="w-5 shrink-0 text-center">{item.icon}</span>
+              {!collapsed && item.label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="mt-8">
-          <div className="px-3 text-xs uppercase tracking-wide text-gray-500">
-            Lifecycle
+        {!collapsed && (
+          <div className="mt-6 rounded-xl border border-subtle bg-orange/5 px-3 py-2.5 text-xs text-ink-muted">
+            Capture on iPhone &amp; Apple Watch. Manage here.
           </div>
-          <ol className="mt-2 space-y-2">
-            {stages.map((s, i) => (
-              <li key={s.key} className="rounded-lg bg-ink-900/60 px-3 py-2">
-                <div className="text-sm text-gray-200">
-                  {i + 1}. {s.label}
-                </div>
-                <div className="text-xs text-gray-500">{s.desc}</div>
-              </li>
-            ))}
-          </ol>
-        </div>
+        )}
 
-        <div className="mt-8 rounded-lg border border-ink-600 px-3 py-2 text-xs text-gray-500">
-          Capture on iPhone + Watch. Manage here.
-        </div>
-
-        <div className="mt-auto border-t border-ink-700 pt-4">
-          <div className="flex items-center gap-3">
-            {user?.photoURL ? (
-              <img
-                src={user.photoURL}
-                alt={user.displayName ?? "User"}
-                className="h-8 w-8 rounded-full"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-ink-600 text-sm">
-                {(user?.displayName ?? user?.email ?? "?").charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm text-gray-200">
-                {user?.displayName ?? "Signed in"}
-              </div>
-              <div className="truncate text-xs text-gray-500">{user?.email}</div>
-            </div>
-          </div>
-          <button
-            onClick={() => signOut()}
-            className="mt-3 w-full rounded-lg border border-ink-600 px-3 py-1.5 text-xs text-gray-300 hover:bg-ink-700"
+        <div className="mt-auto space-y-1 pt-4">
+          <NavLink
+            to="/settings"
+            title={collapsed ? "Settings" : undefined}
+            className={({ isActive }) =>
+              `flex items-center rounded-xl py-2.5 text-sm transition-all ${
+                collapsed ? "justify-center px-2" : "gap-3 px-3"
+              } ${
+                isActive
+                  ? "border border-orange/30 bg-orange/10 font-semibold text-flame"
+                  : "border border-subtle text-ink-muted hover:bg-[var(--hover-overlay)]"
+              }`
+            }
           >
-            Sign out
-          </button>
+            <span className="w-5 shrink-0 text-center">⚙</span>
+            {!collapsed && "Settings"}
+          </NavLink>
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-8">
-        <Outlet />
+      <main className="min-w-0 flex-1 overflow-y-auto rounded-2xl">
+        <div className="animate-fade-up p-5">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
