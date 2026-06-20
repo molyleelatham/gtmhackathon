@@ -12,10 +12,18 @@ enum WarmthColor {
 
     /// #FBF8F5 — warm white canvas.
     static let warmWhite = Color(red: 0xFB / 255, green: 0xF8 / 255, blue: 0xF5 / 255)
+    /// #FAF6F2 — light warm surface for cards and glass fills.
+    static let surfaceWarm = Color(red: 0xFA / 255, green: 0xF6 / 255, blue: 0xF2 / 255)
+    /// #F2EDE8 — subtle warm fill for nested inputs and chips.
+    static let surfaceMuted = Color(red: 0xF2 / 255, green: 0xED / 255, blue: 0xE8 / 255)
+    /// #E8E0D8 — hairline borders on warm surfaces.
+    static let surfaceBorder = Color(red: 0xE8 / 255, green: 0xE0 / 255, blue: 0xD8 / 255)
     /// #0B0B0C — near-black ink for all text.
     static let ink = Color(red: 0x0B / 255, green: 0x0B / 255, blue: 0x0C / 255)
-    /// Muted ink for secondary copy.
-    static let inkSecondary = Color(red: 0x0B / 255, green: 0x0B / 255, blue: 0x0C / 255).opacity(0.55)
+    /// Muted ink for secondary copy — slightly darker for lighter surfaces.
+    static let inkSecondary = Color(red: 0x0B / 255, green: 0x0B / 255, blue: 0x0C / 255).opacity(0.62)
+    /// Warm tint blended into Liquid Glass so cards stay light and readable.
+    static let glassTint = warmWhite.opacity(0.92)
 
     /// The signature ember gradient (hot → amber).
     static let emberGradient = LinearGradient(

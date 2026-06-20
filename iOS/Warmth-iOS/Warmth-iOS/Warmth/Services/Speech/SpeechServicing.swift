@@ -21,8 +21,15 @@ protocol SpeechServicing: AnyObject {
     var audioLevel: Double { get }
     var elapsed: TimeInterval { get }
     var permissionError: String? { get }
+    /// True when mic/speech access was previously denied, so iOS will no longer
+    /// show the system prompt and the user must change it in Settings.
+    var permissionsDenied: Bool { get }
+    /// Synchronous mic check — call before touching AVAudioEngine.
+    var hasMicrophoneAccess: Bool { get }
 
     func requestPermissions() async -> Bool
+    /// Read current permission status without showing a system prompt.
+    func checkPermissions() -> Bool
     /// Begin listening for the wake word.
     func startListening() async
     /// Begin recording immediately (manual start / wake-word fired).

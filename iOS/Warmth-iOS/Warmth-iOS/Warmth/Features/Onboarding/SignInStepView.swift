@@ -9,6 +9,7 @@ struct SignInStepView: View {
     @State private var isSigningIn = false
     @State private var errorMessage: String?
     @State private var showGuestFallback = false
+    @State private var didAdvance = false
 
     var body: some View {
         VStack(spacing: 24) {
@@ -48,7 +49,7 @@ struct SignInStepView: View {
                 if showGuestFallback {
                     EmberButton(title: "Continue as guest", systemImage: "arrow.right", fill: false) {
                         model.auth.continueAsGuest()
-                        advance()
+                        advanceIfNeeded()
                     }
                     .transition(.opacity)
                 }
@@ -57,11 +58,18 @@ struct SignInStepView: View {
         .animation(WarmthMotion.gentle, value: errorMessage)
         .animation(WarmthMotion.gentle, value: showGuestFallback)
         .onChange(of: model.auth.state.isSignedIn) { _, isSignedIn in
-            if isSignedIn { advance() }
+            if isSignedIn { advanceIfNeeded() }
         }
         .onAppear {
-            if model.auth.state.isSignedIn { advance() }
+            if model.auth.state.isSignedIn { advanceIfNeeded() }
         }
+    }
+
+    /// Prevents double-advance when guest sign-in triggers both the button and `onChange`.
+    private func advanceIfNeeded() {
+        guard !didAdvance else { return }
+        didAdvance = true
+        advance()
     }
 
     private func signIn() {
@@ -72,6 +80,8 @@ struct SignInStepView: View {
             do {
                 try await model.auth.signInWithGoogle()
                 // Auto-advance is handled by the `onChange` observer once state flips.
+            } catch AuthError.cancelled {
+                showGuestFallback = true
             } catch let error as AuthError {
                 handle(message: error.errorDescription)
             } catch {

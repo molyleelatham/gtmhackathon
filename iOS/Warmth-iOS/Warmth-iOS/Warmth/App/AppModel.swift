@@ -64,6 +64,10 @@ final class AppModel {
     /// Wrist → phone: begin recording.
     func startCaptureFromWatch() {
         Task {
+            guard await speech.requestPermissions() else {
+                syncWatchState()
+                return
+            }
             await speech.startRecording()
             syncWatchState()
         }

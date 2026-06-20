@@ -1,8 +1,11 @@
 import SwiftUI
+import UIKit
 
 /// Step 3 — request microphone + on-device speech access and explain the wake phrase.
 struct PermissionsStepView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
     let advance: () -> Void
 
     @State private var isRequesting = false
@@ -41,10 +44,12 @@ struct PermissionsStepView: View {
 
             statusNote
 
-            EmberButton(title: granted ? "Continue" : (isRequesting ? "Requesting…" : "Allow microphone & speech"),
+            EmberButton(title: primaryTitle,
                         systemImage: granted ? "arrow.right" : "mic.fill") {
                 if granted {
                     advance()
+                } else if model.speech.permissionsDenied {
+                    openSettings()
                 } else {
                     requestPermissions()
                 }
@@ -54,6 +59,23 @@ struct PermissionsStepView: View {
         }
         .animation(WarmthMotion.gentle, value: granted)
         .animation(WarmthMotion.gentle, value: model.speech.permissionError)
+        .animation(WarmthMotion.gentle, value: model.speech.permissionsDenied)
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            // Clear a stuck "Requesting…" state if the user backgrounded mid-prompt.
+            isRequesting = false
+            syncGrantedState(advancing: true)
+        }
+        .onAppear {
+            syncGrantedState(advancing: true)
+        }
+    }
+
+    private var primaryTitle: String {
+        if granted { return "Continue" }
+        if isRequesting { return "Requesting…" }
+        if model.speech.permissionsDenied { return "Open Settings" }
+        return "Allow microphone & speech"
     }
 
     @ViewBuilder
@@ -70,8 +92,15 @@ struct PermissionsStepView: View {
         }
     }
 
-    private func requestPermissions() {
-        isRequesting = true
+    private func syncGrantedState(advancing: Bool) {
+        granted = model.speech.checkPermissions()
+        if advancing && granted { advance() }
+    }
+
+    /// `prompt` controls whether tapping should feel like an explicit request
+    /// (haptic feedback on failure) vs. a silent foreground re-check.
+    private func requestPermissions(prompt: Bool = true) {
+        if prompt { isRequesting = true }
         Task {
             let ok = await model.speech.requestPermissions()
             isRequesting = false
@@ -79,10 +108,15 @@ struct PermissionsStepView: View {
             if ok {
                 WarmthHaptics.success()
                 advance()
-            } else {
+            } else if prompt {
                 WarmthHaptics.warning()
             }
         }
+    }
+
+    private func openSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        openURL(url)
     }
 }
 

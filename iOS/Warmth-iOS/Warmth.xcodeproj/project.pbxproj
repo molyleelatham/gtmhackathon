@@ -11,12 +11,17 @@
 		0B10DEF97C5AEDD588470DD3 /* SignalSending.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51E8F9A71CDE3FC0D80425AB /* SignalSending.swift */; };
 		0B47E6F75ABE7025E36D734A /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 0368F9700F70BFC4CE5C48BF /* FirebaseAuth */; };
 		0BE3CF8B96322D6ADFC8CC23 /* Motion.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02AAB87F7DF526385B525E0 /* Motion.swift */; };
+		1543D3960A59A454F4781EFE /* SettingsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E4073E4DD63C702F65E5D67 /* SettingsStoreTests.swift */; };
 		15C6CCAA4D501299965F39F8 /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2333521ECA1BD51F6B159F90 /* OnboardingFlow.swift */; };
 		1766BC81310F3D5A6839C332 /* SpaceGrotesk-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F24C2152E81D250C103A2848 /* SpaceGrotesk-Light.ttf */; };
+		1BB69D706B82E6C55F2AA26A /* PersonNodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9CA17920A1CFAE5EF3F8860 /* PersonNodeTests.swift */; };
 		1BE729F167FE14745B83CA4C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6710142BFE6F88FBFB8E5FA /* SettingsView.swift */; };
 		1C2929B1C3FC553EB954BF5F /* WarmthColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0881BADFE76FF2B641B9EB9 /* WarmthColor.swift */; };
 		1C94ADE8EC2216FC57DBED7D /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 205143C4A2F04EF71D601E74 /* SettingsStore.swift */; };
+		226729F8B4FA0DA7889E870E /* SocialGraphEngineExtendedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A863A380FEAE7DA31D8B1BC9 /* SocialGraphEngineExtendedTests.swift */; };
+		251674B291559E2ADE579588 /* RecordingStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAAE173023159C896EC8755B /* RecordingStateView.swift */; };
 		2642DE185C53425E7CB5DDB4 /* WarmthGlass.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7A40E2A94B66EBA0C6294B5 /* WarmthGlass.swift */; };
+		2BAF1C71F89A182E1BC5A794 /* WarmthWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5CCACAA56E2C0DE4860CEB1 /* WarmthWatchApp.swift */; };
 		2C661959CB4297F27A5095EF /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 368DBE92B0EBA826BD8CFEF2 /* OFL.txt */; };
 		31CB36B53EEF63C1819D3ADF /* MeshGradientBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F59FCF2A3ED6172A282F543 /* MeshGradientBackground.swift */; };
 		34CE3234720B994E2AFC71C7 /* SpaceGrotesk-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C6150C6B259C6A42689D34CF /* SpaceGrotesk-Regular.ttf */; };
@@ -26,20 +31,27 @@
 		40B6E1714A44C8DEEB84788D /* CapturedSignalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61FE9F433B26C0EDB43997DF /* CapturedSignalTests.swift */; };
 		421836FF2267A5D2696A8F76 /* PermissionsStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 173746B843D77E96C3FF49F4 /* PermissionsStepView.swift */; };
 		46A0160BA9FFB239815DB290 /* PersonNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78B1F5BE9468CF3CB3CB9D03 /* PersonNode.swift */; };
+		490725DADAB777C6C3A48F60 /* SpaceGrotesk-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CF18A09B9F01320073659E42 /* SpaceGrotesk-Bold.ttf */; };
 		4C0581040DC1FBC570C2FE2F /* ReviewCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30B404718167914B5B40EDA9 /* ReviewCardView.swift */; };
 		4CD2341E2290AAB5257A3C34 /* FirebaseAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F682C0157A6EC97C76AF8022 /* FirebaseAuthService.swift */; };
+		4ED2C5B640DC207AF947A3F7 /* WatchTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F417365B7B15A8CD8939087A /* WatchTheme.swift */; };
 		4F5F856CAA082894C9945A1C /* ConnectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00BDE490EB968803AC0283A8 /* ConnectionsView.swift */; };
 		4FEAE703945A6455EC70AEBD /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7D33D1E59B3F49C303D9640 /* AppModel.swift */; };
 		52F198769FF5CAA6A1A08465 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5CA3A1340C88F21BBB76869B /* FirebaseCore */; };
 		5B04C36CBD8F3E73944F0C87 /* SpaceGrotesk-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E84B59D107366073425DA333 /* SpaceGrotesk-Bold.ttf */; };
+		5D3271541D7C08C6D50EC0C3 /* AppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DC7A91A4BDB60E28A974E1E /* AppModelTests.swift */; };
 		662347514130423ECE5919D3 /* WaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1B60319FD461EC64A1A09C6 /* WaveformView.swift */; };
 		6D5D965B75E1334F8D766563 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 02459226E967C2C5C3BE174F /* GoogleSignInSwift */; };
 		6DA93D544332B2B96B59406F /* ConnectionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F294EC88B2557C6B54FF150 /* ConnectionDetailView.swift */; };
+		72C61EE2A9B9B76A57F3C0BF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 35B6529B517DFDBA683FF50A /* Assets.xcassets */; };
+		74267665B412995FE6F8E72D /* MockAuthServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D1FCE0B64B50832D581FF5 /* MockAuthServiceTests.swift */; };
 		75F5D65840120511F469DB44 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51E587385D5FF43E317FB3CF /* AuthService.swift */; };
 		79097132EF198DCF9E99D908 /* SignInStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D60EBC13775214C0718D60B /* SignInStepView.swift */; };
+		7A6206EA09063493AB8DD55D /* SignalClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF7EC70A390C0E05AB97400 /* SignalClientTests.swift */; };
 		7B42BBC8764577A5034AF0BD /* MockSpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 315FB080E7AEEF392454C325 /* MockSpeechService.swift */; };
 		7E018D38E3C327570CA5FEC5 /* CapturedSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8C62EF495DCA7A0A7F10613 /* CapturedSignal.swift */; };
 		83B6A07B6ABD17B0B8C7FA41 /* FinishStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F870328D29363ACBD35EAC0 /* FinishStepView.swift */; };
+		924CAE8D45DAE39ED1F40104 /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C0C5652848A11706527222 /* StartView.swift */; };
 		93144D6C44F82A69CEF7319A /* WarmthApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0789B3EB390A765860E524A1 /* WarmthApp.swift */; };
 		93E7F64C8918947F05F6D468 /* RecentConnectionsStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 593C279B69AACAB84802A538 /* RecentConnectionsStrip.swift */; };
 		95835903820DE34C049A3D31 /* SocialGraphEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FF52F92A6ACE41889097661 /* SocialGraphEngineTests.swift */; };
@@ -49,19 +61,29 @@
 		9B6640122F5B0A46A2ABD30D /* SpeechServicing.swift in Sources */ = {isa = PBXBuildFile; fileRef = C294F482EEC56A71AC52615C /* SpeechServicing.swift */; };
 		9D782B31C95E211610D83776 /* SocialGraphProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 890F268DADEE35ECB969D052 /* SocialGraphProcessing.swift */; };
 		A9A0297F3CCA23FC5A0F81C8 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 306539510936AD8FD48E6712 /* GoogleSignIn */; };
-		AB5D2176C6773D3D25EE0D24 /* WarmthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D69F854E687CA1D92B75F7D /* WarmthTests.swift */; };
+		AAA1F9BF92AA0E272C8090B3 /* WarmthWatchWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DA8895995031DBB19AEDFF1E /* WarmthWatchWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AB8610AE53E96706108DA1A2 /* WatchConnectivityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84ED72A8879C7B788B95C40 /* WatchConnectivityService.swift */; };
+		AE7064615FA3121E8E51FA11 /* SpaceGrotesk-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DDDC17D1004083D9C6583510 /* SpaceGrotesk-Regular.ttf */; };
 		B7AE7966B971F67E942373FC /* SpaceGrotesk-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 86DC95C894412A1AF61A80E7 /* SpaceGrotesk-SemiBold.ttf */; };
+		B9534B0DAD81ADBF555DF9E1 /* ComplicationViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA343F14A1DD952B6DF45E6 /* ComplicationViews.swift */; };
 		BCCA0EC948CCACB350FA9409 /* SessionCaptureLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C04DA8AA1CD64BE0100C55 /* SessionCaptureLog.swift */; };
+		BD4390E28AD8EA84343636B7 /* ComplicationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FF4CA94879DCBCD279A16DE /* ComplicationProvider.swift */; };
 		BF7D45CC08C58FF0E93AFAD8 /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03ED3CF6EAE12012958CD227 /* ReviewView.swift */; };
 		C011C82BE450F405871CECD9 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CFDECED4FAFEBADFECA67761 /* GoogleService-Info.plist */; };
 		C0F9126AD7BEA8C3B55829D3 /* SpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C962C9C13896199CC937D21 /* SpeechService.swift */; };
+		C3B00B8206C0CEC2B5607EA7 /* SpaceGrotesk-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2E8C51B5B2340C2235D7D626 /* SpaceGrotesk-Medium.ttf */; };
 		CA49D8B1F41324ED865CB1FF /* RecordOrb.swift in Sources */ = {isa = PBXBuildFile; fileRef = E66C12A1401943F6CA464CA4 /* RecordOrb.swift */; };
+		D6D421CB9510F788C6E5CE83 /* SessionCaptureLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43FEF3A1FFD17AAE0362EAFB /* SessionCaptureLogTests.swift */; };
 		DB5CE0ADA693A7F5BD850CF1 /* ConnectionRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3024C81F2315D57D200D4A0F /* ConnectionRow.swift */; };
 		DBD84288D366FA7C47DDA5D9 /* WakeWordProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C3802C63337D435F07E2E3 /* WakeWordProviding.swift */; };
+		DD7CC72A925C9126B8A58F40 /* WatchSharedState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D991575A4A362D04BB3C0664 /* WatchSharedState.swift */; };
+		E3AF72C585559359E7CA79C9 /* WarmthWatchWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA56360298282D583C9157B9 /* WarmthWatchWidget.swift */; };
+		F33CF665027005FE011180F3 /* WatchSharedState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D991575A4A362D04BB3C0664 /* WatchSharedState.swift */; };
 		F38CDBF5121EE0F572B13778 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3537C9F957E2C7D90816D9C /* Assets.xcassets */; };
 		F4F8979A5DBD42C97F256B3D /* MockAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFB6922A15B1EE738FC4BC64 /* MockAuthService.swift */; };
 		F86D5DF4DA7F9B032ABA2533 /* WatchSessionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6953FA7D3D8B7E03487B1E3 /* WatchSessionService.swift */; };
 		FAC6E499F1D1D81BFB3E012B /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5539E8ABA572E0229C0BF3AF /* Typography.swift */; };
+		FB40EF1AF17FF8D21D1DAB95 /* SpaceGrotesk-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5497DB596CF33B838FFA4FAC /* SpaceGrotesk-SemiBold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,61 +94,106 @@
 			remoteGlobalIDString = 6F3BCE59D137F0876D3BA951;
 			remoteInfo = Warmth;
 		};
+		C263843B95C95116D10FC6D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E480E4227A5C181E3637802C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F3DEAD846F4E651ADADC176E;
+			remoteInfo = WarmthWatchWidget;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B19F338183737DE7973659C2 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AAA1F9BF92AA0E272C8090B3 /* WarmthWatchWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		00BDE490EB968803AC0283A8 /* ConnectionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionsView.swift; sourceTree = "<group>"; };
 		03ED3CF6EAE12012958CD227 /* ReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewView.swift; sourceTree = "<group>"; };
 		0789B3EB390A765860E524A1 /* WarmthApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarmthApp.swift; sourceTree = "<group>"; };
+		13D1FCE0B64B50832D581FF5 /* MockAuthServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAuthServiceTests.swift; sourceTree = "<group>"; };
 		173746B843D77E96C3FF49F4 /* PermissionsStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsStepView.swift; sourceTree = "<group>"; };
 		205143C4A2F04EF71D601E74 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		2333521ECA1BD51F6B159F90 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		24D51D3D2870F199E933DAC2 /* SocialGraphEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialGraphEngine.swift; sourceTree = "<group>"; };
 		2C962C9C13896199CC937D21 /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
+		2E4073E4DD63C702F65E5D67 /* SettingsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStoreTests.swift; sourceTree = "<group>"; };
+		2E8C51B5B2340C2235D7D626 /* SpaceGrotesk-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-Medium.ttf"; sourceTree = "<group>"; };
 		2F870328D29363ACBD35EAC0 /* FinishStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinishStepView.swift; sourceTree = "<group>"; };
 		3024C81F2315D57D200D4A0F /* ConnectionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionRow.swift; sourceTree = "<group>"; };
 		30B404718167914B5B40EDA9 /* ReviewCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewCardView.swift; sourceTree = "<group>"; };
 		315FB080E7AEEF392454C325 /* MockSpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSpeechService.swift; sourceTree = "<group>"; };
+		35B6529B517DFDBA683FF50A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		368DBE92B0EBA826BD8CFEF2 /* OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = OFL.txt; sourceTree = "<group>"; };
-		3D69F854E687CA1D92B75F7D /* WarmthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarmthTests.swift; sourceTree = "<group>"; };
 		3D79C67A6DEA7C184BC90BAA /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureView.swift; sourceTree = "<group>"; };
+		4145AFD43786E5BA008F1334 /* WarmthWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WarmthWatch.entitlements; sourceTree = "<group>"; };
+		43FEF3A1FFD17AAE0362EAFB /* SessionCaptureLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionCaptureLogTests.swift; sourceTree = "<group>"; };
 		4825E3872551BD448F99E642 /* SpaceGrotesk-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-Medium.ttf"; sourceTree = "<group>"; };
 		4D60EBC13775214C0718D60B /* SignInStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInStepView.swift; sourceTree = "<group>"; };
 		51E587385D5FF43E317FB3CF /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		51E8F9A71CDE3FC0D80425AB /* SignalSending.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalSending.swift; sourceTree = "<group>"; };
 		5361FC9F2CCEAB4169EB5F07 /* WarmthTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WarmthTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5497DB596CF33B838FFA4FAC /* SpaceGrotesk-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-SemiBold.ttf"; sourceTree = "<group>"; };
 		5539E8ABA572E0229C0BF3AF /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Typography.swift; sourceTree = "<group>"; };
+		58140A0DA888B0379BC77594 /* WarmthWatchWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WarmthWatchWidget.entitlements; sourceTree = "<group>"; };
 		593C279B69AACAB84802A538 /* RecentConnectionsStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentConnectionsStrip.swift; sourceTree = "<group>"; };
+		5DC7A91A4BDB60E28A974E1E /* AppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelTests.swift; sourceTree = "<group>"; };
 		5F294EC88B2557C6B54FF150 /* ConnectionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDetailView.swift; sourceTree = "<group>"; };
 		61FE9F433B26C0EDB43997DF /* CapturedSignalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturedSignalTests.swift; sourceTree = "<group>"; };
 		68C04DA8AA1CD64BE0100C55 /* SessionCaptureLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionCaptureLog.swift; sourceTree = "<group>"; };
+		6D6E49FC2B94A0EC29A65AB8 /* WarmthWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WarmthWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6FF52F92A6ACE41889097661 /* SocialGraphEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialGraphEngineTests.swift; sourceTree = "<group>"; };
 		78B1F5BE9468CF3CB3CB9D03 /* PersonNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonNode.swift; sourceTree = "<group>"; };
+		7FF4CA94879DCBCD279A16DE /* ComplicationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationProvider.swift; sourceTree = "<group>"; };
 		831D5E70B9E28C3D12537074 /* CalendarStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarStepView.swift; sourceTree = "<group>"; };
 		86DC95C894412A1AF61A80E7 /* SpaceGrotesk-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-SemiBold.ttf"; sourceTree = "<group>"; };
 		890F268DADEE35ECB969D052 /* SocialGraphProcessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialGraphProcessing.swift; sourceTree = "<group>"; };
 		8AA14377A35A46431776C5C9 /* WelcomeStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeStepView.swift; sourceTree = "<group>"; };
 		8DE0187905153EFC96EAD27B /* SignalClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalClient.swift; sourceTree = "<group>"; };
 		8F59FCF2A3ED6172A282F543 /* MeshGradientBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshGradientBackground.swift; sourceTree = "<group>"; };
+		9BF7EC70A390C0E05AB97400 /* SignalClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalClientTests.swift; sourceTree = "<group>"; };
+		A5CCACAA56E2C0DE4860CEB1 /* WarmthWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarmthWatchApp.swift; sourceTree = "<group>"; };
+		A863A380FEAE7DA31D8B1BC9 /* SocialGraphEngineExtendedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialGraphEngineExtendedTests.swift; sourceTree = "<group>"; };
 		B6710142BFE6F88FBFB8E5FA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B6953FA7D3D8B7E03487B1E3 /* WatchSessionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSessionService.swift; sourceTree = "<group>"; };
+		B6C0C5652848A11706527222 /* StartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartView.swift; sourceTree = "<group>"; };
 		B6C3802C63337D435F07E2E3 /* WakeWordProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WakeWordProviding.swift; sourceTree = "<group>"; };
+		BA56360298282D583C9157B9 /* WarmthWatchWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarmthWatchWidget.swift; sourceTree = "<group>"; };
+		BAAE173023159C896EC8755B /* RecordingStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingStateView.swift; sourceTree = "<group>"; };
 		BD39F3643AA95C9CAC768A8C /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		C294F482EEC56A71AC52615C /* SpeechServicing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechServicing.swift; sourceTree = "<group>"; };
 		C3537C9F957E2C7D90816D9C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C6150C6B259C6A42689D34CF /* SpaceGrotesk-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-Regular.ttf"; sourceTree = "<group>"; };
 		C8C62EF495DCA7A0A7F10613 /* CapturedSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturedSignal.swift; sourceTree = "<group>"; };
+		CDA343F14A1DD952B6DF45E6 /* ComplicationViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationViews.swift; sourceTree = "<group>"; };
+		CF18A09B9F01320073659E42 /* SpaceGrotesk-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-Bold.ttf"; sourceTree = "<group>"; };
 		CFDECED4FAFEBADFECA67761 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		D1B60319FD461EC64A1A09C6 /* WaveformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformView.swift; sourceTree = "<group>"; };
 		D7D33D1E59B3F49C303D9640 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		D991575A4A362D04BB3C0664 /* WatchSharedState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSharedState.swift; sourceTree = "<group>"; };
+		DA8895995031DBB19AEDFF1E /* WarmthWatchWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WarmthWatchWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		DDDC17D1004083D9C6583510 /* SpaceGrotesk-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-Regular.ttf"; sourceTree = "<group>"; };
 		E0881BADFE76FF2B641B9EB9 /* WarmthColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarmthColor.swift; sourceTree = "<group>"; };
 		E66C12A1401943F6CA464CA4 /* RecordOrb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordOrb.swift; sourceTree = "<group>"; };
 		E7A40E2A94B66EBA0C6294B5 /* WarmthGlass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarmthGlass.swift; sourceTree = "<group>"; };
 		E84B59D107366073425DA333 /* SpaceGrotesk-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-Bold.ttf"; sourceTree = "<group>"; };
 		F02AAB87F7DF526385B525E0 /* Motion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Motion.swift; sourceTree = "<group>"; };
 		F24C2152E81D250C103A2848 /* SpaceGrotesk-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-Light.ttf"; sourceTree = "<group>"; };
+		F417365B7B15A8CD8939087A /* WatchTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchTheme.swift; sourceTree = "<group>"; };
 		F682C0157A6EC97C76AF8022 /* FirebaseAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseAuthService.swift; sourceTree = "<group>"; };
-		FBC843CA37531CD74687A677 /* Warmth.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Warmth.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F84ED72A8879C7B788B95C40 /* WatchConnectivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityService.swift; sourceTree = "<group>"; };
+		F9CA17920A1CFAE5EF3F8860 /* PersonNodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonNodeTests.swift; sourceTree = "<group>"; };
+		FBC843CA37531CD74687A677 /* Warmth.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Warmth.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FFB6922A15B1EE738FC4BC64 /* MockAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAuthService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -150,6 +217,8 @@
 			children = (
 				FBC843CA37531CD74687A677 /* Warmth.app */,
 				5361FC9F2CCEAB4169EB5F07 /* WarmthTests.xctest */,
+				6D6E49FC2B94A0EC29A65AB8 /* WarmthWatch.app */,
+				DA8895995031DBB19AEDFF1E /* WarmthWatchWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -183,6 +252,14 @@
 			path = Connections;
 			sourceTree = "<group>";
 		};
+		0FCB0544F3251E44B3AC4D71 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				D991575A4A362D04BB3C0664 /* WatchSharedState.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		18670766699C19040C4E51DC /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -213,6 +290,14 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		62DACC1882681607BA8A949B /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				F84ED72A8879C7B788B95C40 /* WatchConnectivityService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		62F78FAEDA8359B74DCC89B1 /* Review */ = {
 			isa = PBXGroup;
 			children = (
@@ -225,11 +310,44 @@
 		6A375161B2A53FF98A995D38 /* WarmthTests */ = {
 			isa = PBXGroup;
 			children = (
+				5DC7A91A4BDB60E28A974E1E /* AppModelTests.swift */,
 				61FE9F433B26C0EDB43997DF /* CapturedSignalTests.swift */,
+				13D1FCE0B64B50832D581FF5 /* MockAuthServiceTests.swift */,
+				F9CA17920A1CFAE5EF3F8860 /* PersonNodeTests.swift */,
+				43FEF3A1FFD17AAE0362EAFB /* SessionCaptureLogTests.swift */,
+				2E4073E4DD63C702F65E5D67 /* SettingsStoreTests.swift */,
+				9BF7EC70A390C0E05AB97400 /* SignalClientTests.swift */,
+				A863A380FEAE7DA31D8B1BC9 /* SocialGraphEngineExtendedTests.swift */,
 				6FF52F92A6ACE41889097661 /* SocialGraphEngineTests.swift */,
-				3D69F854E687CA1D92B75F7D /* WarmthTests.swift */,
 			);
 			path = WarmthTests;
+			sourceTree = "<group>";
+		};
+		6EFEB2BD2403259D94E7F181 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				F417365B7B15A8CD8939087A /* WatchTheme.swift */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		6FD2D5EC12647EB2A3AFB6D0 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				CF18A09B9F01320073659E42 /* SpaceGrotesk-Bold.ttf */,
+				2E8C51B5B2340C2235D7D626 /* SpaceGrotesk-Medium.ttf */,
+				DDDC17D1004083D9C6583510 /* SpaceGrotesk-Regular.ttf */,
+				5497DB596CF33B838FFA4FAC /* SpaceGrotesk-SemiBold.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		7200B34FA02BF4AA3522843C /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A5CCACAA56E2C0DE4860CEB1 /* WarmthWatchApp.swift */,
+			);
+			path = App;
 			sourceTree = "<group>";
 		};
 		78C4213BCFEE4CC3060867AB /* Resources */ = {
@@ -261,6 +379,29 @@
 				B6710142BFE6F88FBFB8E5FA /* SettingsView.swift */,
 			);
 			path = Settings;
+			sourceTree = "<group>";
+		};
+		82F38D925EEE51D2BAB617D8 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				6FD2D5EC12647EB2A3AFB6D0 /* Fonts */,
+				35B6529B517DFDBA683FF50A /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		82FB2446AC1D6D2C5E2881EF /* WarmthWatch */ = {
+			isa = PBXGroup;
+			children = (
+				7200B34FA02BF4AA3522843C /* App */,
+				6EFEB2BD2403259D94E7F181 /* DesignSystem */,
+				82F38D925EEE51D2BAB617D8 /* Resources */,
+				62DACC1882681607BA8A949B /* Services */,
+				0FCB0544F3251E44B3AC4D71 /* Shared */,
+				B4CF2D6EBFF7B6975A246C7A /* Views */,
+				4145AFD43786E5BA008F1334 /* WarmthWatch.entitlements */,
+			);
+			path = WarmthWatch;
 			sourceTree = "<group>";
 		};
 		8346177966E50D2F024722AA /* Settings */ = {
@@ -318,6 +459,15 @@
 			path = Session;
 			sourceTree = "<group>";
 		};
+		B4CF2D6EBFF7B6975A246C7A /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				BAAE173023159C896EC8755B /* RecordingStateView.swift */,
+				B6C0C5652848A11706527222 /* StartView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
 		B9B195AD97D600AEC0B8B606 /* Signal */ = {
 			isa = PBXGroup;
 			children = (
@@ -325,6 +475,17 @@
 				51E8F9A71CDE3FC0D80425AB /* SignalSending.swift */,
 			);
 			path = Signal;
+			sourceTree = "<group>";
+		};
+		DDF374F8C04192A314E195C3 /* WarmthWatchWidget */ = {
+			isa = PBXGroup;
+			children = (
+				7FF4CA94879DCBCD279A16DE /* ComplicationProvider.swift */,
+				CDA343F14A1DD952B6DF45E6 /* ComplicationViews.swift */,
+				58140A0DA888B0379BC77594 /* WarmthWatchWidget.entitlements */,
+				BA56360298282D583C9157B9 /* WarmthWatchWidget.swift */,
+			);
+			path = WarmthWatchWidget;
 			sourceTree = "<group>";
 		};
 		EB83D113E7FABAF42EAE8068 /* Fonts */ = {
@@ -372,6 +533,8 @@
 			children = (
 				8D40C92DCD0316DB36CEAD99 /* Warmth */,
 				6A375161B2A53FF98A995D38 /* WarmthTests */,
+				82FB2446AC1D6D2C5E2881EF /* WarmthWatch */,
+				DDF374F8C04192A314E195C3 /* WarmthWatchWidget */,
 			);
 			path = "Warmth-iOS";
 			sourceTree = "<group>";
@@ -432,6 +595,43 @@
 			productReference = 5361FC9F2CCEAB4169EB5F07 /* WarmthTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		B00ABAEBFF8DA30BEC74B25D /* WarmthWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CCF48944F150A61DF1272A70 /* Build configuration list for PBXNativeTarget "WarmthWatch" */;
+			buildPhases = (
+				3A9989C8C518F907193E13CF /* Sources */,
+				F2D015A020782172B734F3FC /* Resources */,
+				B19F338183737DE7973659C2 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				27BCD51F951027FD045ECA36 /* PBXTargetDependency */,
+			);
+			name = WarmthWatch;
+			packageProductDependencies = (
+			);
+			productName = WarmthWatch;
+			productReference = 6D6E49FC2B94A0EC29A65AB8 /* WarmthWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F3DEAD846F4E651ADADC176E /* WarmthWatchWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 502FEE266CECF324CCEC9F53 /* Build configuration list for PBXNativeTarget "WarmthWatchWidget" */;
+			buildPhases = (
+				7CB964CD968A7DD374211637 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WarmthWatchWidget;
+			packageProductDependencies = (
+			);
+			productName = WarmthWatchWidget;
+			productReference = DA8895995031DBB19AEDFF1E /* WarmthWatchWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -442,10 +642,19 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					6F3BCE59D137F0876D3BA951 = {
+						DevelopmentTeam = 6Q3AVN73Z6;
 						ProvisioningStyle = Automatic;
 					};
 					89ECF7FF1C6813A847D497BE = {
-						DevelopmentTeam = 7JN8C5W7G7;
+						DevelopmentTeam = 6Q3AVN73Z6;
+						ProvisioningStyle = Automatic;
+					};
+					B00ABAEBFF8DA30BEC74B25D = {
+						DevelopmentTeam = 6Q3AVN73Z6;
+						ProvisioningStyle = Automatic;
+					};
+					F3DEAD846F4E651ADADC176E = {
+						DevelopmentTeam = 6Q3AVN73Z6;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -470,6 +679,8 @@
 			targets = (
 				6F3BCE59D137F0876D3BA951 /* Warmth */,
 				89ECF7FF1C6813A847D497BE /* WarmthTests */,
+				B00ABAEBFF8DA30BEC74B25D /* WarmthWatch */,
+				F3DEAD846F4E651ADADC176E /* WarmthWatchWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -490,16 +701,47 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F2D015A020782172B734F3FC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				72C61EE2A9B9B76A57F3C0BF /* Assets.xcassets in Resources */,
+				490725DADAB777C6C3A48F60 /* SpaceGrotesk-Bold.ttf in Resources */,
+				C3B00B8206C0CEC2B5607EA7 /* SpaceGrotesk-Medium.ttf in Resources */,
+				AE7064615FA3121E8E51FA11 /* SpaceGrotesk-Regular.ttf in Resources */,
+				FB40EF1AF17FF8D21D1DAB95 /* SpaceGrotesk-SemiBold.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		3A9989C8C518F907193E13CF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				251674B291559E2ADE579588 /* RecordingStateView.swift in Sources */,
+				924CAE8D45DAE39ED1F40104 /* StartView.swift in Sources */,
+				2BAF1C71F89A182E1BC5A794 /* WarmthWatchApp.swift in Sources */,
+				AB8610AE53E96706108DA1A2 /* WatchConnectivityService.swift in Sources */,
+				DD7CC72A925C9126B8A58F40 /* WatchSharedState.swift in Sources */,
+				4ED2C5B640DC207AF947A3F7 /* WatchTheme.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		570108613608E394AC94CFF8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5D3271541D7C08C6D50EC0C3 /* AppModelTests.swift in Sources */,
 				40B6E1714A44C8DEEB84788D /* CapturedSignalTests.swift in Sources */,
+				74267665B412995FE6F8E72D /* MockAuthServiceTests.swift in Sources */,
+				1BB69D706B82E6C55F2AA26A /* PersonNodeTests.swift in Sources */,
+				D6D421CB9510F788C6E5CE83 /* SessionCaptureLogTests.swift in Sources */,
+				1543D3960A59A454F4781EFE /* SettingsStoreTests.swift in Sources */,
+				7A6206EA09063493AB8DD55D /* SignalClientTests.swift in Sources */,
+				226729F8B4FA0DA7889E870E /* SocialGraphEngineExtendedTests.swift in Sources */,
 				95835903820DE34C049A3D31 /* SocialGraphEngineTests.swift in Sources */,
-				AB5D2176C6773D3D25EE0D24 /* WarmthTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -550,9 +792,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7CB964CD968A7DD374211637 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BD4390E28AD8EA84343636B7 /* ComplicationProvider.swift in Sources */,
+				B9534B0DAD81ADBF555DF9E1 /* ComplicationViews.swift in Sources */,
+				E3AF72C585559359E7CA79C9 /* WarmthWatchWidget.swift in Sources */,
+				F33CF665027005FE011180F3 /* WatchSharedState.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		27BCD51F951027FD045ECA36 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F3DEAD846F4E651ADADC176E /* WarmthWatchWidget */;
+			targetProxy = C263843B95C95116D10FC6D7 /* PBXContainerItemProxy */;
+		};
 		FCBEEAF4425355E30A81DC47 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 6F3BCE59D137F0876D3BA951 /* Warmth */;
@@ -578,13 +836,33 @@
 			};
 			name = Release;
 		};
+		160CA714FB4B606CE893DFA8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Warmth-iOS/WarmthWatchWidget/WarmthWatchWidget.entitlements";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Warmth-iOS/WarmthWatchWidget/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.warmth.gtmhackathon.watchkitapp.complication;
+				PRODUCT_NAME = WarmthWatchWidget;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
 		22360FED34DDE5BC09C44E32 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = 6Q3AVN73Z6;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = "Warmth-iOS/Warmth/Resources/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -608,7 +886,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = 6Q3AVN73Z6;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = "Warmth-iOS/Warmth/Resources/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -623,6 +900,44 @@
 				PRODUCT_NAME = Warmth;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		4B6DC32956C97A9FBD46BDCA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Warmth-iOS/WarmthWatchWidget/WarmthWatchWidget.entitlements";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Warmth-iOS/WarmthWatchWidget/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.warmth.gtmhackathon.watchkitapp.complication;
+				PRODUCT_NAME = WarmthWatchWidget;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
+		6404A460F9E17E0A68AF3D83 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "Warmth-iOS/WarmthWatch/WarmthWatch.entitlements";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Warmth-iOS/WarmthWatch/Info.plist";
+				PRODUCT_BUNDLE_IDENTIFIER = com.warmth.gtmhackathon.watchkitapp;
+				PRODUCT_NAME = Warmth;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
 		};
@@ -680,7 +995,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 7JN8C5W7G7;
+				DEVELOPMENT_TEAM = 6Q3AVN73Z6;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -697,7 +1012,6 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
@@ -742,7 +1056,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 7JN8C5W7G7;
+				DEVELOPMENT_TEAM = 6Q3AVN73Z6;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -766,11 +1080,27 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		EDE31F1E10400B0AA1F90612 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "Warmth-iOS/WarmthWatch/WarmthWatch.entitlements";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Warmth-iOS/WarmthWatch/Info.plist";
+				PRODUCT_BUNDLE_IDENTIFIER = com.warmth.gtmhackathon.watchkitapp;
+				PRODUCT_NAME = Warmth;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
 		};
@@ -800,6 +1130,24 @@
 			buildConfigurations = (
 				71E59CF834BFDE9C03D5CF76 /* Debug */,
 				088BD34A7226AB4C04C65C82 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		502FEE266CECF324CCEC9F53 /* Build configuration list for PBXNativeTarget "WarmthWatchWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				160CA714FB4B606CE893DFA8 /* Debug */,
+				4B6DC32956C97A9FBD46BDCA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CCF48944F150A61DF1272A70 /* Build configuration list for PBXNativeTarget "WarmthWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EDE31F1E10400B0AA1F90612 /* Debug */,
+				6404A460F9E17E0A68AF3D83 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

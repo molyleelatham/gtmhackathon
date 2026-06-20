@@ -6,6 +6,7 @@ import SwiftUI
 /// glass card, and a prominent Stop control commits the captured person.
 struct CaptureView: View {
     @Environment(AppModel.self) private var model
+    @State private var isStartingCapture = false
 
     var body: some View {
         let phase = model.speech.phase
@@ -94,7 +95,7 @@ struct CaptureView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .glassEffect(.regular, in: .rect(cornerRadius: 14))
+        .warmthGlass(WarmthGlassStyle.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .padding(.horizontal, 20)
         .padding(.top, 10)
         .transition(.move(edge: .top).combined(with: .opacity))
@@ -131,10 +132,11 @@ struct CaptureView: View {
     private var listeningControls: some View {
         VStack(spacing: 12) {
             EmberButton(title: "Start recording now", systemImage: "record.circle") {
-                Task { await model.speech.startRecording() }
+                _ = beginCaptureIfAllowed { await model.speech.startRecording() }
             }
             EmberButton(title: "Cancel", fill: false) {
                 model.speech.stopAndReset()
+                model.syncWatchState()
             }
         }
     }
@@ -155,7 +157,7 @@ struct CaptureView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
                 .background(Capsule().fill(WarmthColor.emberGradient))
-                .glassEffect(.regular.interactive(), in: .capsule)
+                .warmthGlass(WarmthGlassStyle.interactive, in: Capsule(), fillSurface: false)
                 .shadow(color: WarmthColor.emberRed.opacity(0.4), radius: 16, y: 8)
             }
             .buttonStyle(.plain)
@@ -186,19 +188,41 @@ struct CaptureView: View {
     // MARK: - Interaction
 
     private func handleOrbTap() {
+        guard !isStartingCapture else { return }
+
         switch model.speech.phase {
         case .idle:
-            Task { await model.speech.startListening() }
+            _ = beginCaptureIfAllowed { await model.speech.startListening() }
         case .listening:
-            Task { await model.speech.startRecording() }
+            _ = beginCaptureIfAllowed { await model.speech.startRecording() }
         case .recording:
             handleStop()
         }
     }
 
+    /// Returns false when capture must not proceed (denied permissions or in-flight start).
+    @discardableResult
+    private func beginCaptureIfAllowed(start: @escaping () async -> Void) -> Bool {
+        if model.speech.permissionsDenied {
+            _ = model.speech.checkPermissions()
+            WarmthHaptics.warning()
+            return false
+        }
+        isStartingCapture = true
+        Task {
+            defer { isStartingCapture = false }
+            guard await model.speech.requestPermissions() else { return }
+            guard model.speech.hasMicrophoneAccess else { return }
+            await start()
+            model.syncWatchState()
+        }
+        return true
+    }
+
     private func handleStop() {
         let transcript = model.speech.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
         model.speech.stopAndReset()
+        model.syncWatchState()
         WarmthHaptics.success()
         if !transcript.isEmpty {
             Task { await model.capturePerson(from: transcript) }
