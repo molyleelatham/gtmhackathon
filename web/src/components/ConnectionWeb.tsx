@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Toggle } from "./Toggle";
-import { ATTENDEES } from "../lib/mockData";
+import { api } from "../lib/api";
+import { connectionToAttendee } from "../lib/adapters";
 import { personInitials } from "../lib/avatars";
+import { useAsync } from "../lib/useAsync";
 
 interface PersonNode {
   id: string;
@@ -31,12 +33,6 @@ const MIN_NODE_DIST = 132;
 const LABEL_OFFSET = 46;
 const LABEL_HEIGHT = 14;
 const VIEW_PAD = 40;
-
-const PEOPLE = ATTENDEES.slice(0, 8);
-
-const ALL_INTERESTS = Array.from(
-  new Set(PEOPLE.flatMap((p) => p.interests)),
-).sort();
 
 function overlap(a: string[], b: string[]): { strength: number; shared: string[] } {
   const setB = new Set(b.map((s) => s.toLowerCase()));
@@ -76,9 +72,9 @@ function buildPeerEdges(people: PersonNode[]): Edge[] {
   return edges;
 }
 
-function spreadScale(nodeCount: number, filtered: boolean): number {
+function spreadScale(nodeCount: number, filtered: boolean, rosterSize: number): number {
   if (!filtered) return 1;
-  const fewer = Math.max(0, PEOPLE.length - nodeCount);
+  const fewer = Math.max(0, rosterSize - nodeCount);
   return 1.45 + fewer * 0.12;
 }
 
@@ -176,10 +172,11 @@ function computeForceLayout(
   nodeIds: string[],
   edges: Edge[],
   filtered: boolean,
+  rosterSize: number,
 ): Record<string, { x: number; y: number }> {
   if (nodeIds.length === 0) return {};
 
-  const scale = spreadScale(nodeIds.length, filtered);
+  const scale = spreadScale(nodeIds.length, filtered, rosterSize);
   const minDist = MIN_NODE_DIST * scale;
   const { width, height } = layoutCanvasSize(nodeIds.length, minDist);
   const cx = width / 2;
@@ -219,8 +216,9 @@ function relaxAfterDrag(
   nodeIds: string[],
   fixedId: string,
   filtered: boolean,
+  rosterSize: number,
 ): Record<string, { x: number; y: number }> {
-  const minDist = MIN_NODE_DIST * spreadScale(nodeIds.length, filtered);
+  const minDist = MIN_NODE_DIST * spreadScale(nodeIds.length, filtered, rosterSize);
   const nodes: SimNode[] = nodeIds.map((id) => ({
     id,
     x: positions[id]?.x ?? 0,
@@ -303,6 +301,12 @@ function interestEdgeCount(edges: Edge[], interest: string): number {
 }
 
 export function ConnectionWeb() {
+  const { data: connections } = useAsync(() => api.listConnections(), []);
+  const roster = useMemo(
+    () => (connections ?? []).slice(0, 8).map(connectionToAttendee),
+    [connections],
+  );
+
   const [filterEnabled, setFilterEnabled] = useState(false);
   const [interestFilter, setInterestFilter] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -312,14 +316,19 @@ export function ConnectionWeb() {
 
   const people: PersonNode[] = useMemo(
     () =>
-      PEOPLE.map((p) => ({
+      roster.map((p) => ({
         id: p.id,
         name: p.name.split(" ")[0],
         fullName: p.name,
         interests: p.interests,
         icpScore: p.icpScore,
       })),
-    [],
+    [roster],
+  );
+
+  const allInterests = useMemo(
+    () => Array.from(new Set(people.flatMap((p) => p.interests))).sort(),
+    [people],
   );
 
   const allEdges = useMemo(() => buildPeerEdges(people), [people]);
@@ -343,8 +352,8 @@ export function ConnectionWeb() {
   const isFilteredView = filterEnabled && interestFilter !== null;
 
   const layoutPositions = useMemo(
-    () => computeForceLayout(visibleNodeIds, filteredEdges, isFilteredView),
-    [visibleNodeIds, filteredEdges, isFilteredView],
+    () => computeForceLayout(visibleNodeIds, filteredEdges, isFilteredView, roster.length),
+    [visibleNodeIds, filteredEdges, isFilteredView, roster.length],
   );
 
   const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>({});
@@ -404,13 +413,13 @@ export function ConnectionWeb() {
     setPositions((prev) => {
       const ids = Object.keys(prev).filter((id) => visibleNodeIds.includes(id));
       if (ids.length < 2) return prev;
-      return relaxAfterDrag(prev, ids, drag.id, isFilteredView);
+      return relaxAfterDrag(prev, ids, drag.id, isFilteredView, roster.length);
     });
-  }, [visibleNodeIds, isFilteredView]);
+  }, [visibleNodeIds, isFilteredView, roster.length]);
 
   const handleFilterToggle = (on: boolean) => {
     setFilterEnabled(on);
-    setInterestFilter(on ? ALL_INTERESTS[0] : null);
+    setInterestFilter(on ? (allInterests[0] ?? null) : null);
   };
 
   const activeFilter = filterEnabled ? interestFilter : null;
@@ -433,7 +442,7 @@ export function ConnectionWeb() {
             Shared interest
           </p>
           <div className="flex flex-wrap gap-1.5">
-            {ALL_INTERESTS.map((interest) => {
+            {allInterests.map((interest) => {
               const count = interestEdgeCount(allEdges, interest);
               const selected = interestFilter === interest;
               return (

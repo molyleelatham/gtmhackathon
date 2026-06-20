@@ -4,7 +4,7 @@ import Foundation
 @MainActor
 @Observable
 final class SettingsStore {
-    static let defaultBaseURL = "http://127.0.0.1:8000"
+    static let defaultBaseURL = "http://127.0.0.1:8010"
 
     private enum Keys {
         static let baseURL = "warmth.backendBaseURL"

@@ -62,14 +62,26 @@ class PostMeetPipeline:
             purpose="post_meet_followup",
         )
 
-        # Optionally materialize the draft inside Gmail via Google MCP so the
-        # user finds it ready to polish. We create a DRAFT, never send.
-        if self.gmail_client and lead.contact_email:
+        from ..api.integration_helpers import warmth_client_email, wrap_self_draft
+
+        subject, body = wrap_self_draft(
+            draft.get("subject", ""),
+            draft.get("body", ""),
+            stage="post_meet",
+            recipient_name=lead.contact_name or signal.name,
+            recipient_email=lead.contact_email,
+        )
+        draft["subject"] = subject
+        draft["body"] = body
+        draft["to"] = warmth_client_email()
+
+        # Materialize the draft in our Gmail inbox via MCP (never auto-send).
+        if self.gmail_client:
             try:
                 gmail_draft = await self.gmail_client.create_email_draft(
-                    to=lead.contact_email,
-                    subject=draft.get("subject", ""),
-                    body=draft.get("body", ""),
+                    to=warmth_client_email(),
+                    subject=subject,
+                    body=body,
                 )
                 draft["gmail_draft_id"] = gmail_draft.get("id")
             except Exception as e:  # pragma: no cover - stub resilience

@@ -2,7 +2,10 @@ import { useState } from "react";
 import { GlassCard } from "../components/Glass";
 import { Toggle } from "../components/Toggle";
 import { useAuth } from "../lib/auth";
-import { ICP_PROFILE, INTEGRATIONS, type Integration } from "../lib/mockData";
+import { api } from "../lib/api";
+import type { Integration } from "../lib/uiTypes";
+import { useAsync } from "../lib/useAsync";
+import { ErrorBox, Loading } from "./Dashboard";
 
 const DOT: Record<Integration["status"], string> = {
   connected: "bg-warmth-warm",
@@ -46,6 +49,10 @@ export function Settings() {
   const { user, signOut } = useAuth();
   const initial = (user?.displayName ?? "?").charAt(0).toUpperCase();
 
+  const icp = useAsync(() => api.icpProfile(), []);
+  const integrations = useAsync(() => api.integrations(), []);
+  const health = useAsync(() => api.health(), []);
+
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [pushAlerts, setPushAlerts] = useState(true);
   const [weeklyDigest, setWeeklyDigest] = useState(false);
@@ -60,7 +67,6 @@ export function Settings() {
         </p>
       </header>
 
-      {/* Account */}
       <GlassCard className="p-5">
         <SectionHeader title="Account" description="Your Warmth profile and session." />
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -79,45 +85,67 @@ export function Settings() {
         </div>
       </GlassCard>
 
+      <GlassCard className="p-5">
+        <SectionHeader title="Backend status" description="FastAPI health and passive listener." />
+        {health.loading && <Loading />}
+        {health.error && <ErrorBox message={health.error} />}
+        {health.data && (
+          <dl>
+            <SettingsRow label="API" value={health.data.status} />
+            <SettingsRow label="Service" value={health.data.service} />
+            <SettingsRow
+              label="Passive listener"
+              value={health.data.listener_running ? "Running" : "Stopped"}
+            />
+          </dl>
+        )}
+      </GlassCard>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* ICP Profile */}
         <GlassCard className="p-5">
           <SectionHeader
             title="Ideal Customer Profile"
-            description="How Warmth scores attendee fit."
+            description="How Warmth scores attendee fit (from backend config)."
           />
-          <dl>
-            {ICP_PROFILE.map((row) => (
-              <SettingsRow key={row.label} label={row.label} value={row.value} />
-            ))}
-          </dl>
-          <button type="button" className="btn-secondary mt-4">
-            Edit ICP
-          </button>
+          {icp.loading && <Loading />}
+          {icp.error && <ErrorBox message={icp.error} />}
+          {icp.data && (
+            <>
+              <dl>
+                {icp.data.map((row) => (
+                  <SettingsRow key={row.label} label={row.label} value={row.value} />
+                ))}
+              </dl>
+              <button type="button" className="btn-secondary mt-4">
+                Edit ICP
+              </button>
+            </>
+          )}
         </GlassCard>
 
-        {/* Integrations */}
         <GlassCard className="p-5">
           <SectionHeader title="Integrations" description="Connected services and sync status." />
-          <ul>
-            {INTEGRATIONS.map((item) => (
-              <li
-                key={item.name}
-                className="flex items-center justify-between border-b border-subtle py-2.5 text-sm last:border-0"
-              >
-                <span className="flex items-center gap-2.5 text-ink-900">
-                  <span className={`h-2 w-2 rounded-full ${DOT[item.status]}`} />
-                  {item.name}
-                </span>
-                <span className="text-ink-faint">{STATUS_LABEL[item.status]}</span>
-              </li>
-            ))}
-          </ul>
+          {integrations.loading && <Loading />}
+          {integrations.error && <ErrorBox message={integrations.error} />}
+          {integrations.data && (
+            <ul>
+              {integrations.data.map((item) => (
+                <li
+                  key={item.name}
+                  className="flex items-center justify-between border-b border-subtle py-2.5 text-sm last:border-0"
+                >
+                  <span className="flex items-center gap-2.5 text-ink-900">
+                    <span className={`h-2 w-2 rounded-full ${DOT[item.status]}`} />
+                    {item.name}
+                  </span>
+                  <span className="text-ink-faint">{STATUS_LABEL[item.status]}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </GlassCard>
       </div>
 
-      {/* Notifications */}
       <GlassCard className="p-5">
         <SectionHeader
           title="Notifications"
@@ -137,7 +165,6 @@ export function Settings() {
         </SettingsRow>
       </GlassCard>
 
-      {/* Data & Privacy */}
       <GlassCard className="p-5">
         <SectionHeader
           title="Data & privacy"
@@ -156,7 +183,6 @@ export function Settings() {
         </SettingsRow>
       </GlassCard>
 
-      {/* About */}
       <GlassCard className="p-5">
         <SectionHeader title="About Warmth" />
         <p className="text-sm leading-relaxed text-ink-muted">

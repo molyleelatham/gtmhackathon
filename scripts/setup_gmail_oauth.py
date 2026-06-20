@@ -23,6 +23,8 @@ sys.path.insert(0, str(ROOT.parent))
 SCOPES = [
     "https://www.googleapis.com/auth/gmail.compose",
     "https://www.googleapis.com/auth/gmail.modify",
+    "https://www.googleapis.com/auth/calendar.readonly",
+    "https://www.googleapis.com/auth/calendar.events",
 ]
 
 CLIENT_DEFAULT = ROOT / "google-oauth-client.json"

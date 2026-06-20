@@ -63,10 +63,24 @@ struct CaptureView: View {
             }
             .padding(.top, 8)
             .animation(WarmthMotion.snappy, value: phase)
+
+            if let match = model.attendeeMatch, match.matched {
+                AttendeeConnectedOverlay(match: match) {
+                    model.dismissAttendeeMatch()
+                }
+                .transition(.scale.combined(with: .opacity))
+            }
         }
         .task {
             // Light extra flourish; the service already fires its own haptic.
-            model.speech.onWakeWordDetected = { WarmthHaptics.success() }
+            model.speech.onWakeWordDetected = {
+                WarmthHaptics.success()
+                model.prepareNewCapture()
+            }
+        }
+        .onChange(of: model.speech.transcript) { _, transcript in
+            guard model.speech.phase == .recording, !transcript.isEmpty else { return }
+            Task { await model.tryMatchAttendee(from: transcript) }
         }
     }
 
@@ -192,6 +206,7 @@ struct CaptureView: View {
 
         switch model.speech.phase {
         case .idle:
+            model.prepareNewCapture()
             _ = beginCaptureIfAllowed { await model.speech.startListening() }
         case .listening:
             _ = beginCaptureIfAllowed { await model.speech.startRecording() }
@@ -251,4 +266,174 @@ struct CaptureView: View {
             Task { await m.speech.startRecording() }
             return m
         }())
+}
+
+// MARK: - Attendee connected overlay
+
+/// Glass modal shown when a live "hi {name}" matches someone on the event roster.
+struct AttendeeConnectedOverlay: View {
+    let match: AttendeeMatchResult
+    let onDismiss: () -> Void
+
+    private var displayName: String {
+        match.connection?.name ?? match.name ?? "Attendee"
+    }
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.38)
+                .ignoresSafeArea()
+                .onTapGesture(perform: onDismiss)
+
+            VStack(spacing: 16) {
+                HStack(alignment: .top, spacing: 14) {
+                    AvatarBadge(initials: initials(for: displayName), size: 64, glow: true)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Attendee matched")
+                            .font(.Warmth.caption)
+                            .foregroundStyle(WarmthColor.emberRed)
+                            .textCase(.uppercase)
+                        Text(match.message)
+                            .font(.Warmth.title2)
+                            .foregroundStyle(WarmthColor.ink)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let title = match.connection?.title, let company = match.connection?.companyName {
+                            Text("\(title) · \(company)")
+                                .font(.Warmth.footnote)
+                                .foregroundStyle(WarmthColor.inkSecondary)
+                        }
+                        if let score = match.score {
+                            Text("Match confidence \(Int(score * 100))%")
+                                .font(.Warmth.caption)
+                                .foregroundStyle(WarmthColor.inkSecondary)
+                        }
+                    }
+                    Spacer(minLength: 0)
+                    Button(action: onDismiss) {
+                        Image(systemName: "xmark")
+                            .font(.Warmth.footnote.weight(.semibold))
+                            .foregroundStyle(WarmthColor.inkSecondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                if let interests = match.interests, !interests.isEmpty {
+                    KnowledgeGraphMiniView(
+                        personName: displayName,
+                        interests: interests,
+                        topicWeights: match.knowledgeGraph?.first?.topicWeights,
+                        values: match.knowledgeGraph?.first?.values
+                    )
+                    .frame(height: 220)
+
+                    WarmthFlowLayout(spacing: 8, lineSpacing: 8) {
+                        ForEach(interests, id: \.self) { interest in
+                            InterestChip(text: interest, tint: WarmthColor.emberRed)
+                        }
+                    }
+                }
+
+                Button(action: onDismiss) {
+                    Text("Keep capturing")
+                        .font(.Warmth.headline)
+                        .foregroundStyle(WarmthColor.warmWhite)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Capsule().fill(WarmthColor.emberGradient))
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(22)
+            .warmthGlass(WarmthGlassStyle.card, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .padding(.horizontal, 24)
+        }
+    }
+
+    private func initials(for name: String) -> String {
+        name.split(separator: " ").prefix(2).compactMap(\.first).map(String.init).joined()
+    }
+}
+
+/// Radial interest graph — person at center, topics/interests on the ring.
+struct KnowledgeGraphMiniView: View {
+    let personName: String
+    var interests: [String] = []
+    var topicWeights: [String: Double]?
+    var values: [String] = []
+
+    private struct OrbitNode: Identifiable {
+        let id: String
+        let label: String
+        let kind: Kind
+        enum Kind { case topic, interest, value }
+    }
+
+    private var nodes: [OrbitNode] {
+        var out: [OrbitNode] = []
+        if let topicWeights {
+            for (label, _) in topicWeights.sorted(by: { $0.value > $1.value }).prefix(6) {
+                out.append(.init(id: "t-\(label)", label: label, kind: .topic))
+            }
+        }
+        for label in interests.prefix(8) where !out.contains(where: { $0.label.lowercased() == label.lowercased() }) {
+            out.append(.init(id: "i-\(label)", label: label, kind: .interest))
+        }
+        for label in values.prefix(4) {
+            out.append(.init(id: "v-\(label)", label: label, kind: .value))
+        }
+        return out
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            let size = min(geo.size.width, geo.size.height)
+            let center = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2)
+            let radius = size * 0.34
+            ZStack {
+                ForEach(Array(nodes.enumerated()), id: \.element.id) { index, node in
+                    let angle = (Double(index) / Double(max(nodes.count, 1))) * (.pi * 2) - .pi / 2
+                    let point = CGPoint(
+                        x: center.x + CGFloat(cos(angle)) * radius,
+                        y: center.y + CGFloat(sin(angle)) * radius
+                    )
+                    Path { path in
+                        path.move(to: center)
+                        path.addLine(to: point)
+                    }
+                    .stroke(nodeColor(node.kind).opacity(0.45), lineWidth: 1.5)
+
+                    Circle()
+                        .fill(nodeColor(node.kind))
+                        .frame(width: node.kind == .topic ? 16 : 12, height: node.kind == .topic ? 16 : 12)
+                        .position(point)
+
+                    Text(shortLabel(node.label))
+                        .font(.Warmth.caption2)
+                        .foregroundStyle(WarmthColor.inkSecondary)
+                        .position(x: point.x, y: point.y + 16)
+                }
+
+                Circle()
+                    .fill(WarmthColor.emberRed.opacity(0.18))
+                    .frame(width: 56, height: 56)
+                    .position(center)
+                Text(personName.split(separator: " ").first.map(String.init) ?? personName)
+                    .font(.Warmth.caption.weight(.bold))
+                    .foregroundStyle(WarmthColor.ink)
+                    .position(center)
+            }
+        }
+    }
+
+    private func nodeColor(_ kind: OrbitNode.Kind) -> Color {
+        switch kind {
+        case .topic: WarmthColor.emberRed.opacity(0.85)
+        case .interest: WarmthColor.amber.opacity(0.85)
+        case .value: WarmthColor.emberRed.opacity(0.55)
+        }
+    }
+
+    private func shortLabel(_ label: String) -> String {
+        label.count > 14 ? String(label.prefix(13)) + "…" : label
+    }
 }

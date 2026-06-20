@@ -6,6 +6,7 @@ from typing import Any, Optional
 
 from ..agent.meet_pipeline import MeetStageAgent
 from ..api.integration_helpers import use_agent_extraction, zero_client_optional
+from ..api.interest_helpers import interests_from_meet_summary
 from ..api.store import store, DEMO_USER_ID
 from ...packages.core.models.event import DetectedEvent, EventType, LifecycleStage
 from ...packages.core.models.lead import Lead
@@ -69,6 +70,7 @@ async def _run_meet_pipeline(
     interests: list[str],
     icp_pre_score: float,
     user_id: str = DEMO_USER_ID,
+    relations: Optional[list[dict]] = None,
 ) -> dict[str, Any]:
     if signal_key in _ingested:
         return _duplicate_response(_ingested[signal_key])
@@ -89,6 +91,7 @@ async def _run_meet_pipeline(
     warmth_data = decision.get("warmth") or {}
     actual = warmth_data.get("actual_score") or icp_pre_score
     predicted = warmth_data.get("predicted_score") or icp_pre_score
+    merged_interests = interests_from_meet_summary(summary, interests)
 
     conn = PreMeetConnection(
         event_id=event.id,
@@ -96,7 +99,7 @@ async def _run_meet_pipeline(
         name=name,
         title=title,
         company_name=company_name or "Unknown Company",
-        interests=interests,
+        interests=merged_interests,
         icp_score=int(icp_pre_score),
         predicted_warmth=float(predicted),
         intent_score=int(icp_pre_score),
@@ -122,7 +125,7 @@ async def _run_meet_pipeline(
         contact_name=name,
         icp_score=int(icp_pre_score),
         signal_source="conference_audio",
-        tags=interests,
+        tags=merged_interests,
     )
     store.upsert_lead(lead)
 
@@ -133,6 +136,9 @@ async def _run_meet_pipeline(
         narrative=summary.get("narrative"),
         gmail_draft=summary.get("gmail_draft"),
         outreach_sequence=summary.get("outreach_sequence"),
+        interests=merged_interests,
+        relations=relations or [],
+        knowledge_graph=summary.get("people") or [],
     )
 
     _ingested[signal_key] = conn.id
@@ -141,6 +147,7 @@ async def _run_meet_pipeline(
         "status": "accepted",
         "connection_id": conn.id,
         "lead_id": lead.id,
+        "interests": merged_interests,
         "routed_to": summary["routed_to"],
         "pushed_to_crm": summary["pushed_to_crm"],
         "handoff": summary.get("handoff", "gmail_lightfern"),
@@ -200,6 +207,7 @@ async def ingest_captured_signal(payload: CapturedSignalPayload) -> dict[str, An
         interests=list(payload.interests),
         icp_pre_score=float(payload.icp_keyword_score),
         user_id=payload.user.uid or DEMO_USER_ID,
+        relations=[r.model_dump() for r in payload.relations],
     )
 
 

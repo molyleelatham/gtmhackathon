@@ -1,4 +1,4 @@
-import { bandFor, type ICPBand } from "../lib/mockData";
+import { bandFor, type ICPBand } from "../lib/uiTypes";
 
 const LABELS: Record<ICPBand, string> = { hot: "Hot", warm: "Warm", cold: "Cold" };
 

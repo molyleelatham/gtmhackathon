@@ -54,7 +54,13 @@ run-gmail-mcp: ## Run the Gmail MCP bridge (port 3000)
 
 setup-gmail-mcp: ## OAuth setup for getwarmth@gmail.com Gmail MCP
 	@echo "🔐 Gmail OAuth setup..."
+	@echo "Download Desktop OAuth JSON from:"
+	@echo "  https://console.cloud.google.com/apis/credentials?project=warmth-gtm-hackathon"
+	@echo "Save as warmth/google-oauth-client.json then run this target again."
 	cd .. && PYTHONPATH=. warmth/.venv/bin/python warmth/scripts/setup_gmail_oauth.py
+
+test-gmail-draft: ## Send test draft to WARMTH_CLIENT_EMAIL via MCP bridge
+	cd .. && PYTHONPATH=. warmth/.venv/bin/python warmth/scripts/test_gmail_mcp_draft.py
 
 install-gmail: ## Install Gmail MCP Python dependencies
 	@echo "📦 Installing Gmail MCP deps..."

@@ -164,7 +164,7 @@ export function Connections() {
                 <p className="mt-1 truncate text-sm text-ink-muted">{c.company_name ?? "—"}</p>
                 {c.interests.length > 0 && (
                   <div className="person-card-pills">
-                    {c.interests.slice(0, 3).map((i) => (
+                    {c.interests.map((i) => (
                       <span key={i} className="person-card-pill">
                         {i}
                       </span>

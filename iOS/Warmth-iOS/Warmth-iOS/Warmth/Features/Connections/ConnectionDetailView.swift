@@ -14,6 +14,15 @@ struct ConnectionDetailView: View {
                     header
 
                     if !person.interests.isEmpty {
+                        section("Interest knowledge graph") {
+                            KnowledgeGraphMiniView(
+                                personName: person.name,
+                                interests: person.interests,
+                                values: []
+                            )
+                            .frame(height: 240)
+                        }
+
                         section("Interests") {
                             WarmthFlowLayout(spacing: 8, lineSpacing: 8) {
                                 ForEach(person.interests, id: \.self) { interest in

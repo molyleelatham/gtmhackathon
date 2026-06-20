@@ -236,3 +236,21 @@ class ZeroCRMClient:
             )
             response.raise_for_status()
             return response.json()
+
+    async def update_contact(
+        self, contact_id: str, contact_data: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Update an existing contact in Zero CRM."""
+        url = f"{self.base_url}/contacts/{contact_id}"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.patch(url, json=contact_data, headers=headers)
+                response.raise_for_status()
+                return response.json()
+        except Exception as exc:
+            print(f"ZeroCRMClient.update_contact fallback: {exc}")
+            return {"id": contact_id, "status": "stubbed", **contact_data}

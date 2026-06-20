@@ -1,18 +1,25 @@
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../lib/auth";
+import { api } from "../lib/api";
+import { useAsync } from "../lib/useAsync";
 import { Avatar } from "./Avatar";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: "◫", end: true },
   { to: "/connections", label: "Connections", icon: "👥" },
+  { to: "/leads", label: "CRM Leads", icon: "◆" },
   { to: "/events", label: "Events", icon: "📅" },
-  { to: "/community", label: "Community Sharing", icon: "◎" },
+  { to: "/pipeline", label: "Pipeline", icon: "⚡" },
+  { to: "/community", label: "Community", icon: "◎" },
 ];
 
 export function Layout() {
   const { user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const health = useAsync(() => api.health(), []);
+
+  const apiOk = health.data?.status === "healthy";
 
   return (
     <div className="flex min-h-screen gap-3 p-3">
@@ -28,7 +35,21 @@ export function Layout() {
               <p className="truncate text-sm font-bold text-ink-900">
                 {user?.displayName ?? "Signed in"}
               </p>
-              <p className="text-xs text-ink-faint">Founder</p>
+              <p className="flex items-center gap-1.5 text-xs text-ink-faint">
+                <span
+                  className={`inline-block h-1.5 w-1.5 rounded-full ${
+                    apiOk ? "bg-warmth-warm" : health.loading ? "bg-amber" : "bg-red-brand"
+                  }`}
+                  title={apiOk ? "API healthy" : "API unreachable"}
+                />
+                {apiOk
+                  ? health.data?.listener_running
+                    ? "Listener active"
+                    : "API online"
+                  : health.loading
+                    ? "Checking API…"
+                    : "API offline"}
+              </p>
             </div>
           )}
           <button
@@ -65,7 +86,7 @@ export function Layout() {
 
         {!collapsed && (
           <div className="mt-6 rounded-xl border border-subtle bg-orange/5 px-3 py-2.5 text-xs text-ink-muted">
-            Capture on iPhone &amp; Apple Watch. Manage here.
+            Capture on iPhone &amp; Apple Watch. Manage the full lifecycle here.
           </div>
         )}
 
