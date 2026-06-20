@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  google-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - GOOGLE_MCP_CREDENTIALS=${GOOGLE_MCP_CREDENTIALS}
+      - WARMTH_CLIENT_EMAIL=${WARMTH_CLIENT_EMAIL:-getwarmth@gmail.com}
+    volumes:
+      - .:/app
+    command: uv run uvicorn warmth.services.google_mcp_server.main:app --host 0.0.0.0 --port 3000
+
   # FastAPI backend
   api:
     build:

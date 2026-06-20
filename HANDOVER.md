@@ -7,169 +7,192 @@ wired, what's blocked, and the exact next steps.
 
 ## TL;DR
 
-Warmth is a two-tier conference-intelligence app:
+Warmth is a conference-intelligence platform with two capture surfaces and one
+**Gmail-first handoff**:
 
-- **Tier 1 — iOS (this repo, `iOS/`)**: on-device, name-triggered listening.
-  Detects contact names → 30 s on-device transcription → lightweight social-graph
-  extraction + rule-based pre-score → fire-and-forget `POST /api/signals`.
-- **Tier 2 — Compute host (Python, owned by the backend agent)**: persistent
-  graph ML (NetworkX / TGN / Spectral GCN), enrichment (UnifyGTM, Zero CRM),
-  thresholds (CRM ≥70, Faxxing + Lightfern ≥80), WebSocket dashboard.
+```
+Capture (iPhone) → encode + score → Gmail draft (SCORES / LEAD / PERSON context)
+  → open getwarmth@gmail.com in Gmail → Lightfern polishes → human sends
+```
 
-Full design + the iOS↔backend contract: **`warmth-ios-technical-architecture.md`**
-(see §10 division of responsibility, §11 wire contract).
+- **Tier 1 — iOS (`iOS/Warmth-iOS/`)**: Xcode app (`Warmth.xcodeproj`) with
+  on-device speech, social-graph extraction, and `SignalClient` →
+  `POST /api/signals` (`CapturedSignal` schema).
+- **Tier 2 — Python backend (`warmth/`)**: meet pipeline, warmth scoring,
+  optional Zero CRM + Faxxing, **primary output = Gmail draft** for Lightfern.
+- **Gmail client inbox**: `getwarmth@gmail.com` (`WARMTH_CLIENT_EMAIL`).
 
-## What's built (iOS, Tier 1)
+Full design: **`warmth-ios-technical-architecture.md`** · Gmail MCP:
+**`docs/GMAIL_MCP.md`**
 
-All under `iOS/Warmth-iOS/Warmth-iOS/`. Every file passes `swiftc -parse`.
+---
+
+## What's built (iOS)
+
+Xcode project: **`iOS/Warmth-iOS/Warmth.xcodeproj`** (XcodeGen, PR #3 on `main`).
+
+| Area | Location |
+|------|----------|
+| App shell + tabs (Capture / Connections / Settings) | `Warmth-iOS/Warmth/App/`, `Features/` |
+| Wire model → backend | `Warmth/Models/CapturedSignal.swift` |
+| Upload + retry queue | `Warmth/Services/Signal/SignalClient.swift` |
+| Social graph | `Warmth/Services/SocialGraph/SocialGraphEngine.swift` |
+| Speech + wake phrase | `Warmth/Services/Speech/SpeechService.swift` |
+| Watch bridge (sources on disk; watch target temporarily out of build) | `WarmthWatch/`, `WATCH_INTEGRATION.md` |
+| Backend URL (Settings) | default `http://127.0.0.1:8000`; on device use Mac LAN IP |
+
+Legacy wake-word pipeline sources still exist under
+`Warmth-iOS/Warmth-iOS/Warmth/Services/` (`ConferenceListeningEngine`, etc.) but
+are **not** in the Xcode target — the shipped app uses `CapturedSignal`.
+
+Setup: `iOS/Warmth-iOS/README.md` · open `Warmth.xcodeproj` · physical device
+recommended.
+
+---
+
+## What's built (Backend)
+
+### E2E ingress + meet pipeline
+
+| Endpoint | Purpose |
+|----------|---------|
+| `POST /api/signals` | iOS `CapturedSignal` (+ legacy `ConferenceAudioSignal`) → `MeetStageAgent` → store + Gmail draft |
+| `POST /api/v1/meet/encode` | Diarized transcript → `MeetingSignal` + KG |
+| `POST /api/v1/meet/process` | Encode + score + Gmail handoff |
+| `POST /api/v1/meet/signals` | Structured `MeetingSignal` → route + draft |
+| `GET /api/v1/dashboard` | Web CRM dashboard |
+
+Key files:
 
 | Area | File |
 |------|------|
-| Mic (16 kHz Float32 + raw buffers) | `Warmth/Services/MicrophoneStream.swift` |
-| Wake word (Soniqo `SpeechWakeWord`) | `Warmth/Services/WakeWordEngine.swift` |
-| 30 s capture + ICP custom LM | `Warmth/Services/CaptureWindow.swift` |
-| Social graph (NLTagger + regex + score) | `Warmth/Services/SocialGraphEngine.swift` |
-| Output model | `Warmth/Models/Signal.swift` |
-| ICP vocab (mirrors backend) | `Warmth/Models/ICPVocabulary.swift` |
-| Backend client (`POST /api/signals`) | `Warmth/Services/SignalAPIClient.swift` |
-| Orchestrator (state machine) | `Warmth/Services/ConferenceListeningEngine.swift` |
-| Audio session | `Warmth/Services/AudioSessionManager.swift` |
-| Watchlist (names to listen for) | `Warmth/Services/WatchlistProvider.swift` |
-| Root UI | `Warmth/Views/ListeningView.swift`, `Warmth/App/WarmthApp.swift` |
-| Watch haptic + lead banner | `WarmthWatch/Services/WatchConnectivityService.swift`, `WarmthWatch/Views/RecordingStateView.swift` |
+| iOS ingress router | `apps/api/routers/signals.py` |
+| Ingest + persist | `apps/lifecycle/signal_ingest.py` |
+| Meet orchestrator (single Lightfern path) | `apps/agent/meet_pipeline.py` |
+| Demo store | `apps/api/store.py` |
+| iOS schema | `packages/core/schemas/captured_signal.py` |
+| Legacy iOS schema | `packages/core/schemas/conference_audio_signal.py` |
 
-Removed: Deepgram (transcription is on-device via `SFSpeechRecognizer`). The old
-phrase-trigger ("hey it's nice to meet you") is superseded by name wake words;
-`PhraseTriggerEngine.swift` is unused.
-
-## What's built (Backend, Tier 2): per-person context pipeline
-
-A per-speaker context pipeline that accumulates who each person is across a
-session and feeds the Zero CRM push + Faxxing outreach. Flow:
-
-```
-transcript utterance → SpeakerID → PersonNode → PersonContextBuilder.update()
-  → PersonalContext accumulates over 30s windows → SignalPayload.personal_context
-  → KG: PersonNode.context evolves → Zero CRM narrative → Faxxing sequence
-```
-
-| Area | File |
-|------|------|
-| `PersonalContext` / `PersonNode` / `PersonKnowledgeGraph` / `PainPoint` | `packages/core/models/person.py` |
-| `PersonContextBuilder` (30 s window → context, folds into node) | `apps/listener/intelligence/person_context_builder.py` |
-| `personal_context` on the meet signal | `packages/core/models/meeting_signal.py`, `apps/api/routers/meet.py` |
-| Zero CRM narrative + structured fields | `packages/integrations/zero_crm/mapper.py` (`lead_to_zero_payload_with_context`), `packages/core/schemas/zero_crm_schema.py` |
-| Faxxing outreach personalisation (style + values) | `packages/integrations/faxxing/client.py` |
-| Wired into the MEET stage (CRM push + Faxxing) | `apps/lifecycle/meet.py` (`RoutingDecision.outreach_sequence`) |
-| Runnable end-to-end demo | `scripts/demo_person_context.py` |
-
-`PersonNode.to_narrative()` produces the CRM prose, e.g. _"Anna is analytical,
-data-driven, cares about accuracy. Dominant topic: pipeline visibility. Recently
-learned HubSpot has AI forecasting. High pain intensity around manual data
-entry."_ Faxxing then tailors the outreach tone/hook to `communication_style` +
-`values`.
-
-Run the demo from the repo root (the dir containing `warmth/`):
+Run API from repo root (`gtmhackathon/`):
 
 ```bash
-python warmth/scripts/demo_person_context.py
+cd warmth && make run-api
 ```
 
-### Outreach drafting (Lightfern → Gmail)
+Smoke test:
+
+```bash
+PYTHONPATH=. warmth/.venv/bin/python warmth/scripts/e2e_smoke.py
+```
+
+### Per-person context pipeline
+
+```
+transcript → SpeakerID → PersonNode → PersonContextBuilder → SignalPayload
+  → KG → Zero CRM narrative → Faxxing (secondary) → Gmail draft (primary)
+```
+
+| Area | File |
+|------|------|
+| Person models | `packages/core/models/person.py` |
+| Context builder + Cursor agent extractor | `apps/listener/intelligence/person_context_builder.py`, `agent_extractor.py` |
+| Meet encoder | `apps/listener/intelligence/meet_encoder.py` |
+| Zero CRM mapper | `packages/integrations/zero_crm/mapper.py` |
+| Faxxing stub | `packages/integrations/faxxing/client.py` |
+| Local meet test server | `scripts/serve_meet_local.py` |
+
+---
+
+## Outreach drafting (Lightfern → Gmail)
 
 Lightfern is a **Gmail draft assistant, not a send API**. We draft → save locally
 → hand the user a Gmail compose link → Lightfern polishes in Gmail. We never
 auto-send.
 
-- `LightfernClient.personalize_outreach()` / `send_followup_email()` return a
-  `draft_ready` draft with `to`, `subject`, `body`, `gmail_compose_url`,
-  `draft_id` (`packages/integrations/lightfern/workflow.py`). Drafts save under
-  `WARMTH_DRAFTS_DIR` (default `drafts/`, gitignored).
-- `PostMeetPipeline` additionally calls `GoogleMCPClient.create_email_draft()`
-  (a Gmail **draft**, not send) when MCP is configured.
-- Web `ConnectionDetail.tsx` shows an "Open in Gmail" handoff link. See
-  `warmth-ios-technical-architecture.md` §13.
+- `LightfernClient` returns `draft_ready` with `gmail_compose_url`, `client_email`,
+  and a context brief (`SCORES`, `LEAD`, `PERSON`, `CLIENT`) under
+  `--- CONTEXT FOR LIGHTFERN ---` (`packages/integrations/lightfern/workflow.py`).
+- **Client inbox**: `getwarmth@gmail.com` — set via `WARMTH_CLIENT_EMAIL` /
+  `WARMTH_CLIENT_NAME=Warmth`.
+- Web dashboard: `ConnectionDetail.tsx` → "Open in Gmail · Lightfern polishes there".
 
-Notes / follow-ups:
-- Extraction is **heuristic** (lexical cues + regex + bigram salience), built to
-  run without API keys. Swap `PersonContextBuilder._infer_style` /
-  `_extract_learnings` and the topic weighting for an LLM classifier behind the
-  same interface when ready.
-- `FaxxingClient` is a stub that drafts locally; set `FAXXING_API_URL` /
-  `FAXXING_API_KEY` to call the real API (no spec was available at build time).
-- Speaker→identity mapping currently takes name/company from caller-supplied
-  attrs; hydrate from diarization + the iOS `PersonNode`/watchlist when wired.
-- Package runs as `warmth.*` from the repo root (relative imports assume a parent
-  `warmth` package); run `uvicorn` / `pytest` from above `warmth/`.
+---
 
-## ⚠️ Build blockers (must do before it compiles)
+## Gmail MCP (getwarmth@gmail.com)
 
-1. **No Xcode project is checked in** — there is no `.xcodeproj` / `Package.swift`.
-   The Swift files exist but aren't in a buildable target. SourceKit shows
-   "Failed to build module Foundation/SwiftUI" on every file purely because of
-   this (not real code bugs). **Create the Xcode project** (targets: `Warmth`,
-   `WarmthWatch`, widget) and add these sources.
-2. **Add the SPM dependency**: `https://github.com/soniqo/speech-swift`
-   (product `SpeechWakeWord`) to the **Warmth** target.
-3. **Info.plist** keys: `NSMicrophoneUsageDescription`,
-   `NSSpeechRecognitionUsageDescription`, and `WARMTH_API_BASE_URL`.
-4. **One API assumption to verify**: `ConferenceListeningEngine.matchedName(from:)`
-   reads `WakeWordDetection.keyword`. If the SDK names it `phrase`/`label`, fix
-   that one line.
+The MCP **bridge server** creates real drafts in the Warmth Gmail inbox.
 
-See `iOS/Warmth-iOS/README.md` for full setup steps.
+> **Do not** point `GOOGLE_MCP_CREDENTIALS` at `gcp-credentials.json` (service
+> account). Personal Gmail requires **OAuth**.
 
-## What the backend agent needs to align (Tier 2)
+### Setup (one time)
 
-From `warmth-ios-technical-architecture.md` §11:
+1. Google Cloud Console → enable **Gmail API** → OAuth Desktop client → save
+   `google-oauth-client.json`
+2. `make install-gmail && make setup-gmail-mcp` (sign in as **getwarmth@gmail.com**)
+3. Set in `.env`:
 
-1. `POST /api/signals` accepting the snake_case payload (maps to
-   `packages/core/models/signal.py`).
-2. Treat `icp_pre_score` as advisory; compute the authoritative score in the
-   graph layer; apply 70/80 thresholds **backend-side only**.
-3. Idempotent on `id` (UUID); tolerate null `company`/`title` and empty arrays.
-4. (Future) push/WebSocket channel to authoritatively buzz phone/watch.
+```bash
+GOOGLE_MCP_CREDENTIALS=google-gmail-oauth.json
+GOOGLE_MCP_SERVER_URL=http://localhost:3000
+WARMTH_CLIENT_EMAIL=getwarmth@gmail.com
+WARMTH_CLIENT_NAME=Warmth
+```
+
+### Run (two terminals)
+
+```bash
+make run-gmail-mcp   # port 3000
+make run-api         # port 8000
+```
+
+Full guide: **`docs/GMAIL_MCP.md`**
+
+| Component | Path |
+|-----------|------|
+| MCP bridge server | `services/google_mcp_server/main.py` |
+| OAuth setup script | `scripts/setup_gmail_oauth.py` |
+| HTTP client | `packages/integrations/google_mcp/client.py` |
+
+---
+
+## Web dashboard
+
+```bash
+cd web && npm run build && npm run dev
+```
+
+`web/src/lib/{api,auth,useAsync}` talk to `/api/v1`. Demo auth user:
+`getwarmth@gmail.com`.
+
+---
 
 ## Credentials & infra status
 
-- **Zero CRM**: API key + workspace id are in `.env` (gitignored). Workspace id
-  `6e938aa3-df49-4fa8-8c03-77d2a485c455`. Zero MCP is connected.
-- **UnifyGTM**: API key in `.env` as `UNIFY_API_KEY` / `UNIFY_GTM_API_KEY`. The
-  official SDK (`import unify`) authenticates with an `x-api-key` header and uses
-  base path `api.unifygtm.com/data/v1` (objects/records/attributes).
+- **Zero CRM**: API key + workspace id in `.env` (gitignored).
+- **UnifyGTM**: `UNIFY_GTM_API_KEY` in `.env`.
 - **Tavily**: key in `.env`.
-- **GCP**: project `warmth-gtm-hackathon`; service-account JSON at
-  `gcp-credentials.json` (gitignored), referenced via `GOOGLE_APPLICATION_CREDENTIALS`.
-  Service account `warmth-backend@…` authenticates successfully and has
-  `datastore.user`, `firebase.admin`, `pubsub.publisher`, **`secretmanager.admin`**.
-- **Google Secret Manager (team secrets)**: ✅ **connected and seeded.** API
-  enabled; the `secretmanager.admin` role is granted to the service account.
-  Tooling: `packages/core/secrets.py` (runtime loader) + `scripts/secrets_sync.py`
-  (`push` / `pull` / `list`). **11 secrets pushed** from `.env` and verified by
-  read-back (e.g. `ZERO_WORKSPACE_ID` round-trips):
-  `CURSOR_SDK_API_KEY, DEEPGRAM_API_KEY, FIREBASE_PROJECT_ID,
-  FIREBASE_SERVICE_ACCOUNT_KEY, GCP_SERVICE_ACCOUNT_KEY,
-  GOOGLE_APPLICATION_CREDENTIALS, TAVILY_API_KEY, UNIFY_API_KEY, UNIFY_GTM_API_KEY,
-  ZERO_CRM_API_KEY, ZERO_WORKSPACE_ID`.
-  - Team workflow: a teammate sets `GCP_PROJECT_ID` + ADC
-    (`gcloud auth application-default login`) and runs
-    `python scripts/secrets_sync.py pull` to populate their `.env`; at runtime
-    `load_secrets_into_env()` fills any gaps from Secret Manager.
-  - **Cleanup needed**: `DEEPGRAM_API_KEY` is obsolete (Deepgram removed — on-device
-    ASR now); and `GOOGLE_APPLICATION_CREDENTIALS` / `GCP_SERVICE_ACCOUNT_KEY` /
-    `FIREBASE_SERVICE_ACCOUNT_KEY` were pushed as **local file paths**, not secret
-    values — either store the JSON contents instead or add them to the skip list in
-    `scripts/secrets_sync.py`.
+- **GCP**: project `warmth-gtm-hackathon`; service account at `gcp-credentials.json`
+  (Firestore/Secret Manager — **not** for Gmail).
+- **Gmail MCP**: OAuth token at `google-gmail-oauth.json` (gitignored; run setup script).
+- **Secret Manager**: `scripts/secrets_sync.py` push/pull; `load_secrets_into_env()` at API boot.
 
-> Several API keys were pasted in plaintext during setup — rotate them before any
-> public demo.
+> Rotate any keys that were pasted in plaintext before a public demo.
+
+---
 
 ## Suggested next steps
 
-1. **iOS**: create the Xcode project, add the SPM package + Info.plist, build on a
-   physical device, verify the "hey Anna" → capture → POST flow end-to-end.
-2. **Backend**: stand up `POST /api/signals` per the contract; confirm a real
-   payload from the phone round-trips into the graph layer.
-3. **Watchlist**: hydrate `WatchlistProvider` from Zero CRM contacts.
-4. **Auth/transport**: add an auth header to `SignalAPIClient` if the host
-   requires it; set `WARMTH_API_BASE_URL` to the deployed URL.
+1. **Gmail MCP**: run `make setup-gmail-mcp` as getwarmth@gmail.com; start bridge + API; confirm drafts appear in Gmail.
+2. **iOS device test**: set backend URL to Mac LAN IP; capture a person → verify `POST /api/signals` → draft link on dashboard.
+3. **Watch**: re-enable `WarmthWatch` target per `WATCH_INTEGRATION.md`.
+4. **Production**: deploy API + MCP bridge; point iOS Settings base URL at deployed host.
+
+---
+
+## Agent / local dev notes
+
+- Package imports: run from **`gtmhackathon/`** with `PYTHONPATH=.` or `make run-api`.
+- Cursor agent extraction: `WARMTH_USE_AGENT=1` or `"use_agent": true` on meet endpoints (~15–25 s/window).
+- `FaxxingClient` is a stub unless `FAXXING_API_URL` is set.
+- Skills: `.cursor/skills/warmth-meet-pipeline/`, `warmth-person-context/`.

@@ -10,7 +10,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+/lib/
 lib64/
 parts/
 sdist/
@@ -55,6 +55,8 @@ infra/secrets/
 
 # GCP
 gcp-credentials.json
+google-oauth-client.json
+google-gmail-oauth.json
 
 # Logs
 *.log

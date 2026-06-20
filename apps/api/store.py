@@ -7,7 +7,7 @@ TODO: replace with FirestoreClient-backed repositories. The shape here mirrors
 the domain models in packages/core/models.
 """
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Any, Optional
 
 from ...packages.core.models.event import DetectedEvent, EventType, LifecycleStage
 from ...packages.core.models.pre_connection import PreMeetConnection, PreMeetStatus
@@ -25,6 +25,8 @@ class DemoStore:
         self.leads: dict[str, Lead] = {}
         self.warmth: dict[str, WarmthScore] = {}
         self.community_members: list[dict] = []
+        self.meet_results: dict[str, dict[str, Any]] = {}  # connection_id -> last meet result
+        self.signal_index: dict[str, str] = {}  # ios signal uuid -> connection_id
         self._seed()
 
     # ------------------------------------------------------------------ #
@@ -126,6 +128,55 @@ class DemoStore:
 
     def warmth_for_connection(self, connection_id: str) -> Optional[WarmthScore]:
         return self.warmth.get(connection_id)
+
+    def upsert_warmth(self, score: WarmthScore) -> WarmthScore:
+        key = score.connection_id or score.id
+        self.warmth[key] = score
+        return score
+
+    def get_connection(self, connection_id: str) -> Optional[PreMeetConnection]:
+        return self.pre_connections.get(connection_id)
+
+    def record_meet_result(
+        self,
+        connection_id: str,
+        signal_id: str,
+        routed_to: str,
+        narrative: Optional[str] = None,
+        gmail_draft: Optional[dict] = None,
+        outreach_sequence: Optional[dict] = None,
+    ) -> None:
+        self.meet_results[connection_id] = {
+            "signal_id": signal_id,
+            "routed_to": routed_to,
+            "narrative": narrative,
+            "gmail_draft": gmail_draft,
+            "outreach_sequence": outreach_sequence,
+            "recorded_at": datetime.utcnow().isoformat(),
+        }
+        self.signal_index[signal_id] = connection_id
+
+    def meet_result_for(self, connection_id: str) -> Optional[dict[str, Any]]:
+        return self.meet_results.get(connection_id)
+
+    def upsert_lead_from_signal(
+        self,
+        payload: Any,
+        connection_id: str,
+        summary: dict[str, Any],
+    ) -> Lead:
+        lead = Lead(
+            company_name=(
+                payload.company.name if getattr(payload, "company", None)
+                else payload.person.company or "Unknown Company"
+            ),
+            contact_name=payload.person.name,
+            icp_score=int(payload.icp_pre_score),
+            signal_source="conference_audio",
+            tags=list(payload.person.icp_keywords_hit),
+        )
+        self.leads[lead.id] = lead
+        return lead
 
 
 # Process-local singleton for the demo.

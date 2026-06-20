@@ -31,7 +31,7 @@ class MeetPipeline:
     ):
         self.ml_pipeline = ml_pipeline or MeetIntelligencePipeline()
         self.zero_client = zero_client
-        self.lightfern_client = lightfern_client or LightfernClient()
+        self.lightfern_client = lightfern_client
         self.faxxing_client = faxxing_client or FaxxingClient()
         self.community_matcher = community_matcher or CommunityMatcher()
 
@@ -85,7 +85,7 @@ class MeetPipeline:
             except Exception as e:  # pragma: no cover - stub resilience
                 print(f"Meet Faxxing stub fallback: {e}")
 
-        if lead:
+        if lead and self.lightfern_client:
             try:
                 await self.lightfern_client.send_followup_email(
                     lead,

@@ -30,6 +30,7 @@ class PostMeetPipeline:
         lead: Lead,
         signal: MeetingSignal,
         conversation: Optional[ConversationIntelligence] = None,
+        extra_context: Optional[dict] = None,
     ) -> dict:
         """Generate + (optionally) send a personalized follow-up email."""
         context = {
@@ -48,6 +49,8 @@ class PostMeetPipeline:
             "goals": conversation.goals if conversation else [],
             "follow_up_actions": conversation.follow_up_actions if conversation else [],
         }
+        if extra_context:
+            context.update(extra_context)
 
         draft = await self.lightfern_client.personalize_outreach(
             recipient={

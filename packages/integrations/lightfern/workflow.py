@@ -171,7 +171,13 @@ class LightfernClient:
         if brief:
             body += f"\n\n{_CONTEXT_MARKER}\n{brief}\n"
 
-        return self._as_draft(to=to, subject=subject, body=body, purpose=purpose)
+        return self._as_draft(
+            to=to,
+            subject=subject,
+            body=body,
+            purpose=purpose,
+            client_email=context.get("client_email"),
+        )
 
     @staticmethod
     def _render_context_brief(context: dict[str, Any]) -> str:
@@ -183,7 +189,48 @@ class LightfernClient:
         if not context:
             return ""
 
-        lines: list[str] = ["Context for Lightfern (delete before sending):"]
+        lines: list[str] = [
+            "Context for Lightfern (delete before sending):",
+            "Warmth sends scoring + lead data here so Lightfern can populate the",
+            "follow-up in Gmail. Human reviews/polishes in Gmail, then sends.",
+        ]
+
+        client_email = context.get("client_email") or os.getenv(
+            "WARMTH_CLIENT_EMAIL", "getwarmth@gmail.com"
+        )
+        if client_email:
+            lines.append("")
+            lines.append("CLIENT:")
+            lines.append(f"  sender_email: {client_email}")
+            client_name = context.get("client_name") or os.getenv("WARMTH_CLIENT_NAME", "Warmth")
+            if client_name:
+                lines.append(f"  sender_name: {client_name}")
+
+        scores = context.get("scores") or context.get("warmth")
+        if scores:
+            lines.append("")
+            lines.append("SCORES:")
+            if isinstance(scores, dict):
+                for k in ("icp_score", "warmth_score", "predicted_score", "actual_score", "band", "uplift"):
+                    if scores.get(k) is not None:
+                        lines.append(f"  {k}: {scores[k]}")
+                if scores.get("routing"):
+                    lines.append(f"  routing: {scores['routing']}")
+            else:
+                lines.append(f"  {scores}")
+
+        lead = context.get("lead")
+        if lead is not None:
+            lines.append("")
+            lines.append("LEAD:")
+            if isinstance(lead, dict):
+                for k in ("contact_name", "company_name", "contact_email", "icp_score", "tags", "signal_source"):
+                    if lead.get(k):
+                        lines.append(f"  {k}: {_render_value(lead[k])}")
+            else:
+                lines.append(f"  contact_name: {getattr(lead, 'contact_name', '—')}")
+                lines.append(f"  company_name: {getattr(lead, 'company_name', '—')}")
+                lines.append(f"  icp_score: {getattr(lead, 'icp_score', '—')}")
 
         person = context.get("personal_context") or context.get("person")
         if person is not None:
@@ -210,8 +257,9 @@ class LightfernClient:
                     lines.append(f"  {k}: {_render_value(v)}")
 
         # Everything else captured during the meet.
+        skip = {"personal_context", "person", "scores", "warmth", "lead", "decision", "client_email", "client_name"}
         for key, value in context.items():
-            if key in ("personal_context", "person"):
+            if key in skip:
                 continue
             rendered = _render_value(value)
             if rendered:
@@ -225,12 +273,15 @@ class LightfernClient:
         subject: str,
         body: str,
         purpose: str,
+        client_email: Optional[str] = None,
     ) -> dict[str, Any]:
         """Package + persist a draft and attach the Gmail handoff link."""
+        sender = client_email or os.getenv("WARMTH_CLIENT_EMAIL", "getwarmth@gmail.com")
         draft = {
             "status": "draft_ready",
             "handoff": "gmail_lightfern",  # open in Gmail; Lightfern polishes there
             "purpose": purpose,
+            "client_email": sender,
             "to": to,
             "subject": subject,
             "body": body,

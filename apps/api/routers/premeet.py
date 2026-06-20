@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from ..store import store
+from ..integration_helpers import gmail_client_optional, unify_client_optional, zero_client_optional
 from ...lifecycle.premeet import PreMeetPipeline
 
 router = APIRouter(prefix="/api/v1", tags=["premeet"])
@@ -31,7 +32,11 @@ async def run_premeet(event_id: str, req: PreMeetRequest):
     if not event:
         return {"error": "not_found", "event_id": event_id}
 
-    pipeline = PreMeetPipeline()
+    pipeline = PreMeetPipeline(
+        unify_client=unify_client_optional(),
+        zero_client=zero_client_optional(),
+        gmail_client=gmail_client_optional(),
+    )
     top = await pipeline.run(
         event,
         manual_attendees=[a.model_dump() for a in req.manual_attendees],

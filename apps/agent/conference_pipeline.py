@@ -417,27 +417,41 @@ class ConferencePipeline:
 # ---------------------------------------------------------------------------
 
 async def _demo() -> None:
-    """Quick smoke-test using the demo data store (no real API keys needed)."""
-    import os
+    """Run the pipeline with the first 10 rows of the conference CSV mock data."""
+    import sys
+    from ..scraper.sources.csv_loader import load_csv_attendees
+
+    csv_path = (
+        sys.argv[1]
+        if len(sys.argv) > 1
+        else "/Users/molyleelatham/Downloads/data.csv"
+    )
+
+    # Load first 10 attendees from the CSV
+    attendees = load_csv_attendees(csv_path, max_rows=10)
+    print(f"Loaded {len(attendees)} attendees from {csv_path}")
 
     # Try to initialise real clients where env vars are present
     tavily = None
     try:
         tavily = TavilyClient()
+        print("Tavily: connected")
     except Exception:
-        pass
+        print("Tavily: not configured (skipping research)")
 
     unify = None
     try:
         unify = UnifyGTMClient()
+        print("Unify: connected")
     except Exception:
-        pass
+        print("Unify: not configured (skipping enrichment)")
 
     hubspot = None
     try:
         hubspot = HubSpotClient()
+        print("HubSpot: connected")
     except Exception:
-        pass
+        print("HubSpot: not configured (skipping sync)")
 
     pipeline = ConferencePipeline(
         tavily_client=tavily,
@@ -446,50 +460,32 @@ async def _demo() -> None:
         headless=True,
     )
 
-    # Demo: use manual attendees so no scraping network call is needed
-    demo_attendees = [
-        {
-            "name": "Maya Chen",
-            "email": "maya@northwindlabs.com",
-            "title": "VP RevOps",
-            "company": "NorthWind Labs",
-            "company_domain": "northwindlabs.com",
-            "interests": ["RevOps", "pipeline visibility"],
-            "source": "manual",
-        },
-        {
-            "name": "Diego Alvarez",
-            "email": "diego@loophole.dev",
-            "title": "Founder & CEO",
-            "company": "Loophole",
-            "company_domain": "loophole.dev",
-            "interests": ["growth", "developer experience"],
-            "source": "manual",
-        },
-        {
-            "name": "Sarah Kim",
-            "email": "sarah@finvanta.io",
-            "title": "Head of Sales",
-            "company": "Finvanta",
-            "company_domain": "finvanta.io",
-            "interests": ["fintech", "sales ops", "Salesforce"],
-            "source": "manual",
-        },
-    ]
-
     results = await pipeline.run(
-        conference_name="SaaStr Annual 2026",
-        manual_attendees=demo_attendees,
-        top_n=3,
+        conference_name="Tech Conference 2026",
+        manual_attendees=attendees,
+        top_n=5,
         book_meetings=False,
     )
 
-    print("\nTop leads:")
-    for lead in results["leads"][:3]:
+    print("\n--- TOP LEADS ---")
+    for i, lead in enumerate(results["leads"], 1):
         print(
-            f"  {lead.get('name')} | {lead.get('company_name')} | "
-            f"ICP: {lead.get('icp_score', 0):.0f} | Warmth: {lead.get('predicted_warmth', 0):.0f}"
+            f"  #{i} {lead.get('name')} | {lead.get('company_name')} | "
+            f"ICP: {lead.get('icp_score', 0):.0f} | "
+            f"Warmth: {lead.get('predicted_warmth', 0):.0f} | "
+            f"Status: {lead.get('status')}"
         )
+
+    if results.get("zero_crm"):
+        print(f"\nZero CRM: {results['zero_crm'].get('count', 0)} contacts upserted")
+    if results.get("hubspot"):
+        hs = results["hubspot"]
+        print(
+            f"HubSpot: {hs.get('created', 0)} created, {hs.get('updated', 0)} updated"
+            f" → list '{hs.get('list_name')}'"
+        )
+    if results.get("email_drafts"):
+        print(f"Email drafts: {len(results['email_drafts'])} created")
 
 
 if __name__ == "__main__":

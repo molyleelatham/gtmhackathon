@@ -40,9 +40,13 @@ class PersonContextBuilder:
         self,
         topic_extractor: Optional[TopicExtractor] = None,
         interest_analyzer: Optional[InterestAnalyzer] = None,
+        extractor: Optional[object] = None,
     ):
         self.topic_extractor = topic_extractor or TopicExtractor()
         self.interest_analyzer = interest_analyzer or InterestAnalyzer()
+        # Optional AI-agent extractor (e.g. AgentContextExtractor). When set and
+        # it returns a result, it populates the window; heuristics fill any gaps.
+        self.extractor = extractor
 
     def build_window(
         self,
@@ -50,7 +54,25 @@ class PersonContextBuilder:
         window_start: Optional[datetime] = None,
         window_end: Optional[datetime] = None,
     ) -> PersonalContext:
-        """Extract a PersonalContext delta from a single ~30s window."""
+        """Extract a PersonalContext delta from a single ~30s window.
+
+        If an AI-agent `extractor` is configured and returns a result, its
+        fields are used (with heuristics as fallback for anything missing);
+        otherwise the lexical/regex heuristics are used end to end.
+        """
+        agent_data = None
+        if self.extractor is not None:
+            try:
+                agent_data = self.extractor.extract(transcript_window)
+            except Exception as e:  # pragma: no cover - never let the agent break capture
+                print(f"PersonContextBuilder: extractor error, using heuristics: {e}")
+                agent_data = None
+
+        if agent_data is not None:
+            return self._context_from_agent(
+                agent_data, transcript_window, window_start, window_end
+            )
+
         analysis = self.interest_analyzer.analyze_interests(transcript_window)
         topics = self.topic_extractor.extract_topics(transcript_window, top_n=5)
 
@@ -62,6 +84,52 @@ class PersonContextBuilder:
             topic_weights=self._topic_weights(transcript_window, topics),
             learnings=self._extract_learnings(transcript_window),
             pain_points=self._extract_pains(transcript_window, analysis.get("pain_points", [])),
+            transcript_excerpt=transcript_window.strip()[:500] or None,
+        )
+
+    def _context_from_agent(
+        self,
+        data: dict,
+        transcript_window: str,
+        window_start: Optional[datetime],
+        window_end: Optional[datetime],
+    ) -> PersonalContext:
+        """Map the agent's JSON onto a PersonalContext, falling back per-field."""
+        style = _as_str_list(data.get("communication_style")) or self._infer_style(transcript_window)
+        values = _as_str_list(data.get("values"))
+
+        topic_weights: dict[str, float] = {}
+        for item in data.get("topics") or []:
+            if isinstance(item, dict) and item.get("topic"):
+                try:
+                    topic_weights[str(item["topic"])] = float(item.get("weight", 0.0))
+                except (TypeError, ValueError):
+                    continue
+            elif isinstance(item, str):
+                topic_weights[item] = topic_weights.get(item, 0.0) + 1.0
+        if not topic_weights:
+            topics = self.topic_extractor.extract_topics(transcript_window, top_n=5)
+            topic_weights = self._topic_weights(transcript_window, topics)
+
+        pains: list[PainPoint] = []
+        for item in data.get("pain_points") or []:
+            if isinstance(item, dict) and item.get("topic"):
+                try:
+                    intensity = float(item.get("intensity", 0.4))
+                except (TypeError, ValueError):
+                    intensity = 0.4
+                pains.append(PainPoint(topic=str(item["topic"]), intensity=min(1.0, max(0.0, intensity))))
+            elif isinstance(item, str):
+                pains.append(PainPoint(topic=item, intensity=0.4))
+
+        return PersonalContext(
+            window_start=window_start or datetime.utcnow(),
+            window_end=window_end,
+            communication_style=style,
+            values=values,
+            topic_weights=topic_weights,
+            learnings=_as_str_list(data.get("learnings")),
+            pain_points=pains,
             transcript_excerpt=transcript_window.strip()[:500] or None,
         )
 
@@ -192,3 +260,14 @@ class PersonContextBuilder:
         if idx == -1:
             return text
         return text[max(0, idx - radius): idx + len(phrase) + radius]
+
+
+def _as_str_list(value: object) -> list[str]:
+    """Coerce an agent field into a clean list[str]."""
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value] if value.strip() else []
+    if isinstance(value, (list, tuple)):
+        return [str(v).strip() for v in value if str(v).strip()]
+    return []
