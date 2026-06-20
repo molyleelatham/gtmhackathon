@@ -113,7 +113,7 @@ class PassiveListener:
                 base_score += 15
         
         # Source bonus
-        if signal.source == "conference_audio":
+        if signal.source == "event_audio":
             base_score += 5
         
         return min(base_score, 100.0)

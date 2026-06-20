@@ -154,7 +154,7 @@ export interface IcpProfileRow {
   value: string;
 }
 
-export interface ConferenceAttendeeInput {
+export interface EventAttendeeInput {
   name?: string;
   email?: string;
   title?: string;
@@ -165,10 +165,10 @@ export interface ConferenceAttendeeInput {
   source?: string;
 }
 
-export interface ConferenceRunRequest {
-  conference_name: string;
+export interface EventRunRequest {
+  event_name: string;
   directory_url?: string;
-  manual_attendees?: ConferenceAttendeeInput[];
+  manual_attendees?: EventAttendeeInput[];
   top_n?: number;
   book_meetings?: boolean;
   meeting_start_iso?: string;
@@ -180,10 +180,10 @@ export interface ConferenceRunRequest {
   skip_hubspot_sync?: boolean;
 }
 
-export interface ConferenceRun {
+export interface EventRun {
   run_id: string;
   status: "running" | "complete" | "error" | "not_found";
-  conference: string;
+  event: string;
   started_at: string;
   completed_at?: string | null;
   summary?: Record<string, unknown> | null;

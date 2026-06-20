@@ -117,7 +117,7 @@ class ContactSyncPipeline:
             print(f"ContactSyncPipeline HubSpot upsert fallback: {exc}")
             return None
 
-    async def _zero_push(self, connection: PreMeetConnection, conference_name: str) -> Optional[str]:
+    async def _zero_push(self, connection: PreMeetConnection, event_name: str) -> Optional[str]:
         if not self.zero_client or not connection.email:
             return None
         payload = {
@@ -128,7 +128,7 @@ class ContactSyncPipeline:
             "company": connection.company_name,
             "company_domain": connection.company_domain,
             "notes": " | ".join(connection.research_notes),
-            "conference_name": conference_name,
+            "event_name": event_name,
             "scores": {
                 "icp_score": round(connection.icp_score, 2),
                 "warmth_score": round(connection.predicted_warmth, 2),
@@ -154,13 +154,13 @@ class ContactSyncPipeline:
         self,
         hubspot_contact_id: Optional[str],
         connection: PreMeetConnection,
-        conference_name: str,
+        event_name: str,
         zero_contact_id: Optional[str],
     ) -> bool:
         if not self.hubspot_client or not hubspot_contact_id:
             return False
 
-        notes = [f"Conference: {conference_name}"]
+        notes = [f"Event: {event_name}"]
         if zero_contact_id:
             notes.append(f"Zero Contact ID: {zero_contact_id}")
         if connection.research_notes:
@@ -185,7 +185,7 @@ class ContactSyncPipeline:
         attendee: dict[str, Any],
         *,
         event_id: str,
-        conference_name: str,
+        event_name: str,
     ) -> PreMeetConnection:
         return PreMeetConnection(
             event_id=event_id,
@@ -194,7 +194,7 @@ class ContactSyncPipeline:
             email=attendee.get("email"),
             title=attendee.get("title"),
             linkedin=attendee.get("linkedin"),
-            company_name=attendee.get("company") or attendee.get("company_name") or conference_name,
+            company_name=attendee.get("company") or attendee.get("company_name") or event_name,
             company_domain=attendee.get("company_domain"),
             interests=attendee.get("interests") or [],
             research_notes=self._notes_list(attendee.get("research_notes")),
@@ -205,12 +205,12 @@ class ContactSyncPipeline:
         self,
         attendees: list[dict[str, Any]],
         event_id: str,
-        conference_name: str,
+        event_name: str,
     ) -> dict[str, Any]:
         """Run contact sync order for each attendee and return summary results."""
         connections: list[PreMeetConnection] = []
         hubspot_summary = {
-            "conference_name": conference_name,
+            "event_name": event_name,
             "created": 0,
             "updated": 0,
             "failed": 0,
@@ -223,7 +223,7 @@ class ContactSyncPipeline:
             conn = self._attendee_to_connection(
                 attendee,
                 event_id=event_id,
-                conference_name=conference_name,
+                event_name=event_name,
             )
 
             # 1) Unify enrich
@@ -255,14 +255,14 @@ class ContactSyncPipeline:
                 hubspot_summary["failed"] += 1
 
             # 5) Zero push
-            zero_id = await self._zero_push(conn, conference_name)
+            zero_id = await self._zero_push(conn, event_name)
             if zero_id:
                 zero_summary["pushed"] += 1
             elif self.zero_client:
                 zero_summary["failed"] += 1
 
             # 6) HubSpot writeback with enriched scores/linkedin/notes
-            writeback_ok = await self._hubspot_writeback(hs_id, conn, conference_name, zero_id)
+            writeback_ok = await self._hubspot_writeback(hs_id, conn, event_name, zero_id)
 
             hubspot_summary["contacts"].append(
                 {

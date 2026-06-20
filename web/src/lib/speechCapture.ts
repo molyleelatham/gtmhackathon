@@ -7,7 +7,7 @@ export function speechRecognitionSupported(): boolean {
   return Boolean(w.SpeechRecognition ?? w.webkitSpeechRecognition) && Boolean(navigator.mediaDevices?.getUserMedia);
 }
 
-/** Pull a first name from common conference greetings in live transcript text. */
+/** Pull a first name from common event greetings in live transcript text. */
 export function extractGreetingName(transcript: string): string | null {
   const lowered = transcript.toLowerCase();
   const patterns = [

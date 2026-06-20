@@ -42,7 +42,7 @@ export function PreMeet() {
             {event.data?.name ?? "Event"} — Before meet
           </h1>
           <p className="mt-1 text-sm text-ink-muted">
-            Enriched, warmth-scored attendees ranked by intent for pre-conference outreach.
+            Enriched, warmth-scored attendees ranked by intent for pre-event outreach.
           </p>
         </div>
         <button

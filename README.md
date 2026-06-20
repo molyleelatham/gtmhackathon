@@ -1,21 +1,21 @@
-# Warmth — Integrated Conference Intelligence Platform
+# Warmth — Integrated Event Intelligence Platform
 
 > **GTM Hackathon · June 2026**
 > Stack: Python (Backend) + iOS/watchOS (Mobile) · FastAPI · Cursor SDK · Apple Speech (on-device ASR) · Zero CRM · UnifyGTM · Google MCP
 
 ## Overview
 
-Warmth is an integrated conference intelligence platform combining:
+Warmth is an integrated event intelligence platform combining:
 - **Native iOS/watchOS App** - Passive name-triggered listening: the phone detects contact names (wake words), captures the conversation on-device, builds a social graph, and scores leads against your ICP
 - **Python Backend** - Server-side processing, CRM integration, and AI analysis
 
-When you attend conferences, the iPhone listens for contact names; hearing one opens a 30-second on-device capture window that extracts people, companies, relationships, and ICP signals. Qualified leads buzz your Apple Watch and flow to the backend → Zero CRM → follow-up sequence.
+When you attend events, the iPhone listens for contact names; hearing one opens a 30-second on-device capture window that extracts people, companies, relationships, and ICP signals. Qualified leads buzz your Apple Watch and flow to the backend → Zero CRM → follow-up sequence.
 
 ## Key Features
 
 - **🎤 Name-Triggered Passive Listening**: The phone wakes on contact names ("hey Anna", a first name) via a CoreML wake-word detector, then transcribes on-device with ICP-biased speech recognition
 - **👥 Lead Classification**: Automatically route leads to me/team/founders/community
-- **📋 Directory Scraping**: Scrape conference directories for attendees by interests
+- **📋 Directory Scraping**: Scrape event directories for attendees by interests
 - **🤝 First Connections**: Auto-enrich and draft emails via Google MCP
 - **🧠 Conversation Intelligence**: Capture interests, topics, values, and insights
 - **🔄 CRM Integration**: Send all intelligence to Zero CRM automatically

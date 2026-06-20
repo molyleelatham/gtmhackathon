@@ -4,26 +4,26 @@ import { GlassCard } from "../components/Glass";
 import { Toggle } from "../components/Toggle";
 import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
-import type { ConferenceRun } from "../types";
+import type { EventRun } from "../types";
 import { ErrorBox, Loading } from "./Dashboard";
 
 export function Pipeline() {
-  const runs = useAsync(() => api.listConferenceRuns(), []);
+  const runs = useAsync(() => api.listEventRuns(), []);
   const events = useAsync(() => api.listEvents(), []);
   const connections = useAsync(() => api.listConnections(), []);
 
-  const [conferenceName, setConferenceName] = useState("GTM Hackathon 2026");
+  const [eventName, setEventName] = useState("GTM Hackathon 2026");
   const [topN, setTopN] = useState(10);
   const [skipResearch, setSkipResearch] = useState(true);
   const [skipScraping, setSkipScraping] = useState(true);
   const [running, setRunning] = useState(false);
-  const [activeRun, setActiveRun] = useState<ConferenceRun | null>(null);
+  const [activeRun, setActiveRun] = useState<EventRun | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
 
   const [signalName, setSignalName] = useState("Alex Rivera");
   const [signalCompany, setSignalCompany] = useState("NorthWind Labs");
   const [signalTranscript, setSignalTranscript] = useState(
-    "We are scaling RevOps post-Series B and need better pipeline attribution after conferences.",
+    "We are scaling RevOps post-Series B and need better pipeline attribution after events.",
   );
   const [signalConnectionId, setSignalConnectionId] = useState("");
   const [ingestResult, setIngestResult] = useState<Record<string, unknown> | null>(null);
@@ -39,7 +39,7 @@ export function Pipeline() {
     if (!activeRun || activeRun.status !== "running") return;
     const id = setInterval(async () => {
       try {
-        const updated = await api.getConferenceRun(activeRun.run_id);
+        const updated = await api.getEventRun(activeRun.run_id);
         setActiveRun(updated);
         if (updated.status !== "running") {
           runs.reload();
@@ -51,7 +51,7 @@ export function Pipeline() {
     return () => clearInterval(id);
   }, [activeRun, runs]);
 
-  async function startConferenceRun() {
+  async function startEventRun() {
     setRunning(true);
     setRunError(null);
     try {
@@ -62,8 +62,8 @@ export function Pipeline() {
         interests: c.interests,
         source: "roster",
       }));
-      const result = await api.runConferencePipeline({
-        conference_name: conferenceName,
+      const result = await api.runEventPipeline({
+        event_name: eventName,
         manual_attendees: manual,
         top_n: topN,
         skip_scraping: skipScraping,
@@ -108,7 +108,7 @@ export function Pipeline() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-ink-900">Pipeline</h1>
           <p className="mt-1 text-sm text-ink-muted">
-            Conference intelligence runs, meet routing, and iOS signal ingress — all backend stages
+            Event intelligence runs, meet routing, and iOS signal ingress — all backend stages
             in one place.
           </p>
         </div>
@@ -123,16 +123,16 @@ export function Pipeline() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <GlassCard className="space-y-4 p-5">
-          <h2 className="text-base font-semibold text-ink-900">Conference pipeline</h2>
+          <h2 className="text-base font-semibold text-ink-900">Event pipeline</h2>
           <p className="text-xs text-ink-muted">
-            POST /api/v1/conferences/run — scrape → Tavily → ICP score → Gmail drafts → Zero →
+            POST /api/v1/event-runs/run — scrape → Tavily → ICP score → Gmail drafts → Zero →
             HubSpot
           </p>
           <label className="block text-sm">
-            <span className="text-ink-muted">Conference name</span>
+            <span className="text-ink-muted">Event name</span>
             <input
-              value={conferenceName}
-              onChange={(e) => setConferenceName(e.target.value)}
+              value={eventName}
+              onChange={(e) => setEventName(e.target.value)}
               className="input-glass mt-1 w-full"
             />
           </label>
@@ -152,10 +152,10 @@ export function Pipeline() {
           <button
             type="button"
             disabled={running}
-            onClick={startConferenceRun}
+            onClick={startEventRun}
             className="glass-interactive w-full rounded-xl border border-orange/40 bg-orange/15 py-2 text-sm font-semibold text-flame disabled:opacity-50"
           >
-            {running ? "Starting…" : "Run conference pipeline"}
+            {running ? "Starting…" : "Run event pipeline"}
           </button>
           {runError && <ErrorBox message={runError} />}
           {activeRun && (
@@ -251,7 +251,7 @@ export function Pipeline() {
               className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-subtle px-4 py-3 text-sm"
             >
               <div>
-                <span className="font-medium text-ink-900">{run.conference}</span>
+                <span className="font-medium text-ink-900">{run.event}</span>
                 <span className="ml-2 text-xs text-ink-faint">{run.started_at.slice(0, 19)}</span>
               </div>
               <span

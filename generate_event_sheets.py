@@ -1,5 +1,5 @@
 """
-generate_conference_sheets.py
+generate_event_sheets.py
 Warmth — GTM Hackathon demo script
 
 Simulates one day at the GTM Hackathon:
@@ -7,14 +7,14 @@ Simulates one day at the GTM Hackathon:
   2. Live capture: 5 conversations, each run through the meet pipeline
   3. Post-meet: score every person met, generate follow-up drafts
 
-Outputs a single Excel workbook: warmth_conference_demo.xlsx
+Outputs a single Excel workbook: warmth_event_demo.xlsx
   Sheet 1 — Pre-Meet Targets  (who to meet, why, enrichment)
   Sheet 2 — Conversations Log  (live capture — transcript excerpt, person context)
   Sheet 3 — Connections Scored (warmth score, ICP, routing, narrative)
   Sheet 4 — Follow-up Drafts  (Gmail-ready subject + body for each hot/warm lead)
 
 Usage (from gtmhackathon/):
-  warmth/.venv/bin/python generate_conference_sheets.py
+  warmth/.venv/bin/python generate_event_sheets.py
 """
 
 import json
@@ -39,7 +39,7 @@ ROOT = Path(__file__).parent
 WARMTH_DRAFTS = ROOT / "warmth" / "drafts"
 OUTER_DRAFTS  = ROOT / "drafts"
 ATTENDEES_JSON = ROOT / "warmth" / "data" / "gtm_hackathon_attendees.json"
-OUT_FILE = ROOT / "warmth_conference_demo.xlsx"
+OUT_FILE = ROOT / "warmth_event_demo.xlsx"
 
 # ─── colour palette (Warmth brand) ───────────────────────────────────────────
 C_RED      = "DC2626"   # hot / ICP match
@@ -139,7 +139,7 @@ def load_premeet_drafts():
             if d.get("purpose") != "pre_meet_intro":
                 continue
             subject = d.get("subject", "")
-            name = subject.replace("Excited to connect at the conference, ", "").strip()
+            name = subject.replace("Excited to connect at the event, ", "").strip()
             if not name or name in people:
                 continue
             body = d.get("body", "")
@@ -543,7 +543,7 @@ def build_followup_sheet(wb):
         "Nick Stocks": (
             "Hi Nick,\n\n"
             "Your framing of the PMF→repeatable revenue gap stuck with me. Warmth "
-            "lives in that gap — it captures the relationship signal at conferences "
+            "lives in that gap — it captures the relationship signal at events "
             "that usually gets lost and routes it directly into CRM + outreach.\n\n"
             "Happy to walk through how White Star portfolio companies could use "
             "this for their Series A GTM motion.\n\n"
@@ -583,13 +583,13 @@ def build_followup_sheet(wb):
 
 def build_summary_sheet(wb):
     """Dashboard-style first sheet with key stats."""
-    ws = wb.create_sheet("0. Conference Summary", 0)
+    ws = wb.create_sheet("0. Event Summary", 0)
     ws.sheet_view.showGridLines = False
 
     # Title
     ws.merge_cells("A1:H1")
     cell = ws.cell(row=1, column=1,
-                   value="Warmth — Conference Intelligence · GTM Hackathon, 20 June 2026")
+                   value="Warmth — Event Intelligence · GTM Hackathon, 20 June 2026")
     cell.font = Font(name="Calibri", bold=True, size=16, color=C_EMBER)
     cell.fill = PatternFill("solid", fgColor="FEF3E8")
     cell.alignment = Alignment(horizontal="left", vertical="center", indent=1)
@@ -716,7 +716,7 @@ def build_summary_sheet(wb):
 
 # ─── main ─────────────────────────────────────────────────────────────────────
 def main():
-    print("Warmth Conference Demo Sheet Generator")
+    print("Warmth Event Demo Sheet Generator")
     print("=" * 40)
 
     premeet_people = load_premeet_drafts()
@@ -735,7 +735,7 @@ def main():
 
     print("Building sheets...")
     build_summary_sheet(wb)
-    print("  ✓  Sheet 0: Conference Summary")
+    print("  ✓  Sheet 0: Event Summary")
     build_premeet_sheet(wb, premeet_people, attendees)
     print("  ✓  Sheet 1: Pre-Meet Targets")
     build_conversations_sheet(wb)

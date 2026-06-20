@@ -82,7 +82,7 @@ def _title_from_attendee(att: dict[str, Any]) -> Optional[str]:
 
 
 class DemoStore:
-    def __init__(self):
+    def __init__(self, *, seed: bool = True):
         self.events: dict[str, DetectedEvent] = {}
         self.pre_connections: dict[str, PreMeetConnection] = {}
         self.leads: dict[str, Lead] = {}
@@ -92,7 +92,8 @@ class DemoStore:
         self.meet_results: dict[str, dict[str, Any]] = {}  # connection_id -> last meet result
         self.knowledge_graphs: dict[str, dict[str, Any]] = {}  # connection_id -> KG payload
         self.signal_index: dict[str, str] = {}  # ios signal uuid -> connection_id
-        self._seed()
+        if seed:
+            self._seed()
 
     # ------------------------------------------------------------------ #
     def _seed(self) -> None:
@@ -102,6 +103,7 @@ class DemoStore:
         self,
         attendees: Optional[list[dict[str, Any]]] = None,
         *,
+        user_id: str = DEMO_USER_ID,
         event_name: str = "GTM Hackathon London",
         event_location: str = "The Building Centre",
         premeet_results: Optional[list[PreMeetConnection]] = None,
@@ -114,9 +116,9 @@ class DemoStore:
         now = datetime.utcnow()
         event = DetectedEvent(
             id=GTM_EVENT_ID,
-            user_id=DEMO_USER_ID,
+            user_id=user_id,
             name=event_name,
-            event_type=EventType.CONFERENCE,
+            event_type=EventType.EVENT,
             location=event_location,
             start_date=datetime(2026, 6, 20, 8, 30),
             end_date=datetime(2026, 6, 20, 18, 0),
@@ -151,7 +153,7 @@ class DemoStore:
             conn = PreMeetConnection(
                 id=conn_id,
                 event_id=event.id,
-                user_id=DEMO_USER_ID,
+                user_id=user_id,
                 name=att.get("name"),
                 email=att.get("email"),
                 title=_title_from_attendee(att) or (merged.title if merged else None),
@@ -196,6 +198,18 @@ class DemoStore:
             {"user_id": "founder_lena", "name": "Lena", "interests": ["developer experience", "growth"]},
         ]
         return event
+
+    def ensure_user_seed(self, user_id: str) -> None:
+        """Seed GTM hackathon demo roster for a user with no events yet."""
+        if self.list_events(user_id):
+            return
+        self.refresh_gtm_hackathon(user_id=user_id)
+
+    def list_connections(self, user_id: Optional[str] = None) -> list[PreMeetConnection]:
+        items = list(self.pre_connections.values())
+        if user_id:
+            items = [c for c in items if c.user_id == user_id]
+        return items
 
     # ------------------------------------------------------------------ #
     def list_events(self, user_id: Optional[str] = None) -> list[DetectedEvent]:
@@ -248,6 +262,7 @@ class DemoStore:
         interests: Optional[list[str]] = None,
         relations: Optional[list[dict]] = None,
         knowledge_graph: Optional[list[dict]] = None,
+        matched_candidates: Optional[list[dict]] = None,
     ) -> None:
         self.meet_results[connection_id] = {
             "signal_id": signal_id,
@@ -258,6 +273,7 @@ class DemoStore:
             "interests": interests or [],
             "relations": relations or [],
             "knowledge_graph": knowledge_graph or [],
+            "matched_candidates": matched_candidates or [],
             "recorded_at": datetime.utcnow().isoformat(),
         }
         self.signal_index[signal_id] = connection_id
@@ -306,12 +322,33 @@ class DemoStore:
             ),
             contact_name=payload.person.name,
             icp_score=int(payload.icp_pre_score),
-            signal_source="conference_audio",
+            signal_source="event_audio",
             tags=list(payload.person.icp_keywords_hit),
         )
         self.leads[lead.id] = lead
         return lead
 
 
-# Process-local singleton for the demo.
-store = DemoStore()
+import os  # noqa: E402
+
+from .user_context import current_user_id  # noqa: E402
+
+_user_stores: dict[str, DemoStore] = {}
+
+
+def _should_seed_demo_store() -> bool:
+    """Seed hackathon roster only for local unauthenticated dev."""
+    from ...packages.core.auth import auth_required  # noqa: WPS433
+
+    if auth_required():
+        return False
+    return os.getenv("SEED_DEMO_DATA", "true").lower() in ("1", "true", "yes")
+
+
+def get_store(user_id: str | None = None) -> DemoStore:
+    """Return the in-memory store for the authenticated user (isolated per uid)."""
+    uid = user_id or current_user_id.get()
+    if uid not in _user_stores:
+        seed = uid == DEMO_USER_ID and _should_seed_demo_store()
+        _user_stores[uid] = DemoStore(seed=seed)
+    return _user_stores[uid]

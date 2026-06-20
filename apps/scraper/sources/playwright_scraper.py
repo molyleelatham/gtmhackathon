@@ -1,8 +1,8 @@
-"""Playwright-based conference attendee directory scraper.
+"""Playwright-based event attendee directory scraper.
 
 Uses a headless Chromium browser (via Playwright) to scrape attendee/speaker
-lists from conference websites.  Supports:
-  - Generic conference directory pages (heuristic extraction)
+lists from event websites.  Supports:
+  - Generic event directory pages (heuristic extraction)
   - lu.ma public event pages (structured selectors)
 
 The scraper returns normalised attendee dicts ready for the pre-meet pipeline::
@@ -120,7 +120,7 @@ class _LumaScraper:
 
 
 class _GenericScraper:
-    """Heuristic scraper for arbitrary conference directory pages.
+    """Heuristic scraper for arbitrary event directory pages.
 
     Strategy:
       1. Find all <a> tags containing 'linkedin.com/in/' → person profiles
@@ -232,8 +232,8 @@ def _split_headline(headline: Optional[str]) -> tuple[Optional[str], Optional[st
 # Public API
 # ---------------------------------------------------------------------------
 
-class ConferenceDirectoryScraper:
-    """Playwright-based conference attendee / speaker directory scraper.
+class EventDirectoryScraper:
+    """Playwright-based event attendee / speaker directory scraper.
 
     Args:
         headless:  Run browser headlessly (default True).
@@ -241,7 +241,7 @@ class ConferenceDirectoryScraper:
 
     Usage::
 
-        scraper = ConferenceDirectoryScraper()
+        scraper = EventDirectoryScraper()
         attendees = await scraper.scrape("https://lu.ma/ai-hackathon-sf")
     """
 
@@ -259,7 +259,7 @@ class ConferenceDirectoryScraper:
         *,
         max_attendees: int = 500,
     ) -> list[dict[str, Any]]:
-        """Scrape attendees from the given conference directory URL.
+        """Scrape attendees from the given event directory URL.
 
         Automatically selects luma-specific or generic extraction based on the
         hostname.
@@ -289,7 +289,7 @@ class ConferenceDirectoryScraper:
             try:
                 attendees = await impl.scrape(page, url)
             except Exception as exc:
-                print(f"ConferenceDirectoryScraper error for {url}: {exc}")
+                print(f"EventDirectoryScraper error for {url}: {exc}")
                 attendees = []
             finally:
                 await browser.close()

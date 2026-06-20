@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Avatar } from "../components/Avatar";
 import { GlassCard } from "../components/Glass";
 import { Toggle } from "../components/Toggle";
 import { useAuth } from "../lib/auth";
@@ -47,7 +48,6 @@ function SectionHeader({ title, description }: { title: string; description?: st
 
 export function Settings() {
   const { user, signOut } = useAuth();
-  const initial = (user?.displayName ?? "?").charAt(0).toUpperCase();
 
   const icp = useAsync(() => api.icpProfile(), []);
   const integrations = useAsync(() => api.integrations(), []);
@@ -71,9 +71,12 @@ export function Settings() {
         <SectionHeader title="Account" description="Your Warmth profile and session." />
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-orange to-ember text-lg font-bold text-white shadow-glass">
-              {initial}
-            </div>
+            <Avatar
+              name={user?.displayName ?? "User"}
+              photoURL={user?.photoURL}
+              size="md"
+              className="rounded-xl"
+            />
             <div>
               <div className="font-semibold text-ink-900">{user?.displayName ?? "Signed in"}</div>
               <div className="text-sm text-ink-muted">{user?.email}</div>
@@ -186,7 +189,7 @@ export function Settings() {
       <GlassCard className="p-5">
         <SectionHeader title="About Warmth" />
         <p className="text-sm leading-relaxed text-ink-muted">
-          Warmth is your personal CRM for conference connections — capture on iPhone &amp; Apple
+          Warmth is your personal CRM for event connections — capture on iPhone &amp; Apple
           Watch, score by ICP fit, and follow up with AI-drafted outreach.
         </p>
         <dl className="mt-4">

@@ -26,7 +26,7 @@ export function SignIn() {
         </div>
         <h1 className="text-xl font-semibold text-white">Warmth</h1>
         <p className="mt-1 text-sm text-ink-muted">
-          Your personal CRM for conference connections.
+          Your personal CRM for event connections.
         </p>
 
         <button
@@ -45,7 +45,7 @@ export function SignIn() {
         )}
 
         <p className="mt-6 text-xs text-ink-faint">
-          Capture connections on iPhone &amp; Apple Watch. Manage them here.
+          Pick any Google account each time you sign in. Capture on iPhone &amp; Apple Watch.
         </p>
       </div>
     </div>

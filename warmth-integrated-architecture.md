@@ -1,7 +1,7 @@
 # Warmth — Integrated System Architecture
 
 > **iOS/watchOS App + Python Backend**
-> Conference Intelligence Platform · GTM Hackathon · June 2026
+> Event Intelligence Platform · GTM Hackathon · June 2026
 
 ---
 
@@ -18,7 +18,7 @@ Warmth now consists of three main components:
 
 ## The Warmth Lifecycle
 
-Warmth runs every conference connection through a three-stage lifecycle:
+Warmth runs every event connection through a three-stage lifecycle:
 
 ```
 Onboarding ──> Before meet ──────────> Meet ───────────────> Post meet
@@ -28,7 +28,7 @@ Onboarding ──> Before meet ──────────> Meet ────
  Google MCP)   meetings)               by warmth uplift)       context)
 ```
 
-**Onboarding** — connect email + Google Calendar via Google MCP; detect which events are conferences.
+**Onboarding** — connect email + Google Calendar via Google MCP; detect which events are events.
 `apps/lifecycle/onboarding.py`, `packages/integrations/google_calendar/`
 
 **Before meet** — build the attendee dataset (calendar-derived + directory scrape + manual), enrich firmographics via **UnifyGTM**, source the **ICP profile + ICP fit from Zero CRM** (`ZeroCRMClient.get_icp_profile` / `score_icp_fit`; the local `LeadScorer` heuristic is only a fallback when Zero is unavailable), then **build warmth on top** with the ML model (`icp_score` from Zero + `warmth_score` correlated into a prioritization score), surface highest-intent leads, draft personalized outreach (Lightfern + Gmail via MCP), and book meetings.
@@ -62,7 +62,7 @@ Stub interfaces for the team's own models:
 | `POST /api/v1/connections/{id}/followup` | Post meet |
 | `GET /api/v1/dashboard`, `/leads`, `/connections` | Web dashboard reads |
 
-The backend ships with an in-memory demo store (`apps/api/store.py`) seeded with a sample conference so the API and dashboard are demoable without external credentials.
+The backend ships with an in-memory demo store (`apps/api/store.py`) seeded with a sample event so the API and dashboard are demoable without external credentials.
 
 ---
 
@@ -103,7 +103,7 @@ The backend ships with an in-memory demo store (`apps/api/store.py`) seeded with
 │  │ - Deepgram Transcription                                    │   │
 │  │ - Conversation Intelligence (Cursor SDK)                     │   │
 │  │ - Lead Classification (me/team/founders/community)            │   │
-│  │ - Conference Directory Scraping                             │   │
+│  │ - Event Directory Scraping                             │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 │                              │                                     │
 │  ┌──────────────────────────────────────────────────────────────┐   │
@@ -155,7 +155,7 @@ Content-Type: multipart/form-data
   "metadata": {
     "duration": 120.5,
     "device_info": "iPhone 15 Pro",
-    "location": "Conference Hall A"
+    "location": "Event Hall A"
   }
 }
 

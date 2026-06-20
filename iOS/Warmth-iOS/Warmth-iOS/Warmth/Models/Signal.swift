@@ -47,7 +47,7 @@ struct Signal: Codable, Identifiable {
     /// 0–100 ICP fit score computed on-device.
     var score: Double
     var transcript: String
-    var source: String = "conference_audio"
+    var source: String = "event_audio"
     var detectedAt: Date = Date()
 
     /// On-device hint threshold ONLY — for an instant watch buzz while the

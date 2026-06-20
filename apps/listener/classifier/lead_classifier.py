@@ -39,7 +39,7 @@ class LeadClassifier:
         Args:
             conversation: Conversation intelligence data
             lead: Lead information
-            context: Additional context (conference, etc.)
+            context: Additional context (event, etc.)
         
         Returns:
             LeadRouting indicating who should handle this lead

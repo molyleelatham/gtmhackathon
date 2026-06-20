@@ -3,13 +3,13 @@ import AVFoundation
 import Speech
 import Combine
 
-/// Orchestrates the passive conference-listening pipeline:
+/// Orchestrates the passive event-listening pipeline:
 ///
 ///   mic (16 kHz) → wake word → 30s capture window → social graph → Signal
 ///                → watch haptic + POST /api/signals
 @MainActor
-final class ConferenceListeningEngine: ObservableObject {
-    static let shared = ConferenceListeningEngine()
+final class EventListeningEngine: ObservableObject {
+    static let shared = EventListeningEngine()
 
     enum State: Equatable {
         case idle
@@ -57,9 +57,9 @@ final class ConferenceListeningEngine: ObservableObject {
 
             try mic.start()
             state = .listening
-            print("ConferenceListeningEngine: listening for \(watchlist.count) names")
+            print("EventListeningEngine: listening for \(watchlist.count) names")
         } catch {
-            print("ConferenceListeningEngine: failed to start: \(error)")
+            print("EventListeningEngine: failed to start: \(error)")
             state = .idle
         }
     }

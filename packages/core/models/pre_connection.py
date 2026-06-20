@@ -14,11 +14,11 @@ class PreMeetStatus(str, Enum):
 
 
 class PreMeetConnection(BaseModel):
-    """A potential connection identified BEFORE a conference.
+    """A potential connection identified BEFORE a event.
 
     Built from the attendee dataset (calendar-derived attendees and/or scraped
-    conference directory), enriched via UnifyGTM, then scored for warmth so we
-    can surface the highest-intent leads for pre-conference outreach.
+    event directory), enriched via UnifyGTM, then scored for warmth so we
+    can surface the highest-intent leads for pre-event outreach.
     """
     id: str = Field(default_factory=lambda: f"premeet_{datetime.now().timestamp()}")
     event_id: str

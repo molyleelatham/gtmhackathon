@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 class ConversationIntelligence(BaseModel):
     id: str = Field(default_factory=lambda: f"conv_{datetime.now().timestamp()}")
     lead_id: str
-    conference_id: Optional[str] = None
+    event_id: Optional[str] = None
     transcript: str
     topics: list[str] = Field(default_factory=list)
     interests: list[str] = Field(default_factory=list)

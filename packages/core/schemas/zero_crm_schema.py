@@ -11,7 +11,7 @@ class ZeroCRMPayload(BaseModel):
     funding_stage: Optional[str] = None
     icp_score: int
     buying_signals: dict
-    signal_source: str  # "tavily_search"|"conference_audio"
+    signal_source: str  # "tavily_search"|"event_audio"
     tags: list[str] = Field(default_factory=list)
 
     # Per-person context accumulated during the meet stage. `personal_context`

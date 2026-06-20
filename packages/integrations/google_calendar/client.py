@@ -11,15 +11,15 @@ class GoogleCalendarClient:
     """Google Calendar access via the Google MCP server.
 
     Onboarding connects the user's email + Google Calendar through MCP. This
-    client lists events, classifies which ones are conferences worth running the
+    client lists events, classifies which ones are events worth running the
     Warmth lifecycle on, and creates calendar events when meetings are booked.
 
-    STUB: network calls target the MCP server but the conference-detection logic
+    STUB: network calls target the MCP server but the event-detection logic
     is heuristic. Wire real OAuth/MCP credentials via GOOGLE_MCP_* env vars.
     """
 
-    CONFERENCE_HINTS = [
-        "conference", "summit", "expo", "con ", "saastr", "meetup",
+    EVENT_HINTS = [
+        "event", "summit", "expo", "con ", "saastr", "meetup",
         "demo day", "hackathon", "keynote",
     ]
 
@@ -58,19 +58,19 @@ class GoogleCalendarClient:
 
         return [self._to_calendar_event(item) for item in data.get("events", [])]
 
-    def detect_conferences(
+    def detect_events(
         self,
         events: list[CalendarEvent],
         user_id: str,
     ) -> list[DetectedEvent]:
-        """Classify which calendar events look like conferences.
+        """Classify which calendar events look like events.
 
         STUB heuristic: keyword match on title/description + many attendees.
         """
         detected: list[DetectedEvent] = []
         for ev in events:
             text = f"{ev.title} {ev.description or ''}".lower()
-            keyword_hit = any(h in text for h in self.CONFERENCE_HINTS)
+            keyword_hit = any(h in text for h in self.EVENT_HINTS)
             many_attendees = len(ev.attendees_emails) >= 10
             confidence = (0.6 if keyword_hit else 0.0) + (0.3 if many_attendees else 0.0)
             if confidence <= 0:
@@ -80,7 +80,7 @@ class GoogleCalendarClient:
                     user_id=user_id,
                     calendar_event_id=ev.id,
                     name=ev.title,
-                    event_type=EventType.CONFERENCE,
+                    event_type=EventType.EVENT,
                     location=ev.location,
                     start_date=ev.start_time,
                     end_date=ev.end_time,
@@ -89,6 +89,8 @@ class GoogleCalendarClient:
                 )
             )
         return detected
+
+    detect_conferences = detect_events
 
     async def create_event(
         self,
@@ -99,7 +101,7 @@ class GoogleCalendarClient:
         description: Optional[str] = None,
         location: Optional[str] = None,
     ) -> dict:
-        """Create a calendar event (e.g. a booked conference meeting) via MCP."""
+        """Create a calendar event (e.g. a booked event meeting) via MCP."""
         url = f"{self.mcp_server_url}/calendar/events/create"
         payload = {
             "title": title,

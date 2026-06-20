@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Post-conference review screen: a scrollable stack of editable cards for every
+/// Post-event review screen: a scrollable stack of editable cards for every
 /// person captured this session. Saving writes the edits back into the session log.
 struct ReviewView: View {
     @Environment(AppModel.self) private var model

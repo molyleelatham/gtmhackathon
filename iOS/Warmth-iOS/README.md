@@ -1,6 +1,6 @@
 # Warmth iOS App
 
-Native iOS/watchOS conference-intelligence app. The phone passively listens for
+Native iOS/watchOS event-intelligence app. The phone passively listens for
 **contact names** (wake words), opens a short on-device capture window when one
 is heard, builds a social graph from the conversation, scores the lead against
 your ICP, and pushes qualified leads to the backend → Zero CRM.
@@ -30,7 +30,7 @@ WatchConnectivity → Watch haptic (lead detected!)  WatchConnectivityService.sw
 Backend POST /api/signals → Zero CRM → follow-up sequence   SignalAPIClient.swift
 ```
 
-`ConferenceListeningEngine.swift` is the orchestrator that wires these together
+`EventListeningEngine.swift` is the orchestrator that wires these together
 and exposes `state` / `liveTranscript` / `lastSignal` to the UI (`ListeningView.swift`).
 
 ## How it works
@@ -42,7 +42,7 @@ and exposes `state` / `liveTranscript` / `lastSignal` to the UI (`ListeningView.
    Keywords are built **dynamically** from the watchlist (`WatchlistProvider`):
    for each name it registers `"hey <name>"` (boost 0.6) and the bare first name
    (boost 0.4). A detection maps back to the contact name via a phrase→name table.
-3. **Capture window** — on detection, `ConferenceListeningEngine` opens a 30 s
+3. **Capture window** — on detection, `EventListeningEngine` opens a 30 s
    `CaptureWindow`. Recognition is on-device and biased toward ICP terms via an
    `SFCustomLanguageModelData` model built from `ICPVocabulary` ("RevOps",
    "Series B", …). While capturing, mic buffers are appended to the request and
@@ -67,13 +67,13 @@ wake-word detector re-configures.
 
 `ICPVocabulary` mirrors the backend ICP config (`packages/core/models/icp.py`):
 weighted keywords used both to bias speech recognition and to score leads.
-Scoring matches the backend pre-scorer (keyword weights + conference-audio bonus,
+Scoring matches the backend pre-scorer (keyword weights + event-audio bonus,
 capped at 100).
 
 ## Structure
 
 - `Warmth/` — Main iOS app target
-  - `App/WarmthApp.swift` — app entry; starts `ConferenceListeningEngine`
+  - `App/WarmthApp.swift` — app entry; starts `EventListeningEngine`
   - `Models/` — `Signal.swift`, `ICPVocabulary.swift`
   - `Services/` — mic, wake word, capture, social graph, API client, orchestrator
   - `Views/ListeningView.swift` — listening state + live transcript + last lead
@@ -92,7 +92,7 @@ https://github.com/soniqo/speech-swift   (product: SpeechWakeWord)
 
 > **API note:** the orchestrator reads the matched phrase from
 > `WakeWordDetection.keyword`. If the package names that property differently
-> (e.g. `phrase`), update `matchedName(from:)` in `ConferenceListeningEngine.swift`.
+> (e.g. `phrase`), update `matchedName(from:)` in `EventListeningEngine.swift`.
 
 ## Integration with Backend
 

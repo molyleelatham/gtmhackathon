@@ -1,13 +1,13 @@
 # Warmth — GTM Hackathon Submission
 
-> **Conference Intelligence Platform**
+> **Event Intelligence Platform**
 > GTM Hackathon · June 20, 2026
 
 ---
 
 ## What We Built
 
-Warmth turns chaotic conference networking into structured, scored, and actionable GTM intelligence — in real time.
+Warmth turns chaotic event networking into structured, scored, and actionable GTM intelligence — in real time.
 
 Most tools help you _after_ the fact. Warmth is live during the conversation. You walk the floor at SaaStr, say a phrase, and Warmth silently captures the conversation, scores the person against your ICP, builds a per-speaker personality model, and drops a ready-to-send follow-up email in your Gmail before you've reached the next booth.
 
@@ -17,7 +17,7 @@ The result: a warm, scored lead with a narrative CRM record and a personalized o
 
 ## The Problem
 
-Conference networking produces almost zero structured GTM data. You leave with a stack of business cards or a pocketful of vague memories. Even if you diligently log everything that evening, you've lost the nuance: what did they actually care about, what pain were they expressing, how did they communicate?
+Event networking produces almost zero structured GTM data. You leave with a stack of business cards or a pocketful of vague memories. Even if you diligently log everything that evening, you've lost the nuance: what did they actually care about, what pain were they expressing, how did they communicate?
 
 Warmth solves this at the moment of capture — not in retrospect.
 
@@ -27,7 +27,7 @@ Warmth solves this at the moment of capture — not in retrospect.
 
 | Surface | Role | When |
 |---------|------|------|
-| **iOS + Apple Watch** | Capture — phrase trigger, live transcription, on-device NLP | On the conference floor |
+| **iOS + Apple Watch** | Capture — phrase trigger, live transcription, on-device NLP | On the event floor |
 | **Web Dashboard** | Review — events, warmth scores, leads, follow-ups | Before/after the event |
 | **Python Backend** | Intelligence pipeline — ML scoring, CRM routing, email generation | Always-on server |
 
@@ -35,7 +35,7 @@ Warmth solves this at the moment of capture — not in retrospect.
 
 ## The Lifecycle
 
-Every conference connection moves through four stages:
+Every event connection moves through four stages:
 
 ```
 Onboarding ──> Before Meet ──────> Meet ──────────────> Post Meet
@@ -47,11 +47,11 @@ Onboarding ──> Before Meet ──────> Meet ────────
 
 ### Stage 1 — Onboarding
 
-Connect Google Calendar + Gmail via Google MCP. Warmth scans upcoming events, detects conferences automatically, and seeds the lifecycle for each one. No manual setup.
+Connect Google Calendar + Gmail via Google MCP. Warmth scans upcoming events, detects events automatically, and seeds the lifecycle for each one. No manual setup.
 
 ### Stage 2 — Before Meet
 
-- **Attendee dataset**: built from calendar invites + conference directory scraping (Playwright)
+- **Attendee dataset**: built from calendar invites + event directory scraping (Playwright)
 - **Enrichment**: firmographics, funding stage, technographics via **UnifyGTM**
 - **ICP fit**: scored by **Zero CRM** (Warmth explicitly does not own ICP — Zero does)
 - **Pre-meet warmth prediction**: `WarmthModel` runs before you've met anyone, producing a prioritization score for the web dashboard
@@ -139,7 +139,7 @@ This narrative is what Lightfern receives and what the CRM stores — not a bag 
 1. **Heuristic (default)** — lexical style cues, `InterestAnalyzer`, `TopicExtractor` topic buckets, salient repeated bigrams, regex learning patterns, intensifier-scored pain points. Zero latency, no API key required.
 2. **AI agent (Cursor SDK)** — `AgentContextExtractor` runs a one-shot agent prompt against the window. Heuristics fill any gaps. ~15-25s per window, runs off the event loop via `asyncio.to_thread`. `MeetEncoder(use_agent=True)` wires it automatically.
 
-### iOS App — Liquid Glass on the Conference Floor
+### iOS App — Liquid Glass on the Event Floor
 
 Built in SwiftUI with iOS 26 "Liquid Glass" APIs throughout.
 
@@ -170,9 +170,9 @@ FastAPI backend with a clean lifecycle router structure:
 | `GET /api/v1/dashboard` | Web dashboard reads |
 | `POST /api/v1/events/{id}/premeet` | Before-meet pipeline trigger |
 
-The signals endpoint accepts both payload schemas (current `CapturedSignal` from Xcode + legacy `ConferenceAudioSignal` from the Porcupine wake-word pipeline) and routes transparently.
+The signals endpoint accepts both payload schemas (current `CapturedSignal` from Xcode + legacy `EventAudioSignal` from the Porcupine wake-word pipeline) and routes transparently.
 
-Demo store (`apps/api/store.py`) seeds a sample conference so the API and web dashboard are fully demoable with no external credentials.
+Demo store (`apps/api/store.py`) seeds a sample event so the API and web dashboard are fully demoable with no external credentials.
 
 ### Web Dashboard
 
@@ -202,7 +202,7 @@ The interest knowledge graph (`graph_builder.py`) builds a per-person node graph
 | **Lightfern** | Outreach sequencing + Gmail draft polish |
 | **Faxxing** | Outreach sequence personalization per communication style |
 | **HubSpot MCP** | Source-of-record upsert on high-warmth CRM paths |
-| **Deepgram Nova-3** | Real-time conference ASR (WebSocket stream, diarization) |
+| **Deepgram Nova-3** | Real-time event ASR (WebSocket stream, diarization) |
 | **Tavily** | Signal detection for passive background listener |
 | **Porcupine** | On-device wake word detection ("Hey Anna") |
 | **Cursor SDK** | AI-agent context extraction (`AgentContextExtractor`) |
@@ -212,7 +212,7 @@ The interest knowledge graph (`graph_builder.py`) builds a per-person node graph
 
 ## What Makes It Different
 
-**The person model, not the lead record.** Most conference tools create a contact with a job title and company. Warmth builds a behavioral model: how this person communicates, what they actually care about, where their pain intensity is highest. That model drives the CRM record _and_ the outreach — so follow-up emails feel like they came from someone who was paying attention.
+**The person model, not the lead record.** Most event tools create a contact with a job title and company. Warmth builds a behavioral model: how this person communicates, what they actually care about, where their pain intensity is highest. That model drives the CRM record _and_ the outreach — so follow-up emails feel like they came from someone who was paying attention.
 
 **Warmth as a distinct dimension.** Separating ICP fit (Zero's data) from relationship warmth (Warmth's model) means the system can correctly route a warm non-ICP person to the founder community and a cold perfect-ICP person to a lower-priority follow-up queue. Most tools conflate these.
 

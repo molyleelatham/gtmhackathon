@@ -246,10 +246,10 @@ class AttendeeMatcher:
                 company_name=cand.company or signal.company or "Unknown Company",
                 contact_name=cand.name or signal.name,
                 contact_email=cand.email,
-                signal_source="conference_audio",
+                signal_source="event_audio",
             )
         return Lead(
             company_name=signal.company or "Unknown Company",
             contact_name=signal.name,
-            signal_source="conference_audio",
+            signal_source="event_audio",
         )

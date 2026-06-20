@@ -314,7 +314,7 @@ export function Dashboard() {
                 ? "Passive listening on — simulated match"
                 : eventLocation
                   ? `${eventLocation} · ranked by ICP fit`
-                  : "Your conference roster, ranked by fit."}
+                  : "Your event roster, ranked by fit."}
           </p>
         </div>
         <div className="flex max-w-full flex-wrap items-center gap-2 sm:justify-end">

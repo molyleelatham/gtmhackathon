@@ -2,8 +2,8 @@ import type {
   AttendeeMatchResult,
   CapturedSignalInput,
   CommunityMember,
-  ConferenceRun,
-  ConferenceRunRequest,
+  EventRun,
+  EventRunRequest,
   ConnectResult,
   ConnectionDetailResponse,
   DashboardSummary,
@@ -24,10 +24,38 @@ import type { Integration } from "./uiTypes";
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
+export interface UserProfile {
+  uid: string;
+  email: string | null;
+  display_name: string | null;
+  photo_url: string | null;
+  demo_seeded?: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+type TokenGetter = () => Promise<string | null>;
+
+let authTokenGetter: TokenGetter | null = null;
+
+export function setAuthTokenGetter(getter: TokenGetter | null): void {
+  authTokenGetter = getter;
+}
+
+async function authHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (authTokenGetter) {
+    const token = await authTokenGetter();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = await authHeaders();
   const res = await fetch(`${BASE}${path}`, {
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
     ...init,
+    headers: { ...headers, ...(init?.headers ?? {}) },
   });
   if (!res.ok) {
     const text = await res.text();
@@ -39,11 +67,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   // --- Health & onboarding ---
   health: () => request<HealthStatus>("/health"),
-  connect: (userId = "demo-user") =>
+  connect: () =>
     request<ConnectResult>("/api/v1/connect", {
       method: "POST",
-      body: JSON.stringify({ user_id: userId }),
+      body: JSON.stringify({}),
     }),
+
+  getProfile: () => request<UserProfile>("/api/v1/users/me"),
+  bootstrapProfile: () =>
+    request<UserProfile>("/api/v1/users/bootstrap", { method: "POST" }),
 
   // --- Dashboard data ---
   dashboard: () => request<DashboardSummary>("/api/v1/dashboard"),
@@ -105,12 +137,12 @@ export const api = {
   // --- Community ---
   communityMembers: () => request<CommunityMember[]>("/api/v1/community/members"),
 
-  // --- Conference pipeline ---
-  listConferenceRuns: () => request<ConferenceRun[]>("/api/v1/conferences/"),
-  getConferenceRun: (runId: string) =>
-    request<ConferenceRun>(`/api/v1/conferences/${runId}`),
-  runConferencePipeline: (body: ConferenceRunRequest) =>
-    request<ConferenceRun>("/api/v1/conferences/run", {
+  // --- Event pipeline ---
+  listEventRuns: () => request<EventRun[]>("/api/v1/event-runs/"),
+  getEventRun: (runId: string) =>
+    request<EventRun>(`/api/v1/event-runs/${runId}`),
+  runEventPipeline: (body: EventRunRequest) =>
+    request<EventRun>("/api/v1/event-runs/run", {
       method: "POST",
       body: JSON.stringify(body),
     }),

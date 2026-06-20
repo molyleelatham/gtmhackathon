@@ -10,7 +10,7 @@ import type { MeetProcessResponse, RoutingDecision } from "../types";
 
 function sampleTurns(conn: { name?: string | null; company_name?: string | null; title?: string | null }) {
   return [
-    { speaker: 0, text: "Great to meet you — what brought you to the conference?" },
+    { speaker: 0, text: "Great to meet you — what brought you to the event?" },
     {
       speaker: 1,
       text: `We're scaling GTM at ${conn.company_name ?? "our company"}. Biggest pain is follow-up after back-to-back meetings.`,
@@ -76,7 +76,7 @@ export function ConnectionDetail() {
       most_interesting: "They're consolidating 3 tools into one",
       topic_time: [{ topic: "pipeline", seconds: 240 }],
       most_time_topic: "pipeline",
-      transcript_excerpt: "We have budget approved for Q3 and need faster conference follow-up.",
+      transcript_excerpt: "We have budget approved for Q3 and need faster event follow-up.",
     };
   }
 

@@ -1,6 +1,6 @@
 # Warmth — Technical Architecture & Repository Structure
 
-> **Active Conference Intelligence × Auto Connection Platform**
+> **Active Event Intelligence × Auto Connection Platform**
 > GTM Hackathon · June 2026 · Stack: Python · FastAPI · Cursor SDK · Porcupine · Deepgram · Zero CRM · UnifyGTM · Google MCP
 
 ---
@@ -25,7 +25,7 @@ warmth/
 │   │   │   ├── conversations.py      # GET/POST /conversations
 │   │   │   ├── leads.py              # GET/POST /leads, /leads/{id}/enrich
 │   │   │   ├── connections.py        # GET/POST /connections (first connections)
-│   │   │   ├── conferences.py        # GET/POST /conferences (directory scraping)
+│   │   │   ├── event_runs.py        # GET/POST /event-runs (directory scraping)
 │   │   │   ├── agents.py             # GET/POST /agents (auto outbound strategy)
 │   │   │   ├── community.py          # GET/POST /community (sharing features)
 │   │   │   └── icp.py                # GET/PUT /icp/config
@@ -34,7 +34,7 @@ warmth/
 │   │       ├── auth.py               # API key / JWT auth
 │   │       └── ratelimit.py          # token bucket per integration
 │   │
-│   ├── listener/                     # Active conference listener service
+│   ├── listener/                     # Active event listener service
 │   │   ├── main.py                   # async entrypoint
 │   │   ├── engine.py                 # ActiveListener orchestrator
 │   │   │
@@ -43,8 +43,8 @@ warmth/
 │   │   │   ├── audio_capture.py      # Continuous audio capture
 │   │   │   └── state_manager.py      # Recording state management
 │   │   │
-│   │   ├── asr/                      # Conference ASR layer
-│   │   │   ├── conference_listener.py  # Deepgram Nova-3 WebSocket stream
+│   │   ├── asr/                      # Event ASR layer
+│   │   │   ├── event_listener.py  # Deepgram Nova-3 WebSocket stream
 │   │   │   ├── noise_suppressor.py     # RNNoise / Krisp SDK pre-processing
 │   │   │   ├── diariser.py             # Speaker separation + filtering
 │   │   │   └── transcript_buffer.py    # Rolling 30s context window
@@ -70,10 +70,10 @@ warmth/
 │   │       ├── icp_filter.py         # Company size / ARR pre-filter
 │   │       └── dedup.py              # Firebase Firestore dedup
 │   │
-│   ├── scraper/                      # ★ NEW — Conference directory scraper
+│   ├── scraper/                      # ★ NEW — Event directory scraper
 │   │   ├── main.py                   # async entrypoint
 │   │   ├── engine.py                 # Scraper orchestrator
-│   │   ├── directory_parser.py       # Parse conference directories
+│   │   ├── directory_parser.py       # Parse event directories
 │   │   ├── attendee_extractor.py     # Extract attendee information
 │   │   ├── interest_matcher.py       # Match interests (funding, investors, founders)
 │   │   └── sources/
@@ -205,7 +205,7 @@ warmth/
 │       ↓                                                             │
 │  noise_suppressor.py  ←── RNNoise (free) or Krisp SDK              │
 │       ↓  (clean audio chunks, 50ms / 800 frames)                   │
-│  conference_listener.py                                             │
+│  event_listener.py                                             │
 │       ↓  (WebSocket stream)                                         │
 │  Deepgram Nova-3 API                                                │
 │       model=nova-3                                                  │
@@ -283,7 +283,7 @@ DEEPGRAM_URL = (
     "&keyterm=Sales+Engineer&keyterm=CRM"
 )
 
-class DeepgramConferenceClient:
+class DeepgramEventClient:
     def __init__(self, api_key: str, on_transcript):
         self.api_key = api_key
         self.on_transcript = on_transcript  # async callback
@@ -371,7 +371,7 @@ class PassiveListener:
     def __init__(self, icp_config):
         self.icp = icp_config
         self.keyword_engine = KeywordEngine(icp_config)
-        self.asr_client = DeepgramConferenceClient(
+        self.asr_client = DeepgramEventClient(
             api_key=settings.DEEPGRAM_API_KEY,
             on_transcript=self._handle_transcript  # wired in
         )
@@ -382,7 +382,7 @@ class PassiveListener:
             return
         signals = await self.keyword_engine.extract(event.transcript)
         for signal in signals:
-            await self._process_signal(signal, source="conference_audio")
+            await self._process_signal(signal, source="event_audio")
 
     async def run(self):
         # Run ASR stream + all social sources concurrently
@@ -411,7 +411,7 @@ class Signal(BaseModel):
     company_domain: str | None
     signal_type:    SignalType
     raw_text:       str
-    source:         str   # "tavily_search"|"conference_audio"
+    source:         str   # "tavily_search"|"event_audio"
     keywords_hit:   list[str]
     detected_at:    datetime
     icp_pre_score:  float | None
@@ -426,7 +426,7 @@ class ZeroCRMPayload(BaseModel):
     funding_stage:   str | None
     icp_score:       int
     buying_signals:  dict
-    signal_source:   str   # "tavily_search"|"conference_audio"
+    signal_source:   str   # "tavily_search"|"event_audio"
     tags:            list[str]
 ```
 
@@ -447,10 +447,10 @@ signal_weights:
   company_size_fit:     10
   arr_fit:              10
 
-# Conference audio gets a small intent boost
+# Event audio gets a small intent boost
 # (prospect is actively talking about the problem in person)
 source_bonuses:
-  conference_audio:     +5   # in-person intent signal
+  event_audio:     +5   # in-person intent signal
   tavily_search:        +0
 
 thresholds:
@@ -622,7 +622,7 @@ async def run_deepgram_listener():
                         s = await score(hits)
                         await broadcast({
                             "transcript": text, "keywords": hits,
-                            "score": s, "source": "conference_audio"
+                            "score": s, "source": "event_audio"
                         })
         await asyncio.gather(send(), receive())
 
@@ -715,7 +715,7 @@ DEEPGRAM_API_KEY=xxx uv run python demo.py
 
 | Layer | Technology |
 |---|---|
-| ASR — Conference | **Deepgram Nova-3** (WebSocket streaming, diarize, keyterms) |
+| ASR — Event | **Deepgram Nova-3** (WebSocket streaming, diarize, keyterms) |
 | Audio Pre-processing | **RNNoise** (free, on-device) or Krisp SDK |
 | Mic Capture | PyAudio (16kHz, mono, 50ms chunks) |
 | API | FastAPI + Pydantic v2 + asyncpg |
@@ -733,7 +733,7 @@ DEEPGRAM_API_KEY=xxx uv run python demo.py
 
 ## Phone-as-Client: Mobile Mic Capture Architecture
 
-> The phone is the passive listener device. It sits in your shirt pocket at the conference,
+> The phone is the passive listener device. It sits in your shirt pocket at the event,
 > browser open, mic streaming to your laptop over HTTPS tunnel.
 
 ### The Two Problems & Solutions
@@ -757,7 +757,7 @@ cloudflared tunnel --url http://localhost:8000
 
 - No account needed for quick tunnels
 - ngrok works identically: `ngrok http 8000`
-- Cloudflared preferred at conferences (more reliable, no rate limits)
+- Cloudflared preferred at events (more reliable, no rate limits)
 
 ---
 
@@ -839,7 +839,7 @@ registerProcessor('pcm-processor', PCMProcessor);
 ```python
 # apps/api/routers/audio.py
 from fastapi import APIRouter, UploadFile, File, WebSocket
-from packages.integrations.asr.deepgram.client import DeepgramConferenceClient
+from packages.integrations.asr.deepgram.client import DeepgramEventClient
 from apps.listener.classifier.keyword_engine import KeywordEngine
 
 router = APIRouter(prefix="/api/audio")
@@ -1029,7 +1029,7 @@ cloudflared tunnel --url http://localhost:8000
 # On your phone
 # Open: https://xxxx.trycloudflare.com/listen
 # Tap allow microphone
-# Phone is now a passive conference listener
+# Phone is now a passive event listener
 
 # Dashboard (judges/audience view)
 # Open: https://xxxx.trycloudflare.com  (the main EchoLead dashboard)

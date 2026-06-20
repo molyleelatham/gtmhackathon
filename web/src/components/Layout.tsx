@@ -29,7 +29,13 @@ export function Layout() {
         }`}
       >
         <div className={`mb-6 flex items-center ${collapsed ? "justify-center" : "gap-3 px-1"}`}>
-          {!collapsed && <Avatar name={user?.displayName ?? "User"} size="sm" />}
+          {!collapsed && (
+            <Avatar
+              name={user?.displayName ?? "User"}
+              photoURL={user?.photoURL}
+              size="sm"
+            />
+          )}
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-bold text-ink-900">

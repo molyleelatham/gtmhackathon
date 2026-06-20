@@ -40,7 +40,7 @@ targets:
           - "**/.DS_Store"
           # Legacy duplicate of Services/SocialGraph/SocialGraphEngine.swift
           - "Services/SocialGraphEngine.swift"
-          - "Services/ConferenceListeningEngine.swift"
+          - "Services/EventListeningEngine.swift"
           - "Services/WakeWordEngine.swift"
           - "Services/SignalAPIClient.swift"
           - "Services/AudioSessionManager.swift"

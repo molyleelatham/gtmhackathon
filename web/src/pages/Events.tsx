@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
-import { useAuth } from "../lib/auth";
 import { useAsync } from "../lib/useAsync";
 import { Loading, ErrorBox } from "./Dashboard";
 
 export function Events() {
-  const { user } = useAuth();
   const { data, error, loading, reload } = useAsync(() => api.listEvents(), []);
   const [connecting, setConnecting] = useState(false);
   const [connectMsg, setConnectMsg] = useState<string | null>(null);
@@ -15,7 +13,7 @@ export function Events() {
     setConnecting(true);
     setConnectMsg(null);
     try {
-      const result = await api.connect(user?.uid ?? "demo-user");
+      const result = await api.connect();
       const detected = result.events_detected ?? 0;
       setConnectMsg(
         detected > 0
@@ -36,8 +34,8 @@ export function Events() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-ink-900">Events</h1>
           <p className="mt-1 text-sm text-ink-muted">
-            Conferences detected from your calendar. Connect Google, then run pre-meet or the full
-            conference pipeline.
+            Events detected from your calendar. Connect Google, then run pre-meet or the full
+            event pipeline.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -50,7 +48,7 @@ export function Events() {
             {connecting ? "Connecting…" : "Connect calendar"}
           </button>
           <Link to="/pipeline" className="btn-secondary">
-            Conference pipeline
+            Event pipeline
           </Link>
         </div>
       </header>

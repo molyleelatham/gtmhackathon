@@ -1,6 +1,6 @@
 """Before-meet stage.
 
-Builds the pre-meet attendee dataset for a detected conference, enriches it via
+Builds the pre-meet attendee dataset for a detected event, enriches it via
 UnifyGTM, predicts warmth, surfaces the highest-intent leads, drafts personalized
 outreach (Lightfern + Gmail via MCP), and books meetings on the calendar.
 
@@ -64,14 +64,14 @@ class PreMeetPipeline:
         """Assemble pre-meet connections from manual input + directory scrape.
 
         If ``event.directory_url`` is set the Playwright scraper is used to
-        extract attendees from the conference directory page. Manual attendees
+        extract attendees from the event directory page. Manual attendees
         (if provided) are merged in and take priority (deduped by name).
         """
         scraped: list[dict] = []
         if event.directory_url:
             try:
-                from ..scraper.sources.playwright_scraper import ConferenceDirectoryScraper
-                scraper = ConferenceDirectoryScraper(headless=True)
+                from ..scraper.sources.playwright_scraper import EventDirectoryScraper
+                scraper = EventDirectoryScraper(headless=True)
                 scraped = await scraper.scrape(event.directory_url)
             except Exception as exc:
                 print(f"PreMeetPipeline scraper fallback: {exc}")
@@ -180,7 +180,7 @@ class PreMeetPipeline:
         connections: list[PreMeetConnection],
         top_n: int = 10,
     ) -> list[PreMeetConnection]:
-        """Surface the highest-intent leads for this conference."""
+        """Surface the highest-intent leads for this event."""
         return sorted(
             connections,
             key=lambda c: (c.predicted_warmth, c.icp_score, c.intent_score),
