@@ -21,6 +21,8 @@ This module is intentionally a thin orchestrator over stubbed integrations.
 from datetime import datetime
 from typing import Optional
 
+from ...packages.core.url_safety import UnsafeUrlError, validate_scrape_url
+
 from ...packages.core.models.event import DetectedEvent
 from ...packages.core.models.pre_connection import PreMeetConnection, PreMeetStatus
 from ...packages.core.models.icp import ICPConfig
@@ -71,9 +73,11 @@ class PreMeetPipeline:
         if event.directory_url:
             try:
                 from ..scraper.sources.playwright_scraper import EventDirectoryScraper
+
+                safe_url = validate_scrape_url(event.directory_url)
                 scraper = EventDirectoryScraper(headless=True)
-                scraped = await scraper.scrape(event.directory_url)
-            except Exception as exc:
+                scraped = await scraper.scrape(safe_url)
+            except (UnsafeUrlError, Exception) as exc:
                 print(f"PreMeetPipeline scraper fallback: {exc}")
 
         # Merge: manual attendees override scraped ones (dedup by name)

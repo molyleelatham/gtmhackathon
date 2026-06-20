@@ -15,7 +15,7 @@ from ..user_context import current_user_id
 class FirebaseAuthMiddleware(BaseHTTPMiddleware):
     """Verify Firebase ID tokens and scope requests to the caller's uid."""
 
-    _PUBLIC_PATHS = frozenset({"/health", "/api/signals"})
+    _PUBLIC_PATHS = frozenset({"/health"})
 
     async def dispatch(self, request: Request, call_next):
         if request.url.path in self._PUBLIC_PATHS:
@@ -28,7 +28,6 @@ class FirebaseAuthMiddleware(BaseHTTPMiddleware):
             try:
                 claims = verify_firebase_id_token(token)
             except HTTPException as exc:
-                # BaseHTTPMiddleware does not propagate HTTPException to handlers.
                 return JSONResponse(
                     status_code=exc.status_code,
                     content={"detail": exc.detail},

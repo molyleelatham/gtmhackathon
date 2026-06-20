@@ -1,6 +1,8 @@
 """Onboarding + event discovery endpoints."""
 from fastapi import APIRouter, HTTPException, status
 
+from ....packages.core.errors import client_safe_message
+
 from ..store import get_store
 from ..user_context import get_user_id
 from ...lifecycle.onboarding import OnboardingService
@@ -21,7 +23,9 @@ async def connect():
         result["events_detected"] = len(detected)
     except Exception as e:  # pragma: no cover - stub resilience
         result["events_detected"] = 0
-        result["discovery_error"] = str(e)
+        result["discovery_error"] = client_safe_message(
+            e, fallback="Event discovery failed. Try again later."
+        )
     return result
 
 

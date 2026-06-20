@@ -25,6 +25,8 @@ from typing import Optional, Any
 from fastapi import APIRouter, BackgroundTasks
 from pydantic import BaseModel, Field, AliasChoices
 
+from ....packages.core.errors import client_safe_message
+from ....packages.core.url_safety import UnsafeUrlError, validate_scrape_url
 from ...agent.event_pipeline import EventPipeline
 
 router = APIRouter(prefix="/api/v1/event-runs", tags=["event-runs"])
@@ -177,6 +179,18 @@ async def run_event_pipeline(
     }
 
     attendees_raw = [a.model_dump() for a in req.manual_attendees]
+    directory_url: Optional[str] = None
+    if not req.skip_scraping and req.directory_url:
+        try:
+            directory_url = validate_scrape_url(req.directory_url)
+        except UnsafeUrlError as exc:
+            _run_cache[run_id].update({
+                "status": "error",
+                "completed_at": datetime.utcnow().isoformat(),
+                "error": str(exc),
+            })
+            return EventRunResponse(**_run_cache[run_id])
+
     meeting_start = None
     if req.meeting_start_iso:
         try:
@@ -189,7 +203,7 @@ async def run_event_pipeline(
             pipeline = _build_pipeline(req)
             summary = await pipeline.run(
                 event_name=req.event_name,
-                directory_url=(None if req.skip_scraping else req.directory_url),
+                directory_url=directory_url,
                 manual_attendees=attendees_raw or None,
                 top_n=req.top_n,
                 book_meetings=req.book_meetings,
@@ -205,7 +219,9 @@ async def run_event_pipeline(
             _run_cache[run_id].update({
                 "status": "error",
                 "completed_at": datetime.utcnow().isoformat(),
-                "error": str(exc),
+                "error": client_safe_message(
+                    exc, fallback="Event pipeline failed. Please try again later."
+                ),
             })
 
     # Small lists: run inline and return immediately

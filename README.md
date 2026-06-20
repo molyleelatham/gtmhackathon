@@ -74,6 +74,9 @@ Required environment variables (see `.env.example`):
 - **Google MCP**: `GOOGLE_MCP_CREDENTIALS`, `GOOGLE_MCP_SERVER_URL`
 - **Signal Sources**: `TAVILY_API_KEY`
 - **Firebase**: `FIREBASE_PROJECT_ID`, `FIREBASE_SERVICE_ACCOUNT_KEY`, `FIREBASE_DATABASE_URL`
+- **API auth / persistence** (production — see `infra/cloudrun-env.yaml`):
+  - `REQUIRE_FIREBASE_AUTH=true` — iOS/web must send `Authorization: Bearer <firebase_id_token>`
+  - `USE_FIRESTORE_STORE=true` — persist dashboard events, connections, and meet results in Firestore (not in-memory only)
 - **GCP**: `GCP_PROJECT_ID`, `GCP_SERVICE_ACCOUNT_KEY`, `GCP_REGION`, `PUBSUB_TOPIC`
 - **Community**: `COMMUNITY_GROUPS_ENABLED`, `COMMUNITY_PERMISSIONS`
 - **User Config**: `USER_ROLE`, `TEAM_SIZE`, `COMPANY_STAGE`
@@ -156,6 +159,51 @@ Warmth is designed for deployment on Google Cloud Platform:
 - **Scheduling**: GCP Cloud Scheduler
 
 See `infra/terraform/` for infrastructure-as-code deployment configurations.
+
+### Deploy API to Cloud Run
+
+```bash
+gcloud run deploy warmth-api \
+  --source . \
+  --region us-central1 \
+  --project warmth-gtm-hackathon \
+  --env-vars-file infra/cloudrun-env.yaml
+```
+
+Ensure `FIREBASE_SERVICE_ACCOUNT_KEY` in Secret Manager contains the **JSON body**
+of the Firebase Admin service account (not a local file path). Cloud Run loads
+secrets at startup via `packages/core/secrets.py`.
+
+### Dashboard data in Firestore
+
+With `USE_FIRESTORE_STORE=true`, each user's dashboard slice is stored under:
+
+```
+users/{uid}/events/{eventId}
+users/{uid}/connections/{connectionId}     # includes _warmth score blob
+users/{uid}/connections/{connectionId}/meet/latest
+users/{uid}/signal_index/{signalId}
+config/community_members
+```
+
+The owner demo account (`dzakwan1844@gmail.com`) is auto-seeded with the GTM
+Hackathon roster on bootstrap or first dashboard load. To (re)seed manually:
+
+```bash
+# ADC or FIREBASE_SERVICE_ACCOUNT_KEY required; pulls team secrets if GCP_PROJECT_ID is set
+export GCP_PROJECT_ID=warmth-gtm-hackathon
+uv run python scripts/migrate_user_demo_to_firestore.py dzakwan1844@gmail.com
+```
+
+Replace the email with any Firebase Auth user to seed that uid's Firestore
+roster from `data/gtm_hackathon_attendees.json`.
+
+### Web dashboard
+
+```bash
+cd web && npm run build
+firebase deploy --only hosting
+```
 
 ## License
 

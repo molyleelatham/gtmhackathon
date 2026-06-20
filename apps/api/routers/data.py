@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel
 
 from ..integration_helpers import (
@@ -17,11 +17,24 @@ from ..integration_helpers import (
 from ..store import get_store
 from ..user_context import get_user_id
 from ...lifecycle.contact_sync import ContactSyncPipeline
+from ...lifecycle.user_bootstrap import maybe_seed_owner_demo
 from ....packages.core.models.icp import ICPConfig
 from ....packages.core.models.lead import Lead
 from ....packages.core.models.pre_connection import PreMeetConnection
 
 router = APIRouter(prefix="/api/v1", tags=["data"])
+
+
+def _owner_email_from_request(request: Request) -> str | None:
+    claims = getattr(request.state, "firebase_user", None) or {}
+    email = claims.get("email")
+    return email if isinstance(email, str) else None
+
+
+def _user_id_with_demo_seed(request: Request) -> str:
+    user_id = get_user_id()
+    maybe_seed_owner_demo(user_id, _owner_email_from_request(request))
+    return user_id
 
 
 def _derive_signals(
@@ -88,8 +101,8 @@ def _derive_signals(
 
 
 @router.get("/dashboard")
-async def dashboard():
-    user_id = get_user_id()
+async def dashboard(request: Request):
+    user_id = _user_id_with_demo_seed(request)
     """Summary stats + the current pipeline at a glance for the dashboard home."""
     events = get_store().list_events(user_id)
     all_connections = [
@@ -118,8 +131,8 @@ async def list_leads():
 
 
 @router.get("/connections")
-async def list_connections():
-    user_id = get_user_id()
+async def list_connections(request: Request):
+    user_id = _user_id_with_demo_seed(request)
     return [c.model_dump() for c in get_store().list_connections(user_id)]
 
 
@@ -194,8 +207,8 @@ async def sync_contacts():
 
 
 @router.get("/dashboard/roster")
-async def dashboard_roster():
-    user_id = get_user_id()
+async def dashboard_roster(request: Request):
+    user_id = _user_id_with_demo_seed(request)
     """Attending + met tabs and signal feed for the dashboard home."""
     events = get_store().list_events(user_id)
     primary = events[0] if events else None

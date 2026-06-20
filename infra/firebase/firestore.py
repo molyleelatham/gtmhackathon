@@ -176,3 +176,20 @@ class FirestoreClient:
                 return True
         
         return False
+
+    async def get_user_profile(self, uid: str):
+        from ...packages.core.models.user_profile import UserProfile
+
+        doc = self.db.collection("users").document(uid).get()
+        if not doc.exists:
+            return None
+        return UserProfile.model_validate(doc.to_dict())
+
+    async def upsert_user_profile(self, profile) -> object:
+        from ...packages.core.models.user_profile import UserProfile
+
+        self.db.collection("users").document(profile.uid).set(
+            profile.model_dump(mode="json"),
+            merge=True,
+        )
+        return profile

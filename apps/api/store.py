@@ -334,6 +334,24 @@ import os  # noqa: E402
 from .user_context import current_user_id  # noqa: E402
 
 _user_stores: dict[str, DemoStore] = {}
+_repo: "UserStoreRepository | None" = None
+
+
+def _use_firestore_store() -> bool:
+    return os.getenv("USE_FIRESTORE_STORE", "").lower() in ("1", "true", "yes")
+
+
+def _get_repo():
+    global _repo
+    if _repo is not None:
+        return _repo
+    from infra.firebase.admin import ensure_firebase_initialized
+    from infra.firebase.user_store_repo import UserStoreRepository
+    from firebase_admin import firestore as firebase_firestore
+
+    ensure_firebase_initialized()
+    _repo = UserStoreRepository(firebase_firestore.client())
+    return _repo
 
 
 def _should_seed_demo_store() -> bool:
@@ -346,9 +364,14 @@ def _should_seed_demo_store() -> bool:
 
 
 def get_store(user_id: str | None = None) -> DemoStore:
-    """Return the in-memory store for the authenticated user (isolated per uid)."""
+    """Return the store for the authenticated user (in-memory or Firestore-backed)."""
     uid = user_id or current_user_id.get()
     if uid not in _user_stores:
         seed = uid == DEMO_USER_ID and _should_seed_demo_store()
-        _user_stores[uid] = DemoStore(seed=seed)
+        if _use_firestore_store():
+            from .persisted_store import FirestoreBackedStore
+
+            _user_stores[uid] = FirestoreBackedStore(uid, _get_repo(), seed=seed)
+        else:
+            _user_stores[uid] = DemoStore(seed=seed)
     return _user_stores[uid]

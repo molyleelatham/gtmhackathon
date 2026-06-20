@@ -1,6 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
+import { safeGmailComposeUrl } from "../lib/safeUrl";
 import { useAsync } from "../lib/useAsync";
 import { Loading, ErrorBox } from "./Dashboard";
 import { WarmthBadge } from "../components/WarmthBadge";
@@ -361,9 +362,11 @@ function ActionButton({
 }
 
 function GmailLink({ url, label = "Open Gmail draft · Lightfern polishes there" }: { url: string; label?: string }) {
+  const safe = safeGmailComposeUrl(url);
+  if (!safe) return null;
   return (
     <a
-      href={url}
+      href={safe}
       target="_blank"
       rel="noreferrer"
       className="mt-3 inline-block rounded-lg bg-warmth-warm/90 px-3 py-1.5 text-xs font-medium text-ink-900 hover:bg-warmth-warm"

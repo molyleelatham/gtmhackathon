@@ -14,6 +14,7 @@ import { WarmthBadge } from "../components/WarmthBadge";
 import { Toggle } from "../components/Toggle";
 import { Toast } from "../components/Toast";
 import { api } from "../lib/api";
+import { safeGmailComposeUrl } from "../lib/safeUrl";
 import {
   normalizeSignals,
   rosterToAttendees,
@@ -280,8 +281,8 @@ export function Dashboard() {
         most_interesting: m.mostInteresting,
         what_you_learned: m.whatYouLearned,
       });
-      const url = result.gmail_compose_url;
-      if (url && typeof url === "string") {
+      const url = safeGmailComposeUrl(result.gmail_compose_url);
+      if (url) {
         window.open(url, "_blank", "noopener,noreferrer");
         setToast(`Gmail draft ready for ${m.name}`);
       } else {

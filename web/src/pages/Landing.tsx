@@ -8,6 +8,7 @@ import { LifecycleSteps } from "../components/landing/LifecycleSteps";
 import { WinsGallery } from "../components/landing/WinsGallery";
 import { HackathonContext } from "../components/landing/HackathonContext";
 import { DemoVideoPlayer } from "../components/landing/DemoVideoPlayer";
+import { PlatformAppMark } from "../components/landing/PlatformAppMark";
 import { ScrollReveal } from "../components/landing/ScrollReveal";
 
 export function Landing() {
@@ -97,17 +98,40 @@ export function Landing() {
 
         <section className="landing-section pb-20 pt-8">
           <ScrollReveal variant="up-scale">
-            <GlassCard strong className="p-10 text-center">
-              <h2 className="text-2xl font-bold text-ink-900">Ready to explore?</h2>
-              <p className="mx-auto mt-3 max-w-lg text-ink-muted">
-                Open the live web app — review events, warmth scores, connections, and follow-ups.
-              </p>
-              <Link
-                to={landingContent.links.app}
-                className="mt-8 inline-block rounded-xl bg-gradient-to-r from-ember to-flame px-8 py-3.5 text-sm font-semibold text-white shadow-glass transition-transform duration-300 hover:scale-[1.02]"
-              >
-                Open the app
-              </Link>
+            <GlassCard strong className="p-8 sm:p-10">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-ink-900">{landingContent.explore.title}</h2>
+                <p className="mx-auto mt-3 max-w-lg text-ink-muted">{landingContent.explore.subtitle}</p>
+              </div>
+              <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                <GlassCard className="flex h-full flex-col p-6 text-center">
+                  <PlatformAppMark platform="web" />
+                  <h3 className="mt-4 text-lg font-semibold text-ink-900">
+                    {landingContent.explore.web.title}
+                  </h3>
+                  <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-muted">
+                    {landingContent.explore.web.description}
+                  </p>
+                  <Link
+                    to={landingContent.links.app}
+                    className="mt-6 inline-block rounded-xl bg-gradient-to-r from-ember to-flame px-6 py-3 text-sm font-semibold text-white shadow-glass transition-transform duration-300 hover:scale-[1.02]"
+                  >
+                    {landingContent.explore.web.cta}
+                  </Link>
+                </GlassCard>
+                <GlassCard className="flex h-full flex-col p-6 text-center">
+                  <PlatformAppMark platform="ios" />
+                  <h3 className="mt-4 text-lg font-semibold text-ink-900">
+                    {landingContent.explore.ios.title}
+                  </h3>
+                  <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-muted">
+                    {landingContent.explore.ios.description}
+                  </p>
+                  <span className="glass-pill mx-auto mt-6 border-amber/30 bg-amber/10 px-4 py-3 text-sm font-medium text-ink-muted">
+                    {landingContent.testFlight.label}
+                  </span>
+                </GlassCard>
+              </div>
             </GlassCard>
           </ScrollReveal>
         </section>
@@ -125,6 +149,7 @@ export function Landing() {
             GTMengineer.dev
           </a>
         </p>
+        <p className="mt-2 text-ink-muted">{landingContent.testFlight.label}</p>
       </ScrollReveal>
     </div>
   );
