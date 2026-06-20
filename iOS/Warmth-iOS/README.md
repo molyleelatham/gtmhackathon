@@ -1,10 +1,10 @@
 # Warmth iOS App
 
-Native iOS/watchOS personal CRM recording app with wake word detection and Apple Watch integration.
+Native iOS/watchOS personal CRM recording app with multiple triggering methods and Apple Watch integration.
 
 ## Features
 
-- **Wake Word Detection**: "Hey Anna" triggers recording using Porcupine (offline)
+- **Multiple Triggering Methods**: Manual controls, Apple Watch complications, Siri shortcuts
 - **Background Recording**: Continuous recording with proper AVAudioSession management
 - **Apple Watch Control**: WidgetKit complications for remote recording control
 - **WatchConnectivity**: Seamless iPhone-Watch communication
@@ -32,10 +32,10 @@ Requires:
 - Xcode 15+
 - iOS 17+
 - watchOS 10+
-- Porcupine SDK access key
 
 ## Setup
 
-1. Add Porcupine access key to `Info.plist`
-2. Configure backend API URL in `AppConstants.swift`
-3. Build and run on physical device (wake word requires device)
+1. Configure backend API URL in `AppConstants.swift`
+2. Build and run on physical device or simulator
+3. Grant microphone permission when prompted
+4. Use Apple Watch complications or manual controls to start recording
