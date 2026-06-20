@@ -50,6 +50,11 @@ struct MainTabView: View {
             }
         }
         .tint(WarmthColor.emberRed)
+        .onChange(of: model.selectedTab) { _, tab in
+            if tab == .connections {
+                Task { await model.refreshConnections() }
+            }
+        }
         .onChange(of: model.speech.phase) { _, _ in
             model.syncWatchState()
         }

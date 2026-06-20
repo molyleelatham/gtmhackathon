@@ -1,18 +1,17 @@
 import SwiftUI
 
-/// A single glass-styled person row in the Connections list: ember avatar, name,
-/// org · role, warmth badge, and a few interest chips.
+/// A single glass-styled connection row in the Connections list.
 struct ConnectionRow: View {
-    let person: PersonNode
+    let connection: CRMConnection
 
     var body: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 14) {
-                    AvatarBadge(initials: person.initials, size: 48)
+                    AvatarBadge(initials: connection.initials, size: 48)
 
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(person.name)
+                        Text(connection.name)
                             .warmthText(.Warmth.headline)
                             .lineLimit(1)
 
@@ -25,13 +24,13 @@ struct ConnectionRow: View {
 
                     Spacer(minLength: 8)
 
-                    WarmthBadge(band: person.band, score: person.icpScore)
+                    WarmthBadge(band: connection.band, score: connection.predictedWarmth)
                 }
 
-                if !person.interests.isEmpty {
+                if !connection.interests.isEmpty {
                     WarmthFlowLayout(spacing: 8, lineSpacing: 8) {
-                        ForEach(person.interests, id: \.self) { interest in
-                            InterestChip(text: interest, tint: person.band.tint)
+                        ForEach(connection.interests.prefix(3), id: \.self) { interest in
+                            InterestChip(text: interest, tint: connection.band.tint)
                         }
                     }
                 }
@@ -40,7 +39,7 @@ struct ConnectionRow: View {
     }
 
     private var subtitle: String? {
-        switch (person.org, person.role) {
+        switch (connection.org, connection.role) {
         case let (org?, role?): return "\(org) · \(role)"
         case let (org?, nil): return org
         case let (nil, role?): return role
@@ -74,8 +73,8 @@ struct AvatarBadge: View {
     ZStack {
         MeshGradientBackground()
         VStack(spacing: 14) {
-            ForEach(PersonNode.mockData.prefix(3)) { person in
-                ConnectionRow(person: person)
+            ForEach(CRMConnection.previewList) { connection in
+                ConnectionRow(connection: connection)
             }
         }
         .padding()

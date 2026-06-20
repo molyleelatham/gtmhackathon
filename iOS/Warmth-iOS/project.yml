@@ -38,6 +38,17 @@ targets:
           - "Resources/Info.plist"
           - "Resources/Brand/**"
           - "**/.DS_Store"
+          # Legacy duplicate of Services/SocialGraph/SocialGraphEngine.swift
+          - "Services/SocialGraphEngine.swift"
+          - "Services/ConferenceListeningEngine.swift"
+          - "Services/WakeWordEngine.swift"
+          - "Services/SignalAPIClient.swift"
+          - "Services/AudioSessionManager.swift"
+          - "Services/CaptureWindow.swift"
+          - "Services/MicrophoneStream.swift"
+          - "Models/Signal.swift"
+          - "Models/ICPVocabulary.swift"
+          - "Views/ListeningView.swift"
     dependencies:
       - package: Firebase
         product: FirebaseAuth
@@ -70,6 +81,8 @@ targets:
           - audio
         NSMicrophoneUsageDescription: "Warmth listens for your trigger phrase and transcribes conversations entirely on-device."
         NSSpeechRecognitionUsageDescription: "Warmth uses on-device speech recognition to know when a conversation starts and to transcribe it."
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLSchemes:

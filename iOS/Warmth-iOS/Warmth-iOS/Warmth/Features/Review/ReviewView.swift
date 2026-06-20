@@ -23,7 +23,7 @@ struct ReviewView: View {
 
                         ForEach(people) { person in
                             ReviewCardView(person: person) { updated in
-                                model.sessionLog.update(updated)
+                                saveReviewedPerson(updated)
                             }
                         }
                     }
@@ -36,6 +36,16 @@ struct ReviewView: View {
             .navigationTitle("Review")
         }
         .tint(WarmthColor.emberRed)
+    }
+
+    /// Persist edits: update an existing session capture, or record mock/demo rows
+    /// the first time the user saves them.
+    private func saveReviewedPerson(_ updated: PersonNode) {
+        if model.sessionLog.people.contains(where: { $0.id == updated.id }) {
+            model.sessionLog.update(updated)
+        } else {
+            _ = model.sessionLog.record(updated)
+        }
     }
 }
 

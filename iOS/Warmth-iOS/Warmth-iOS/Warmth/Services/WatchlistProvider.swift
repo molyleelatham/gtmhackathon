@@ -3,6 +3,7 @@ import Foundation
 /// Supplies the names the wake-word detector listens for. Seeded with ICP first
 /// names; in production this is hydrated from the user's Zero CRM contacts
 /// (e.g. via `GET /api/contacts`) and refreshed before each event.
+@MainActor
 final class WatchlistProvider: ObservableObject {
     static let shared = WatchlistProvider()
 

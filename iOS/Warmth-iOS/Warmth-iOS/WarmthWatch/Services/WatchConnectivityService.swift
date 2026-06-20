@@ -52,6 +52,7 @@ final class WatchConnectivityService: NSObject {
     func requestStop() { send(action: "stopRecording") }
 
     private func send(action: String) {
+        guard WCSession.isSupported(), session.activationState == .activated else { return }
         let payload: [String: Any] = ["action": action, "ts": Date().timeIntervalSince1970]
 
         if session.isReachable {
@@ -67,7 +68,11 @@ final class WatchConnectivityService: NSObject {
             }, errorHandler: { _ in })
         } else {
             // Best-effort: stash the desired action; phone reconciles on activation.
-            try? session.updateApplicationContext(payload)
+            do {
+                try session.updateApplicationContext(payload)
+            } catch {
+                // Phone unreachable or WC not ready — intent is dropped safely.
+            }
         }
     }
 

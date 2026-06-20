@@ -39,6 +39,11 @@ final class SessionCaptureLog {
     func update(_ node: PersonNode) {
         if let index = people.firstIndex(where: { $0.id == node.id }) {
             people[index] = node
+        } else if let index = people.firstIndex(where: {
+            $0.name.caseInsensitiveCompare(node.name) == .orderedSame
+        }) {
+            // Fallback when the caller still has a mock/demo id but the name matches.
+            people[index] = node
         }
     }
 

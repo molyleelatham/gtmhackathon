@@ -83,14 +83,17 @@ final class WatchSessionService: NSObject {
     }
 
     private func pushState() {
-        guard session.activationState == .activated else { return }
+        guard WCSession.isSupported(), session.activationState == .activated else { return }
         let p = payload()
         // Latest-state sync survives the watch being asleep.
-        try? session.updateApplicationContext(p)
-        // Immediate delivery when the watch is in the foreground.
-        if session.isReachable {
-            session.sendMessage(p, replyHandler: nil, errorHandler: { _ in })
+        do {
+            try session.updateApplicationContext(p)
+        } catch {
+            // No paired watch, simulator-only phone, or transient WC errors — ignore.
         }
+        // Immediate delivery when the watch is in the foreground.
+        guard session.isReachable else { return }
+        session.sendMessage(p, replyHandler: nil) { _ in }
     }
 
     // MARK: - Intent handling

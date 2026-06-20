@@ -13,6 +13,7 @@ struct WarmthApp: App {
             auth: FirebaseAuthService(),
             speech: SpeechService(),
             signalClient: SignalClient(baseURL: settings.baseURL),
+            crmClient: WarmthAPIClient(baseURL: settings.baseURL),
             socialGraph: SocialGraphEngine(),
             settings: settings
         )

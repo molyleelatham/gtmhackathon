@@ -1,9 +1,22 @@
 import SwiftUI
 
-/// Full profile for one captured person: hero header, interests, relations, an
-/// ICP gauge, and the raw transcript excerpt — all over the ambient mesh.
+/// Full profile for one CRM connection — fetches warmth + draft from the backend
+/// so iOS stays in sync with the web dashboard detail page.
 struct ConnectionDetailView: View {
-    let person: PersonNode
+    @Environment(AppModel.self) private var model
+    let connection: CRMConnection
+
+    @State private var detail: CRMConnectionDetail?
+    @State private var loadError: String?
+
+    private var display: CRMConnection { detail?.connection ?? connection }
+    private var warmth: CRMWarmthScore? { detail?.warmth }
+    private var draftBody: String? {
+        detail?.gmailDraft?["body"] ?? display.draftBody
+    }
+    private var draftSubject: String? {
+        detail?.gmailDraft?["subject"] ?? display.draftSubject
+    }
 
     var body: some View {
         ZStack {
@@ -13,11 +26,11 @@ struct ConnectionDetailView: View {
                 VStack(spacing: 18) {
                     header
 
-                    if !person.interests.isEmpty {
+                    if !display.interests.isEmpty {
                         section("Interest knowledge graph") {
                             KnowledgeGraphMiniView(
-                                personName: person.name,
-                                interests: person.interests,
+                                personName: display.name,
+                                interests: display.interests,
                                 values: []
                             )
                             .frame(height: 240)
@@ -25,33 +38,44 @@ struct ConnectionDetailView: View {
 
                         section("Interests") {
                             WarmthFlowLayout(spacing: 8, lineSpacing: 8) {
-                                ForEach(person.interests, id: \.self) { interest in
-                                    InterestChip(text: interest, tint: person.band.tint)
+                                ForEach(display.interests, id: \.self) { interest in
+                                    InterestChip(text: interest, tint: display.band.tint)
                                 }
                             }
                         }
                     }
 
-                    if !person.relations.isEmpty {
-                        section("Relations") {
-                            VStack(alignment: .leading, spacing: 10) {
-                                ForEach(person.relations, id: \.self) { relation in
-                                    RelationLine(relation: relation, tint: person.band.tint)
-                                }
+                    section("Warmth score") {
+                        ICPGauge(
+                            score: warmthScore,
+                            band: WarmthBand(score: warmthScore)
+                        )
+                        if let warmth {
+                            HStack {
+                                Text("ICP fit")
+                                    .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
+                                Spacer()
+                                Text("\(warmth.icpScore)")
+                                    .warmthText(.Warmth.footnote)
                             }
                         }
                     }
 
-                    section("ICP score") {
-                        ICPGauge(score: person.icpScore, band: person.band)
+                    if let draftSubject, let draftBody {
+                        section("Outreach draft") {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(draftSubject)
+                                    .warmthText(.Warmth.headline)
+                                Text(draftBody)
+                                    .warmthText(.Warmth.body, color: WarmthColor.inkSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
                     }
 
-                    if !person.transcriptExcerpt.isEmpty {
-                        section("Transcript") {
-                            Text(person.transcriptExcerpt)
-                                .warmthText(.Warmth.body, color: WarmthColor.inkSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
+                    if let loadError {
+                        Text(loadError)
+                            .warmthText(.Warmth.footnote, color: WarmthColor.emberRed)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -59,19 +83,43 @@ struct ConnectionDetailView: View {
             }
             .scrollContentBackground(.hidden)
         }
-        .navigationTitle(person.name)
+        .navigationTitle(display.name)
         .navigationBarTitleDisplayMode(.inline)
+        .task(id: connection.id) {
+            await loadDetail()
+        }
+        .refreshable { await loadDetail() }
+    }
+
+    private var warmthScore: Int {
+        if let actual = warmth?.actualScore {
+            return Int(actual.rounded())
+        }
+        if let predicted = warmth?.predictedScore {
+            return Int(predicted.rounded())
+        }
+        return display.predictedWarmth
+    }
+
+    @MainActor
+    private func loadDetail() async {
+        loadError = nil
+        do {
+            detail = try await model.crmClient.connectionDetail(id: connection.id)
+        } catch {
+            loadError = error.localizedDescription
+        }
     }
 
     // MARK: - Header
 
     private var header: some View {
         VStack(spacing: 14) {
-            AvatarBadge(initials: person.initials, size: 96, glow: true)
+            AvatarBadge(initials: display.initials, size: 96, glow: true)
                 .padding(.top, 8)
 
             VStack(spacing: 6) {
-                Text(person.name)
+                Text(display.name)
                     .warmthText(.Warmth.largeTitle)
                     .multilineTextAlignment(.center)
 
@@ -82,14 +130,14 @@ struct ConnectionDetailView: View {
                 }
             }
 
-            WarmthBadge(band: person.band, score: person.icpScore)
+            WarmthBadge(band: display.band, score: warmthScore)
         }
         .frame(maxWidth: .infinity)
         .padding(.bottom, 4)
     }
 
     private var subtitle: String? {
-        switch (person.org, person.role) {
+        switch (display.org, display.role) {
         case let (org?, role?): return "\(org) · \(role)"
         case let (org?, nil): return org
         case let (nil, role?): return role
@@ -109,31 +157,6 @@ struct ConnectionDetailView: View {
                 content()
             }
         }
-    }
-}
-
-/// A single subject · predicate · object relation, with the predicate humanized.
-private struct RelationLine: View {
-    let relation: CapturedSignal.Relation
-    let tint: Color
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Circle()
-                .fill(tint)
-                .frame(width: 6, height: 6)
-            (
-                Text(relation.subject).foregroundStyle(WarmthColor.ink)
-                + Text("  \(humanized)  ").foregroundStyle(WarmthColor.inkSecondary)
-                + Text(relation.object).foregroundStyle(WarmthColor.ink)
-            )
-            .font(.Warmth.callout)
-            .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    private var humanized: String {
-        relation.predicate.replacingOccurrences(of: "_", with: " ")
     }
 }
 
@@ -221,7 +244,7 @@ struct WarmthFlowLayout: Layout {
 
 #Preview {
     NavigationStack {
-        ConnectionDetailView(person: PersonNode.preview)
+        ConnectionDetailView(connection: .preview)
     }
     .environment(AppModel.preview)
 }

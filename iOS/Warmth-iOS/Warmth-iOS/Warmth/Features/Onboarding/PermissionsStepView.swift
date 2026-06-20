@@ -61,13 +61,11 @@ struct PermissionsStepView: View {
         .animation(WarmthMotion.gentle, value: model.speech.permissionError)
         .animation(WarmthMotion.gentle, value: model.speech.permissionsDenied)
         .onChange(of: scenePhase) { _, phase in
-            guard phase == .active else { return }
-            // Clear a stuck "Requesting…" state if the user backgrounded mid-prompt.
-            isRequesting = false
-            syncGrantedState(advancing: true)
+            guard phase == .active, !isRequesting else { return }
+            syncGrantedState()
         }
         .onAppear {
-            syncGrantedState(advancing: true)
+            syncGrantedState()
         }
     }
 
@@ -92,23 +90,21 @@ struct PermissionsStepView: View {
         }
     }
 
-    private func syncGrantedState(advancing: Bool) {
+    /// Re-read OS permission flags without prompting or advancing.
+    private func syncGrantedState() {
         granted = model.speech.checkPermissions()
-        if advancing && granted { advance() }
     }
 
-    /// `prompt` controls whether tapping should feel like an explicit request
-    /// (haptic feedback on failure) vs. a silent foreground re-check.
-    private func requestPermissions(prompt: Bool = true) {
-        if prompt { isRequesting = true }
-        Task {
+    private func requestPermissions() {
+        guard !isRequesting else { return }
+        isRequesting = true
+        Task { @MainActor in
+            defer { isRequesting = false }
             let ok = await model.speech.requestPermissions()
-            isRequesting = false
             granted = ok
             if ok {
                 WarmthHaptics.success()
-                advance()
-            } else if prompt {
+            } else {
                 WarmthHaptics.warning()
             }
         }

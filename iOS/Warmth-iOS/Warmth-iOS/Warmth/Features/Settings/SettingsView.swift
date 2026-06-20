@@ -190,7 +190,7 @@ private struct BackendSection: View {
     }
 
     private func applyURL() {
-        model.signalClient.updateBaseURL(model.settings.baseURL)
+        model.applyBackendURL(model.settings.baseURL)
     }
 }
 

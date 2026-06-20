@@ -6,6 +6,7 @@ final class AppModelTests: XCTestCase {
     private var auth: MockAuthService!
     private var speech: MockSpeechService!
     private var signalClient: MockSignalClient!
+    private var crmClient: MockCRMClient!
     private var sessionLog: SessionCaptureLog!
     private var settings: SettingsStore!
     private var model: AppModel!
@@ -21,6 +22,7 @@ final class AppModelTests: XCTestCase {
         auth = MockAuthService.signedInPreview
         speech = MockSpeechService()
         signalClient = MockSignalClient()
+        crmClient = MockCRMClient()
         sessionLog = SessionCaptureLog(sessionId: "test-session")
         settings = SettingsStore(defaults: defaults)
 
@@ -28,10 +30,13 @@ final class AppModelTests: XCTestCase {
             auth: auth,
             speech: speech,
             signalClient: signalClient,
+            crmClient: crmClient,
             socialGraph: MockSocialGraph(),
             sessionLog: sessionLog,
             settings: settings
         )
+        model.captureRefreshAttempts = 1
+        model.captureRefreshDelaySeconds = 0
     }
 
     override func tearDown() {
@@ -66,6 +71,7 @@ final class AppModelTests: XCTestCase {
             auth: auth,
             speech: speech,
             signalClient: signalClient,
+            crmClient: crmClient,
             socialGraph: emptyGraph,
             sessionLog: sessionLog,
             settings: settings
@@ -118,17 +124,19 @@ final class AppModelTests: XCTestCase {
         XCTAssertFalse(model.watch.isRecording)
     }
 
-    func testSignalClientReceivesUpdatedBaseURLFromSettings() {
+    func testBackendURLPropagatesToUploadAndCRMClients() {
         settings.baseURLString = "https://custom.backend.test"
         let updated = AppModel(
             auth: auth,
             speech: speech,
             signalClient: signalClient,
+            crmClient: crmClient,
             socialGraph: MockSocialGraph(),
             sessionLog: sessionLog,
             settings: settings
         )
         XCTAssertEqual(updated.signalClient.baseURL.absoluteString, "https://custom.backend.test")
+        XCTAssertEqual(updated.crmClient.baseURL.absoluteString, "https://custom.backend.test")
     }
 }
 

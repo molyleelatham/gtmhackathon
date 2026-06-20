@@ -20,9 +20,9 @@ final class MockSpeechService: SpeechServicing {
         self.transcript = transcript
     }
 
-    func requestPermissions() async -> Bool { true }
-
     func checkPermissions() -> Bool { true }
+
+    func requestPermissions() async -> Bool { true }
 
     func startListening() async { phase = .listening; animate() }
 

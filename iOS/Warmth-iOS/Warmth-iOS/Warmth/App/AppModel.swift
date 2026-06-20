@@ -15,6 +15,7 @@ final class AppModel {
     let auth: any AuthProviding
     let speech: any SpeechServicing
     let signalClient: any SignalSending
+    let crmClient: any CRMProviding
     let socialGraph: any SocialGraphProcessing
     let sessionLog: SessionCaptureLog
     let settings: SettingsStore
@@ -25,11 +26,15 @@ final class AppModel {
     /// Shown after a roster match from a live "hi {name}" greeting.
     var attendeeMatch: AttendeeMatchResult?
     private var matchAttemptedThisCapture = false
+    /// Tunable for tests — production polls the backend while ingest finishes.
+    var captureRefreshAttempts = 4
+    var captureRefreshDelaySeconds = 1.2
 
     init(
         auth: any AuthProviding,
         speech: any SpeechServicing,
         signalClient: any SignalSending,
+        crmClient: any CRMProviding,
         socialGraph: any SocialGraphProcessing,
         sessionLog: SessionCaptureLog = SessionCaptureLog(),
         settings: SettingsStore = SettingsStore(),
@@ -38,18 +43,20 @@ final class AppModel {
         self.auth = auth
         self.speech = speech
         self.signalClient = signalClient
+        self.crmClient = crmClient
         self.socialGraph = socialGraph
         self.sessionLog = sessionLog
         self.settings = settings
         self.watch = watch
-        signalClient.updateBaseURL(settings.baseURL)
+        applyBackendURL(settings.baseURL)
 
-        // The single iOS ↔ watch hook: wrist intents drive capture, and every
-        // capture-state change is mirrored back to the watch + complication.
         watch.onStartRequested = { [weak self] in self?.startCaptureFromWatch() }
         watch.onStopRequested = { [weak self] in self?.stopCaptureFromWatch() }
         syncWatchState()
-        Task { await refreshRosterWatchlist() }
+        Task {
+            await refreshRosterWatchlist()
+            await refreshConnections()
+        }
     }
 
     func dismissAttendeeMatch() {
@@ -100,11 +107,40 @@ final class AppModel {
         return nil
     }
 
+    /// Keep upload + CRM read clients pointed at the same backend host.
+    func applyBackendURL(_ url: URL) {
+        signalClient.updateBaseURL(url)
+        crmClient.updateBaseURL(url)
+    }
+
+    func refreshConnections() async {
+        await crmClient.refreshConnections()
+    }
+
+    /// Poll the backend after capture — ingest runs async server-side (HTTP 202).
+    func refreshConnectionsAfterCapture() async {
+        for attempt in 0..<captureRefreshAttempts {
+            if attempt > 0, captureRefreshDelaySeconds > 0 {
+                try? await Task.sleep(for: .seconds(captureRefreshDelaySeconds))
+            }
+            await refreshConnections()
+        }
+    }
+
     // MARK: - Watch bridge
 
-    /// Mirror the current capture state to the watch app + complication.
     func syncWatchState() {
-        let last = sessionLog.people.first
+        let last = crmClient.connections.first ?? sessionLog.people.first.map { person in
+            CRMConnection(
+                id: person.id.uuidString,
+                name: person.name,
+                title: person.role,
+                companyName: person.org,
+                interests: person.interests,
+                icpScore: person.icpScore,
+                predictedWarmth: person.icpScore
+            )
+        }
         watch.updateState(
             isRecording: speech.phase == .recording,
             elapsed: speech.elapsed,
@@ -113,11 +149,10 @@ final class AppModel {
         )
     }
 
-    /// Wrist → phone: begin recording.
     func startCaptureFromWatch() {
         matchAttemptedThisCapture = false
-        Task {
-            guard await speech.requestPermissions() else {
+        Task { @MainActor in
+            guard await speech.requestPermissions(), speech.hasMicrophoneAccess else {
                 syncWatchState()
                 return
             }
@@ -126,7 +161,6 @@ final class AppModel {
         }
     }
 
-    /// Wrist → phone: stop and commit the captured person (mirrors CaptureView's Stop).
     func stopCaptureFromWatch() {
         let transcript = speech.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
         speech.stopAndReset()
@@ -151,17 +185,18 @@ final class AppModel {
         let user = auth.signalUser(idToken: token)
         let signal = recorded.makeSignal(user: user, sessionId: sessionLog.sessionId)
         signalClient.send(signal)
+        await refreshConnectionsAfterCapture()
         syncWatchState()
     }
 
     // MARK: - Previews / wiring
 
-    /// Fully-mocked model for SwiftUI previews.
     static var preview: AppModel {
         AppModel(
             auth: MockAuthService.signedInPreview,
             speech: MockSpeechService(),
             signalClient: MockSignalClient(),
+            crmClient: MockCRMClient(),
             socialGraph: MockSocialGraph(),
             sessionLog: .preview
         )

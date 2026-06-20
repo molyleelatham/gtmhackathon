@@ -50,7 +50,10 @@
 		7A6206EA09063493AB8DD55D /* SignalClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF7EC70A390C0E05AB97400 /* SignalClientTests.swift */; };
 		7B42BBC8764577A5034AF0BD /* MockSpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 315FB080E7AEEF392454C325 /* MockSpeechService.swift */; };
 		7E018D38E3C327570CA5FEC5 /* CapturedSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8C62EF495DCA7A0A7F10613 /* CapturedSignal.swift */; };
+		82CA15A57489C240B8374694 /* CRMConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EFD9721A5F9B2AEC1B1427E /* CRMConnection.swift */; };
 		83B6A07B6ABD17B0B8C7FA41 /* FinishStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F870328D29363ACBD35EAC0 /* FinishStepView.swift */; };
+		84768019B7E796FA597CAF34 /* WarmthAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85EE579458F39DD142C186F2 /* WarmthAPIClient.swift */; };
+		8E00A8A52F1CBCD4AC53AC09 /* WatchlistProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA9843E30A73977284E853F /* WatchlistProvider.swift */; };
 		924CAE8D45DAE39ED1F40104 /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C0C5652848A11706527222 /* StartView.swift */; };
 		93144D6C44F82A69CEF7319A /* WarmthApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0789B3EB390A765860E524A1 /* WarmthApp.swift */; };
 		93E7F64C8918947F05F6D468 /* RecentConnectionsStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 593C279B69AACAB84802A538 /* RecentConnectionsStrip.swift */; };
@@ -61,6 +64,7 @@
 		9B6640122F5B0A46A2ABD30D /* SpeechServicing.swift in Sources */ = {isa = PBXBuildFile; fileRef = C294F482EEC56A71AC52615C /* SpeechServicing.swift */; };
 		9D782B31C95E211610D83776 /* SocialGraphProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 890F268DADEE35ECB969D052 /* SocialGraphProcessing.swift */; };
 		A9A0297F3CCA23FC5A0F81C8 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 306539510936AD8FD48E6712 /* GoogleSignIn */; };
+		A9EE98E6CC83F5BC7EE4A752 /* CRMConnectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F60CD3B35967BCDE989F219F /* CRMConnectionTests.swift */; };
 		AAA1F9BF92AA0E272C8090B3 /* WarmthWatchWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DA8895995031DBB19AEDFF1E /* WarmthWatchWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AB8610AE53E96706108DA1A2 /* WatchConnectivityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84ED72A8879C7B788B95C40 /* WatchConnectivityService.swift */; };
 		AE7064615FA3121E8E51FA11 /* SpaceGrotesk-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DDDC17D1004083D9C6583510 /* SpaceGrotesk-Regular.ttf */; };
@@ -129,12 +133,14 @@
 		2C962C9C13896199CC937D21 /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
 		2E4073E4DD63C702F65E5D67 /* SettingsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStoreTests.swift; sourceTree = "<group>"; };
 		2E8C51B5B2340C2235D7D626 /* SpaceGrotesk-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-Medium.ttf"; sourceTree = "<group>"; };
+		2EFD9721A5F9B2AEC1B1427E /* CRMConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRMConnection.swift; sourceTree = "<group>"; };
 		2F870328D29363ACBD35EAC0 /* FinishStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinishStepView.swift; sourceTree = "<group>"; };
 		3024C81F2315D57D200D4A0F /* ConnectionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionRow.swift; sourceTree = "<group>"; };
 		30B404718167914B5B40EDA9 /* ReviewCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewCardView.swift; sourceTree = "<group>"; };
 		315FB080E7AEEF392454C325 /* MockSpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSpeechService.swift; sourceTree = "<group>"; };
 		35B6529B517DFDBA683FF50A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		368DBE92B0EBA826BD8CFEF2 /* OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = OFL.txt; sourceTree = "<group>"; };
+		3AA9843E30A73977284E853F /* WatchlistProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistProvider.swift; sourceTree = "<group>"; };
 		3D79C67A6DEA7C184BC90BAA /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureView.swift; sourceTree = "<group>"; };
 		4145AFD43786E5BA008F1334 /* WarmthWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WarmthWatch.entitlements; sourceTree = "<group>"; };
 		43FEF3A1FFD17AAE0362EAFB /* SessionCaptureLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionCaptureLogTests.swift; sourceTree = "<group>"; };
@@ -156,6 +162,7 @@
 		78B1F5BE9468CF3CB3CB9D03 /* PersonNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonNode.swift; sourceTree = "<group>"; };
 		7FF4CA94879DCBCD279A16DE /* ComplicationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationProvider.swift; sourceTree = "<group>"; };
 		831D5E70B9E28C3D12537074 /* CalendarStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarStepView.swift; sourceTree = "<group>"; };
+		85EE579458F39DD142C186F2 /* WarmthAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarmthAPIClient.swift; sourceTree = "<group>"; };
 		86DC95C894412A1AF61A80E7 /* SpaceGrotesk-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-SemiBold.ttf"; sourceTree = "<group>"; };
 		890F268DADEE35ECB969D052 /* SocialGraphProcessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialGraphProcessing.swift; sourceTree = "<group>"; };
 		8AA14377A35A46431776C5C9 /* WelcomeStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeStepView.swift; sourceTree = "<group>"; };
@@ -190,6 +197,7 @@
 		F02AAB87F7DF526385B525E0 /* Motion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Motion.swift; sourceTree = "<group>"; };
 		F24C2152E81D250C103A2848 /* SpaceGrotesk-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-Light.ttf"; sourceTree = "<group>"; };
 		F417365B7B15A8CD8939087A /* WatchTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchTheme.swift; sourceTree = "<group>"; };
+		F60CD3B35967BCDE989F219F /* CRMConnectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRMConnectionTests.swift; sourceTree = "<group>"; };
 		F682C0157A6EC97C76AF8022 /* FirebaseAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseAuthService.swift; sourceTree = "<group>"; };
 		F84ED72A8879C7B788B95C40 /* WatchConnectivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityService.swift; sourceTree = "<group>"; };
 		F9CA17920A1CFAE5EF3F8860 /* PersonNodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonNodeTests.swift; sourceTree = "<group>"; };
@@ -232,6 +240,14 @@
 				D1B60319FD461EC64A1A09C6 /* WaveformView.swift */,
 			);
 			path = Capture;
+			sourceTree = "<group>";
+		};
+		02321B2E84BD197CA299FB57 /* API */ = {
+			isa = PBXGroup;
+			children = (
+				85EE579458F39DD142C186F2 /* WarmthAPIClient.swift */,
+			);
+			path = API;
 			sourceTree = "<group>";
 		};
 		048C0B3CDEBDF43B7A1AEF21 = {
@@ -285,6 +301,7 @@
 			isa = PBXGroup;
 			children = (
 				C8C62EF495DCA7A0A7F10613 /* CapturedSignal.swift */,
+				2EFD9721A5F9B2AEC1B1427E /* CRMConnection.swift */,
 				78B1F5BE9468CF3CB3CB9D03 /* PersonNode.swift */,
 			);
 			path = Models;
@@ -312,6 +329,7 @@
 			children = (
 				5DC7A91A4BDB60E28A974E1E /* AppModelTests.swift */,
 				61FE9F433B26C0EDB43997DF /* CapturedSignalTests.swift */,
+				F60CD3B35967BCDE989F219F /* CRMConnectionTests.swift */,
 				13D1FCE0B64B50832D581FF5 /* MockAuthServiceTests.swift */,
 				F9CA17920A1CFAE5EF3F8860 /* PersonNodeTests.swift */,
 				43FEF3A1FFD17AAE0362EAFB /* SessionCaptureLogTests.swift */,
@@ -362,6 +380,7 @@
 		7A054CE88A846338CCC53B4A /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				02321B2E84BD197CA299FB57 /* API */,
 				EE9910CB96AA2819765B5763 /* Auth */,
 				EF10E47D089DBDC2DDE0E3FB /* Connectivity */,
 				A43CA0E11CB97B4C1D657928 /* Session */,
@@ -369,6 +388,7 @@
 				B9B195AD97D600AEC0B8B606 /* Signal */,
 				F10B16AE9365B38369169908 /* SocialGraph */,
 				1A07ED824AC103EDE7751BB2 /* Speech */,
+				3AA9843E30A73977284E853F /* WatchlistProvider.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -734,6 +754,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5D3271541D7C08C6D50EC0C3 /* AppModelTests.swift in Sources */,
+				A9EE98E6CC83F5BC7EE4A752 /* CRMConnectionTests.swift in Sources */,
 				40B6E1714A44C8DEEB84788D /* CapturedSignalTests.swift in Sources */,
 				74267665B412995FE6F8E72D /* MockAuthServiceTests.swift in Sources */,
 				1BB69D706B82E6C55F2AA26A /* PersonNodeTests.swift in Sources */,
@@ -751,6 +772,7 @@
 			files = (
 				4FEAE703945A6455EC70AEBD /* AppModel.swift in Sources */,
 				75F5D65840120511F469DB44 /* AuthService.swift in Sources */,
+				82CA15A57489C240B8374694 /* CRMConnection.swift in Sources */,
 				3655E5757CAA89A536A727EF /* CalendarStepView.swift in Sources */,
 				37F4D61FD007846081472C80 /* CaptureView.swift in Sources */,
 				7E018D38E3C327570CA5FEC5 /* CapturedSignal.swift in Sources */,
@@ -783,10 +805,12 @@
 				9B6640122F5B0A46A2ABD30D /* SpeechServicing.swift in Sources */,
 				FAC6E499F1D1D81BFB3E012B /* Typography.swift in Sources */,
 				DBD84288D366FA7C47DDA5D9 /* WakeWordProviding.swift in Sources */,
+				84768019B7E796FA597CAF34 /* WarmthAPIClient.swift in Sources */,
 				93144D6C44F82A69CEF7319A /* WarmthApp.swift in Sources */,
 				1C2929B1C3FC553EB954BF5F /* WarmthColor.swift in Sources */,
 				2642DE185C53425E7CB5DDB4 /* WarmthGlass.swift in Sources */,
 				F86D5DF4DA7F9B032ABA2533 /* WatchSessionService.swift in Sources */,
+				8E00A8A52F1CBCD4AC53AC09 /* WatchlistProvider.swift in Sources */,
 				662347514130423ECE5919D3 /* WaveformView.swift in Sources */,
 				98DA7DD47A0DE823C3C2D5DA /* WelcomeStepView.swift in Sources */,
 			);

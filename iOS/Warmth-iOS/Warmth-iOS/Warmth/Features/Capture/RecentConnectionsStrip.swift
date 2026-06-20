@@ -1,13 +1,11 @@
 import SwiftUI
 
-/// Horizontal strip of the people captured this session, pinned near the bottom of
-/// the Capture screen. Falls back to seeded `PersonNode.mockData` so the demo never
-/// looks empty before the first capture lands.
+/// Horizontal strip of the warmest recent connections from the backend CRM.
 struct RecentConnectionsStrip: View {
-    let people: [PersonNode]
+    let connections: [CRMConnection]
 
-    private var displayed: [PersonNode] {
-        people.isEmpty ? PersonNode.mockData : people
+    private var displayed: [CRMConnection] {
+        Array(connections.prefix(6))
     }
 
     var body: some View {
@@ -17,21 +15,27 @@ struct RecentConnectionsStrip: View {
                 .foregroundStyle(WarmthColor.inkSecondary)
                 .padding(.horizontal, 20)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 14) {
-                    ForEach(displayed) { person in
-                        RecentConnectionCard(person: person)
+            if displayed.isEmpty {
+                Text("Capture someone to see them here and on the web dashboard.")
+                    .font(.Warmth.footnote)
+                    .foregroundStyle(WarmthColor.inkSecondary)
+                    .padding(.horizontal, 20)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 14) {
+                        ForEach(displayed) { connection in
+                            RecentConnectionCard(connection: connection)
+                        }
                     }
+                    .padding(.horizontal, 20)
                 }
-                .padding(.horizontal, 20)
             }
         }
     }
 }
 
-/// A single avatar tile within the recent-connections strip.
 private struct RecentConnectionCard: View {
-    let person: PersonNode
+    let connection: CRMConnection
 
     var body: some View {
         VStack(spacing: 8) {
@@ -40,18 +44,18 @@ private struct RecentConnectionCard: View {
                     .fill(WarmthColor.emberGradient)
                     .frame(width: 56, height: 56)
                     .overlay(Circle().strokeBorder(WarmthColor.warmWhite.opacity(0.4), lineWidth: 1))
-                    .shadow(color: person.band.tint.opacity(0.5), radius: 8, y: 4)
-                Text(person.initials)
+                    .shadow(color: connection.band.tint.opacity(0.5), radius: 8, y: 4)
+                Text(connection.initials)
                     .font(.Warmth.headline)
                     .foregroundStyle(WarmthColor.warmWhite)
             }
 
-            Text(person.name)
+            Text(connection.name)
                 .font(.Warmth.caption)
                 .foregroundStyle(WarmthColor.ink)
                 .lineLimit(1)
 
-            WarmthBadge(band: person.band, score: person.icpScore)
+            WarmthBadge(band: connection.band, score: connection.predictedWarmth)
         }
         .frame(width: 92)
         .padding(.vertical, 14)
@@ -63,13 +67,13 @@ private struct RecentConnectionCard: View {
 #Preview("Populated") {
     ZStack {
         MeshGradientBackground()
-        RecentConnectionsStrip(people: PersonNode.mockData)
+        RecentConnectionsStrip(connections: CRMConnection.previewList)
     }
 }
 
-#Preview("Fallback (empty)") {
+#Preview("Empty") {
     ZStack {
         MeshGradientBackground()
-        RecentConnectionsStrip(people: [])
+        RecentConnectionsStrip(connections: [])
     }
 }

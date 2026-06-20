@@ -58,7 +58,7 @@ struct CaptureView: View {
 
                 Spacer(minLength: 16)
 
-                RecentConnectionsStrip(people: model.sessionLog.people)
+                RecentConnectionsStrip(connections: model.crmClient.connections)
                     .padding(.bottom, 8)
             }
             .padding(.top, 8)
@@ -224,7 +224,7 @@ struct CaptureView: View {
             return false
         }
         isStartingCapture = true
-        Task {
+        Task { @MainActor in
             defer { isStartingCapture = false }
             guard await model.speech.requestPermissions() else { return }
             guard model.speech.hasMicrophoneAccess else { return }
@@ -322,7 +322,7 @@ struct AttendeeConnectedOverlay: View {
                         personName: displayName,
                         interests: interests,
                         topicWeights: match.knowledgeGraph?.first?.topicWeights,
-                        values: match.knowledgeGraph?.first?.values
+                        values: match.knowledgeGraph?.first?.values ?? []
                     )
                     .frame(height: 220)
 
@@ -386,54 +386,89 @@ struct KnowledgeGraphMiniView: View {
 
     var body: some View {
         GeometryReader { geo in
-            let size = min(geo.size.width, geo.size.height)
-            let center = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2)
-            let radius = size * 0.34
+            let layout = OrbitLayout(size: geo.size, nodes: nodes)
             ZStack {
-                ForEach(Array(nodes.enumerated()), id: \.element.id) { index, node in
-                    let angle = (Double(index) / Double(max(nodes.count, 1))) * (.pi * 2) - .pi / 2
-                    let point = CGPoint(
-                        x: center.x + CGFloat(cos(angle)) * radius,
-                        y: center.y + CGFloat(sin(angle)) * radius
-                    )
-                    Path { path in
-                        path.move(to: center)
-                        path.addLine(to: point)
-                    }
-                    .stroke(nodeColor(node.kind).opacity(0.45), lineWidth: 1.5)
-
-                    Circle()
-                        .fill(nodeColor(node.kind))
-                        .frame(width: node.kind == .topic ? 16 : 12, height: node.kind == .topic ? 16 : 12)
-                        .position(point)
-
-                    Text(shortLabel(node.label))
-                        .font(.Warmth.caption2)
-                        .foregroundStyle(WarmthColor.inkSecondary)
-                        .position(x: point.x, y: point.y + 16)
+                ForEach(layout.placements) { placement in
+                    OrbitNodeView(placement: placement, layout: layout)
                 }
 
                 Circle()
                     .fill(WarmthColor.emberRed.opacity(0.18))
                     .frame(width: 56, height: 56)
-                    .position(center)
+                    .position(layout.center)
                 Text(personName.split(separator: " ").first.map(String.init) ?? personName)
                     .font(.Warmth.caption.weight(.bold))
                     .foregroundStyle(WarmthColor.ink)
-                    .position(center)
+                    .position(layout.center)
             }
         }
     }
 
-    private func nodeColor(_ kind: OrbitNode.Kind) -> Color {
-        switch kind {
-        case .topic: WarmthColor.emberRed.opacity(0.85)
-        case .interest: WarmthColor.amber.opacity(0.85)
-        case .value: WarmthColor.emberRed.opacity(0.55)
+    private struct OrbitLayout {
+        let center: CGPoint
+        let radius: CGFloat
+        let placements: [OrbitPlacement]
+
+        init(size: CGSize, nodes: [OrbitNode]) {
+            let side = min(size.width, size.height)
+            let centerPoint = CGPoint(x: size.width / 2, y: size.height / 2)
+            let orbitRadius = side * 0.34
+            let computed = nodes.enumerated().map { index, node in
+                let angle = (Double(index) / Double(max(nodes.count, 1))) * (.pi * 2) - .pi / 2
+                let point = CGPoint(
+                    x: centerPoint.x + CGFloat(cos(angle)) * orbitRadius,
+                    y: centerPoint.y + CGFloat(sin(angle)) * orbitRadius
+                )
+                return OrbitPlacement(node: node, point: point)
+            }
+            center = centerPoint
+            radius = orbitRadius
+            placements = computed
         }
     }
 
-    private func shortLabel(_ label: String) -> String {
-        label.count > 14 ? String(label.prefix(13)) + "…" : label
+    private struct OrbitPlacement: Identifiable {
+        let node: OrbitNode
+        let point: CGPoint
+        var id: String { node.id }
+    }
+
+    private struct OrbitNodeView: View {
+        let placement: OrbitPlacement
+        let layout: OrbitLayout
+
+        var body: some View {
+            let node = placement.node
+            let point = placement.point
+            ZStack {
+                Path { path in
+                    path.move(to: layout.center)
+                    path.addLine(to: point)
+                }
+                .stroke(nodeColor(node.kind).opacity(0.45), lineWidth: 1.5)
+
+                Circle()
+                    .fill(nodeColor(node.kind))
+                    .frame(width: node.kind == .topic ? 16 : 12, height: node.kind == .topic ? 16 : 12)
+                    .position(point)
+
+                Text(shortLabel(node.label))
+                    .font(.Warmth.caption)
+                    .foregroundStyle(WarmthColor.inkSecondary)
+                    .position(x: point.x, y: point.y + 16)
+            }
+        }
+
+        private func nodeColor(_ kind: OrbitNode.Kind) -> Color {
+            switch kind {
+            case .topic: WarmthColor.emberRed.opacity(0.85)
+            case .interest: WarmthColor.amber.opacity(0.85)
+            case .value: WarmthColor.emberRed.opacity(0.55)
+            }
+        }
+
+        private func shortLabel(_ label: String) -> String {
+            label.count > 14 ? String(label.prefix(13)) + "…" : label
+        }
     }
 }
