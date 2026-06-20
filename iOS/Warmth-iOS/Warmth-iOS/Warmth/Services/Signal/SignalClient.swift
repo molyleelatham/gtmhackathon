@@ -68,4 +68,78 @@ final class SignalClient: SignalSending {
     }
 
     var queuedCount: Int { queue.count }
+
+    // MARK: - Attendee match + roster
+
+    func matchAttendee(name: String, company: String? = nil, transcript: String? = nil) async -> AttendeeMatchResult? {
+        let endpoint = baseURL.appendingPathComponent("api/v1/match/attendee")
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 8
+
+        var payload: [String: String] = ["name": name]
+        if let company { payload["company"] = company }
+        if let transcript { payload["transcript"] = transcript }
+
+        guard let body = try? JSONSerialization.data(withJSONObject: payload) else { return nil }
+
+        request.httpBody = body
+        do {
+            let (data, response) = try await session.data(for: request)
+            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { return nil }
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            return try decoder.decode(AttendeeMatchResult.self, from: data)
+        } catch {
+            return nil
+        }
+    }
+
+    func fetchRosterFirstNames() async -> [String] {
+        let endpoint = baseURL.appendingPathComponent("api/v1/connections")
+        var request = URLRequest(url: endpoint)
+        request.timeoutInterval = 8
+        do {
+            let (data, response) = try await session.data(for: request)
+            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { return [] }
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            let rows = try decoder.decode([RosterConnectionRow].self, from: data)
+            return rows.compactMap { $0.name?.split(separator: " ").first.map(String.init) }
+        } catch {
+            return []
+        }
+    }
+}
+
+// MARK: - Attendee match models
+
+struct AttendeeMatchResult: Codable, Equatable {
+    let matched: Bool
+    let name: String?
+    let message: String
+    let score: Double?
+    let matchedOn: [String]?
+    let connection: MatchedConnection?
+    let interests: [String]?
+    let knowledgeGraph: [KnowledgeGraphSnapshot]?
+}
+
+struct MatchedConnection: Codable, Equatable {
+    let id: String?
+    let name: String?
+    let title: String?
+    let companyName: String?
+    let predictedWarmth: Double?
+    let icpScore: Double?
+}
+
+struct KnowledgeGraphSnapshot: Codable, Equatable {
+    let topicWeights: [String: Double]?
+    let values: [String]?
+}
+
+private struct RosterConnectionRow: Codable {
+    let name: String?
 }

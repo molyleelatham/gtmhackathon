@@ -7,6 +7,8 @@ import { Connections } from "./pages/Connections";
 import { ConnectionDetail } from "./pages/ConnectionDetail";
 import { Community } from "./pages/Community";
 import { Settings } from "./pages/Settings";
+import { Leads } from "./pages/Leads";
+import { Pipeline } from "./pages/Pipeline";
 import { SignIn } from "./pages/SignIn";
 import { useAuth } from "./lib/auth";
 
@@ -33,6 +35,8 @@ export default function App() {
         <Route path="events/:eventId" element={<PreMeet />} />
         <Route path="connections" element={<Connections />} />
         <Route path="connections/:connectionId" element={<ConnectionDetail />} />
+        <Route path="leads" element={<Leads />} />
+        <Route path="pipeline" element={<Pipeline />} />
         <Route path="community" element={<Community />} />
         <Route path="settings" element={<Settings />} />
       </Route>

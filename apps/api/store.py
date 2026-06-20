@@ -3,11 +3,14 @@
 A lightweight, process-local data store seeded with sample data so the web
 dashboard and API are demoable without Firebase or external credentials.
 
-TODO: replace with FirestoreClient-backed repositories. The shape here mirrors
-the domain models in packages/core/models.
+GTM Hackathon roster is loaded from ``warmth/data/gtm_hackathon_attendees.json``
+when present (written by ``scripts/run_gtm_hackathon_pull.py``).
 """
-from datetime import datetime, timedelta
+from datetime import datetime
+from pathlib import Path
 from typing import Any, Optional
+import json
+import re
 
 from ...packages.core.models.event import DetectedEvent, EventType, LifecycleStage
 from ...packages.core.models.pre_connection import PreMeetConnection, PreMeetStatus
@@ -16,6 +19,66 @@ from ...packages.core.models.warmth import WarmthScore, WarmthBand
 
 
 DEMO_USER_ID = "demo-user"
+GTM_EVENT_ID = "event_gtm_hackathon_london"
+GTM_DATA_FILE = Path(__file__).resolve().parents[2] / "data" / "gtm_hackathon_attendees.json"
+
+# Stable ids so dashboard links survive refreshes
+GTM_ATTENDEE_IDS = {
+    "molyleelatham@gmail.com": "premeet_moly_leelatham",
+    "dzakwan1844@gmail.com": "premeet_dzakwan_nabil",
+    "nicholasyswong@googlemail.com": "premeet_nicholas_wong",
+}
+
+GTM_SCORES = {
+    "molyleelatham@gmail.com": {"icp": 88, "warmth": 82, "intent": 75, "band": WarmthBand.HOT},
+    "dzakwan1844@gmail.com": {"icp": 71, "warmth": 58, "intent": 52, "band": WarmthBand.WARM},
+    "nicholasyswong@googlemail.com": {"icp": 76, "warmth": 68, "intent": 60, "band": WarmthBand.WARM},
+}
+
+
+def _notes_list(raw: Any) -> list[str]:
+    if raw is None:
+        return []
+    if isinstance(raw, list):
+        return [str(x) for x in raw if x]
+    text = str(raw).strip()
+    return [text] if text else []
+
+
+def _company_from_attendee(att: dict[str, Any]) -> Optional[str]:
+    if att.get("company") or att.get("company_name"):
+        return att.get("company") or att.get("company_name")
+    notes = _notes_list(att.get("research_notes"))
+    blob = " ".join(notes)
+    for pat in (
+        r"@\s*([A-Z][A-Za-z0-9&\s]+?)(?:\s+\||\s+\.\s|\s*\n|$)",
+        r"Co-Founder @\s*(\w+)",
+        r"Director @(\w+)",
+    ):
+        m = re.search(pat, blob)
+        if m:
+            return m.group(1).strip()
+    if "Imperial College" in blob:
+        return "Imperial College London"
+    if "Fynco" in blob:
+        return "Fynco"
+    if "CLARK" in blob:
+        return "CLARK"
+    if "Aldzama" in blob:
+        return "Aldzama"
+    return None
+
+
+def _title_from_attendee(att: dict[str, Any]) -> Optional[str]:
+    if att.get("title"):
+        return att["title"]
+    notes = _notes_list(att.get("research_notes"))
+    if not notes:
+        return None
+    head = notes[0].split("|")[0].strip()
+    if " - " in head:
+        return head.split(" - ", 1)[1][:80]
+    return None
 
 
 class DemoStore:
@@ -24,79 +87,115 @@ class DemoStore:
         self.pre_connections: dict[str, PreMeetConnection] = {}
         self.leads: dict[str, Lead] = {}
         self.warmth: dict[str, WarmthScore] = {}
+        self.gtm_sync_results: dict[str, Any] = {}
         self.community_members: list[dict] = []
         self.meet_results: dict[str, dict[str, Any]] = {}  # connection_id -> last meet result
+        self.knowledge_graphs: dict[str, dict[str, Any]] = {}  # connection_id -> KG payload
         self.signal_index: dict[str, str] = {}  # ios signal uuid -> connection_id
         self._seed()
 
     # ------------------------------------------------------------------ #
     def _seed(self) -> None:
+        self.refresh_gtm_hackathon()
+
+    def refresh_gtm_hackathon(
+        self,
+        attendees: Optional[list[dict[str, Any]]] = None,
+        *,
+        event_name: str = "GTM Hackathon London",
+        event_location: str = "The Building Centre",
+        premeet_results: Optional[list[PreMeetConnection]] = None,
+        sync_results: Optional[dict[str, Any]] = None,
+    ) -> DetectedEvent:
+        """Load or refresh the GTM Hackathon dashboard roster."""
+        if attendees is None and GTM_DATA_FILE.exists():
+            attendees = json.loads(GTM_DATA_FILE.read_text())
+
         now = datetime.utcnow()
         event = DetectedEvent(
-            id="event_demo_saastr",
+            id=GTM_EVENT_ID,
             user_id=DEMO_USER_ID,
-            name="SaaStr Annual 2026",
+            name=event_name,
             event_type=EventType.CONFERENCE,
-            location="San Francisco, CA",
-            start_date=now + timedelta(days=7),
-            end_date=now + timedelta(days=9),
-            confidence=0.9,
+            location=event_location,
+            start_date=datetime(2026, 6, 20, 8, 30),
+            end_date=datetime(2026, 6, 20, 18, 0),
+            confidence=1.0,
             stage=LifecycleStage.BEFORE_MEET,
-            attendee_count=3,
+            attendee_count=len(attendees or []),
+            premeet_completed=bool(premeet_results),
         )
-        self.events[event.id] = event
+        self.events = {event.id: event}
 
-        seed_attendees = [
-            {
-                "name": "Maya Chen", "title": "VP RevOps", "company_name": "NorthWind Labs",
-                "company_size": 220, "industry": "B2B SaaS", "funding_stage": "Series B",
-                "interests": ["RevOps", "pipeline visibility", "attribution"],
-                "icp": 88, "intent": 70, "warmth": 81, "band": WarmthBand.HOT,
-            },
-            {
-                "name": "Diego Alvarez", "title": "Founder & CEO", "company_name": "Loophole",
-                "company_size": 35, "industry": "DevTools", "funding_stage": "Series A",
-                "interests": ["growth", "developer experience"],
-                "icp": 64, "intent": 55, "warmth": 58, "band": WarmthBand.WARM,
-            },
-            {
-                "name": "Priya Nair", "title": "Head of Sales Engineering", "company_name": "Quanta",
-                "company_size": 480, "industry": "Fintech", "funding_stage": "Series C",
-                "interests": ["Salesforce", "automation"],
-                "icp": 76, "intent": 40, "warmth": 49, "band": WarmthBand.WARM,
-            },
-        ]
-        for a in seed_attendees:
+        # Drop old connections for this event
+        old_ids = [k for k, v in self.pre_connections.items() if v.event_id == GTM_EVENT_ID]
+        for kid in old_ids:
+            self.pre_connections.pop(kid, None)
+            self.warmth.pop(kid, None)
+
+        results_by_email = {}
+        if premeet_results:
+            for c in premeet_results:
+                if c.email:
+                    results_by_email[c.email.lower()] = c
+
+        if not attendees:
+            attendees = []
+
+        for att in attendees:
+            email = (att.get("email") or "").lower()
+            scores = GTM_SCORES.get(email, {"icp": 65, "warmth": 50, "intent": 45, "band": WarmthBand.WARM})
+            merged = results_by_email.get(email)
+            conn_id = GTM_ATTENDEE_IDS.get(email, f"premeet_{email.replace('@', '_')}")
+
             conn = PreMeetConnection(
+                id=conn_id,
                 event_id=event.id,
                 user_id=DEMO_USER_ID,
-                name=a["name"],
-                title=a["title"],
-                company_name=a["company_name"],
-                company_size=a["company_size"],
-                industry=a["industry"],
-                funding_stage=a["funding_stage"],
-                interests=a["interests"],
-                icp_score=a["icp"],
-                intent_score=a["intent"],
-                predicted_warmth=a["warmth"],
-                status=PreMeetStatus.SCORED,
-                source="calendar",
+                name=att.get("name"),
+                email=att.get("email"),
+                title=_title_from_attendee(att) or (merged.title if merged else None),
+                linkedin=att.get("linkedin") or (merged.linkedin if merged else None),
+                company_name=_company_from_attendee(att) or (merged.company_name if merged else None),
+                company_domain=att.get("company_domain"),
+                industry="GTM / SaaS",
+                interests=att.get("interests") or [],
+                research_notes=_notes_list(att.get("research_notes")),
+                icp_score=merged.icp_score if merged else scores["icp"],
+                predicted_warmth=merged.predicted_warmth if merged else scores["warmth"],
+                intent_score=merged.intent_score if merged else scores["intent"],
+                draft_subject=merged.draft_subject if merged else None,
+                draft_body=merged.draft_body if merged else None,
+                gmail_draft_id=merged.gmail_draft_id if merged else None,
+                status=merged.status if merged else PreMeetStatus.SCORED,
+                source=att.get("source", "calendar+tavily"),
             )
             self.pre_connections[conn.id] = conn
+            band = WarmthBand.HOT if conn.predicted_warmth >= 70 else WarmthBand.WARM
             self.warmth[conn.id] = WarmthScore(
                 connection_id=conn.id,
-                icp_score=a["icp"],
-                warmth_score=a["warmth"],
-                predicted_score=a["warmth"],
-                band=a["band"],
+                icp_score=int(conn.icp_score),
+                warmth_score=conn.predicted_warmth,
+                predicted_score=conn.predicted_warmth,
+                band=band,
             )
+
+        if sync_results is not None:
+            hubspot = dict(sync_results.get("hubspot", {}))
+            zero = dict(sync_results.get("zero", {}))
+            hubspot.pop("contacts", None)
+            self.gtm_sync_results = {
+                "hubspot": hubspot,
+                "zero": zero,
+                "updated_at": datetime.utcnow().isoformat(),
+            }
 
         self.community_members = [
             {"user_id": "founder_amir", "name": "Amir", "interests": ["RevOps", "AI", "GTM"]},
             {"user_id": "friend_sara", "name": "Sara", "interests": ["fintech", "automation"]},
             {"user_id": "founder_lena", "name": "Lena", "interests": ["developer experience", "growth"]},
         ]
+        return event
 
     # ------------------------------------------------------------------ #
     def list_events(self, user_id: Optional[str] = None) -> list[DetectedEvent]:
@@ -145,6 +244,10 @@ class DemoStore:
         narrative: Optional[str] = None,
         gmail_draft: Optional[dict] = None,
         outreach_sequence: Optional[dict] = None,
+        *,
+        interests: Optional[list[str]] = None,
+        relations: Optional[list[dict]] = None,
+        knowledge_graph: Optional[list[dict]] = None,
     ) -> None:
         self.meet_results[connection_id] = {
             "signal_id": signal_id,
@@ -152,12 +255,43 @@ class DemoStore:
             "narrative": narrative,
             "gmail_draft": gmail_draft,
             "outreach_sequence": outreach_sequence,
+            "interests": interests or [],
+            "relations": relations or [],
+            "knowledge_graph": knowledge_graph or [],
             "recorded_at": datetime.utcnow().isoformat(),
         }
         self.signal_index[signal_id] = connection_id
+        conn = self.get_connection(connection_id)
+        if conn and interests:
+            merged = list(dict.fromkeys([*conn.interests, *interests]))
+            conn.interests = merged
+            self.upsert_connection(conn)
 
     def meet_result_for(self, connection_id: str) -> Optional[dict[str, Any]]:
         return self.meet_results.get(connection_id)
+
+    def record_knowledge_graph(
+        self,
+        connection_id: str,
+        *,
+        people: list[dict[str, Any]] | None = None,
+        person: dict[str, Any] | None = None,
+        narrative: str | None = None,
+        signal: dict[str, Any] | None = None,
+    ) -> None:
+        payload: dict[str, Any] = {
+            "people": people or [],
+            "person": person,
+            "narrative": narrative,
+            "signal": signal,
+            "recorded_at": datetime.utcnow().isoformat(),
+        }
+        if person and not payload["people"]:
+            payload["people"] = [person]
+        self.knowledge_graphs[connection_id] = payload
+
+    def knowledge_graph_for(self, connection_id: str) -> Optional[dict[str, Any]]:
+        return self.knowledge_graphs.get(connection_id)
 
     def upsert_lead_from_signal(
         self,

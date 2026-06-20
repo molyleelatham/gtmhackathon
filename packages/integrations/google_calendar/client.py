@@ -43,8 +43,7 @@ class GoogleCalendarClient:
         TODO: implement the real MCP request/response mapping.
         """
         url = f"{self.mcp_server_url}/calendar/events"
-        payload = {
-            "credentials": self.credentials,
+        payload: dict = {
             "time_min": time_min.isoformat() if time_min else None,
             "time_max": time_max.isoformat() if time_max else None,
         }
@@ -103,7 +102,6 @@ class GoogleCalendarClient:
         """Create a calendar event (e.g. a booked conference meeting) via MCP."""
         url = f"{self.mcp_server_url}/calendar/events/create"
         payload = {
-            "credentials": self.credentials,
             "title": title,
             "start_time": start_time.isoformat(),
             "end_time": end_time.isoformat(),

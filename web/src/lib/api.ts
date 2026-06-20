@@ -1,89 +1,130 @@
 import type {
+  AttendeeMatchResult,
+  CapturedSignalInput,
+  CommunityMember,
+  ConferenceRun,
+  ConferenceRunRequest,
+  ConnectResult,
+  ConnectionDetailResponse,
   DashboardSummary,
   DetectedEvent,
+  HealthStatus,
+  IcpProfileRow,
+  Lead,
+  MeetEncodeRequest,
+  MeetEncodeResponse,
+  MeetProcessResponse,
+  MeetingSignalInput,
   PreMeetConnection,
   RoutingDecision,
-  WarmthScore,
+  SignalIngestResult,
 } from "../types";
-import {
-  CONNECTIONS,
-  DASHBOARD_SUMMARY,
-  EVENTS,
-  routingFor,
-  warmthFor,
-} from "./mockData";
+import type { DashboardRoster } from "./adapters";
+import type { Integration } from "./uiTypes";
 
-/**
- * Mock-backed API client.
- *
- * The real FastAPI backend (`apps/api`) is wired the same way, so swapping this
- * for `fetch(`${import.meta.env.VITE_API_BASE_URL}/...`)` later requires no
- * changes at the call sites. For this first draft everything resolves from the
- * in-memory mock data so the dashboard runs with zero backend/keys.
- */
-function delay<T>(value: T, ms = 220): Promise<T> {
-  return new Promise((resolve) => setTimeout(() => resolve(value), ms));
+const BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+    ...init,
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+  return res.json() as Promise<T>;
 }
 
 export const api = {
-  dashboard(): Promise<DashboardSummary> {
-    return delay(DASHBOARD_SUMMARY);
-  },
+  // --- Health & onboarding ---
+  health: () => request<HealthStatus>("/health"),
+  connect: (userId = "demo-user") =>
+    request<ConnectResult>("/api/v1/connect", {
+      method: "POST",
+      body: JSON.stringify({ user_id: userId }),
+    }),
 
-  connect(): Promise<{ ok: true }> {
-    return delay({ ok: true });
-  },
+  // --- Dashboard data ---
+  dashboard: () => request<DashboardSummary>("/api/v1/dashboard"),
+  dashboardRoster: () => request<DashboardRoster>("/api/v1/dashboard/roster"),
+  icpProfile: () => request<IcpProfileRow[]>("/api/v1/icp"),
+  integrations: () => request<Integration[]>("/api/v1/integrations"),
 
-  listEvents(): Promise<DetectedEvent[]> {
-    return delay(EVENTS);
-  },
-
-  getEvent(id: string): Promise<DetectedEvent> {
-    const event = EVENTS.find((e) => e.id === id) ?? EVENTS[0];
-    return delay(event);
-  },
-
-  eventLeads(eventId: string): Promise<PreMeetConnection[]> {
-    return delay(CONNECTIONS.filter((c) => c.event_id === eventId));
-  },
-
-  runPremeet(_eventId: string, _attendees: unknown[]): Promise<{ ok: true }> {
-    return delay({ ok: true }, 400);
-  },
-
-  listConnections(): Promise<PreMeetConnection[]> {
-    return delay(CONNECTIONS);
-  },
-
-  getConnection(
-    id: string,
-  ): Promise<{ connection: PreMeetConnection; warmth: WarmthScore }> {
-    const connection = CONNECTIONS.find((c) => c.id === id) ?? CONNECTIONS[0];
-    return delay({ connection, warmth: warmthFor(connection.predicted_warmth) });
-  },
-
-  processSignal(payload: {
-    connection_id: string;
-    [key: string]: unknown;
-  }): Promise<RoutingDecision> {
-    const connection =
-      CONNECTIONS.find((c) => c.id === payload.connection_id) ?? CONNECTIONS[0];
-    return delay(routingFor(connection), 500);
-  },
-
-  sendFollowup(
-    _connectionId: string,
-    payload: { name?: string | null; company?: string | null; [key: string]: unknown },
-  ): Promise<Record<string, unknown>> {
-    return delay(
+  // --- Events & pre-meet ---
+  listEvents: () => request<DetectedEvent[]>("/api/v1/events"),
+  getEvent: (id: string) => request<DetectedEvent>(`/api/v1/events/${id}`),
+  runPremeet: (
+    eventId: string,
+    manualAttendees: Record<string, unknown>[] = [],
+    topN = 10,
+  ) =>
+    request<{ event_id: string; ranked_leads: PreMeetConnection[] }>(
+      `/api/v1/events/${eventId}/premeet`,
       {
-        subject: `Great meeting you at SaaStr, ${payload.name ?? "there"}`,
-        body: `Hi ${payload.name ?? "there"},\n\nReally enjoyed our chat${
-          payload.company ? ` about ${payload.company}` : ""
-        }. Here's the follow-up I promised — let's find time next week.\n\nBest,\nAlex`,
-        status: "drafted",
+        method: "POST",
+        body: JSON.stringify({ manual_attendees: manualAttendees, top_n: topN }),
       },
-      450,
-    );
-  },
+    ),
+  eventLeads: (eventId: string) =>
+    request<PreMeetConnection[]>(`/api/v1/events/${eventId}/leads`),
+
+  // --- Connections & leads ---
+  listConnections: () => request<PreMeetConnection[]>("/api/v1/connections"),
+  getConnection: (id: string) =>
+    request<ConnectionDetailResponse>(`/api/v1/connections/${id}`),
+  listLeads: () => request<Lead[]>("/api/v1/leads"),
+
+  // --- Meet stage ---
+  encodeMeet: (body: MeetEncodeRequest) =>
+    request<MeetEncodeResponse>("/api/v1/meet/encode", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  processMeet: (body: MeetEncodeRequest) =>
+    request<MeetProcessResponse>("/api/v1/meet/process", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  processSignal: (body: MeetingSignalInput) =>
+    request<MeetProcessResponse & RoutingDecision>(
+      "/api/v1/meet/signals",
+      {
+        method: "POST",
+        body: JSON.stringify(body),
+      },
+    ),
+
+  // --- Post-meet ---
+  sendFollowup: (connectionId: string, body: Record<string, unknown>) =>
+    request<Record<string, unknown>>(`/api/v1/connections/${connectionId}/followup`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  // --- Community ---
+  communityMembers: () => request<CommunityMember[]>("/api/v1/community/members"),
+
+  // --- Conference pipeline ---
+  listConferenceRuns: () => request<ConferenceRun[]>("/api/v1/conferences/"),
+  getConferenceRun: (runId: string) =>
+    request<ConferenceRun>(`/api/v1/conferences/${runId}`),
+  runConferencePipeline: (body: ConferenceRunRequest) =>
+    request<ConferenceRun>("/api/v1/conferences/run", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  // --- iOS signal ingress (CapturedSignal shape) ---
+  ingestCapturedSignal: (body: CapturedSignalInput) =>
+    request<SignalIngestResult>("/api/signals", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  matchAttendee: (body: { name: string; company?: string; transcript?: string }) =>
+    request<AttendeeMatchResult>("/api/v1/match/attendee", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };

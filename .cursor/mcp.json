@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "zero": {
+      "url": "https://api.zero.inc/mcp"
+    }
+  }
+}

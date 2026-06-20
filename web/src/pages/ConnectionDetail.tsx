@@ -1,62 +1,146 @@
 import { useParams, Link } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
 import { Loading, ErrorBox } from "./Dashboard";
 import { WarmthBadge } from "../components/WarmthBadge";
+import { KnowledgeGraphView } from "../components/KnowledgeGraphView";
 import { GlassCard } from "../components/Glass";
-import type { RoutingDecision } from "../types";
+import type { MeetProcessResponse, RoutingDecision } from "../types";
+
+function sampleTurns(conn: { name?: string | null; company_name?: string | null; title?: string | null }) {
+  return [
+    { speaker: 0, text: "Great to meet you — what brought you to the conference?" },
+    {
+      speaker: 1,
+      text: `We're scaling GTM at ${conn.company_name ?? "our company"}. Biggest pain is follow-up after back-to-back meetings.`,
+    },
+    {
+      speaker: 0,
+      text: "We built Warmth to score conversations and draft follow-ups in real time.",
+    },
+    {
+      speaker: 1,
+      text: "That's exactly what I need. We have budget approved for Q3 and are consolidating three tools.",
+    },
+  ];
+}
 
 export function ConnectionDetail() {
   const { connectionId = "" } = useParams();
-  const { data, error, loading } = useAsync(
+  const { data, error, loading, reload } = useAsync(
     () => api.getConnection(connectionId),
     [connectionId],
   );
-  const [decision, setDecision] = useState<RoutingDecision | null>(null);
+  const [decision, setDecision] = useState<RoutingDecision | MeetProcessResponse | null>(null);
+  const [encodeResult, setEncodeResult] = useState<Record<string, unknown> | null>(null);
   const [meetDraft, setMeetDraft] = useState<Record<string, unknown> | null>(null);
   const [followup, setFollowup] = useState<Record<string, unknown> | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
 
   const conn = data?.connection;
   const warmth = data?.warmth;
+  const persistedMeet = data?.meet_result;
 
-  async function simulateMeet() {
-    if (!conn) return;
-    setBusy(true);
+  useEffect(() => {
+    if (persistedMeet?.gmail_draft) {
+      setMeetDraft(persistedMeet.gmail_draft as Record<string, unknown>);
+    }
+  }, [persistedMeet]);
+
+  function meetPayload() {
+    if (!conn) return null;
+    return {
+      turns: sampleTurns(conn),
+      self_speaker_id: 0,
+      speaker_attrs: {
+        1: { name: conn.name ?? undefined, company: conn.company_name ?? undefined, role: conn.title ?? undefined },
+      },
+      event_id: conn.event_id,
+      connection_id: conn.id,
+    };
+  }
+
+  function signalPayload(): import("../types").MeetingSignalInput | null {
+    if (!conn) return null;
+    return {
+      connection_id: conn.id,
+      event_id: conn.event_id,
+      name: conn.name ?? undefined,
+      company: conn.company_name ?? undefined,
+      role: conn.title ?? undefined,
+      interests: conn.interests,
+      what_you_learned: conn.research_notes?.length
+        ? conn.research_notes
+        : ["Exploring a RevOps revamp", "Budget approved for Q3"],
+      most_interesting: "They're consolidating 3 tools into one",
+      topic_time: [{ topic: "pipeline", seconds: 240 }],
+      most_time_topic: "pipeline",
+      transcript_excerpt: "We have budget approved for Q3 and need faster conference follow-up.",
+    };
+  }
+
+  async function runEncode() {
+    const body = meetPayload();
+    if (!body) return;
+    setBusy("encode");
     try {
-      const result = await api.processSignal({
-        connection_id: conn.id,
-        name: conn.name,
-        company: conn.company_name,
-        interests: conn.interests,
-        what_you_learned: ["Exploring a RevOps revamp", "Budget approved for Q3"],
-        most_interesting: "They're consolidating 3 tools into one",
-        topic_time: [{ topic: "pipeline", seconds: 240 }],
-        most_time_topic: "pipeline",
-      });
-      setDecision(result);
-      setMeetDraft((result.gmail_draft as Record<string, unknown>) ?? null);
+      const result = await api.encodeMeet(body);
+      setEncodeResult(result as unknown as Record<string, unknown>);
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
-  async function sendFollowup() {
+  async function runProcessMeet() {
+    const body = meetPayload();
+    if (!body) return;
+    setBusy("process");
+    try {
+      const result = await api.processMeet(body);
+      setDecision(result);
+      setMeetDraft((result.gmail_draft as Record<string, unknown>) ?? null);
+      reload();
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function simulateMeet() {
+    const body = signalPayload();
+    if (!body) return;
+    setBusy("signal");
+    try {
+      const result = await api.processSignal(body);
+      setDecision(result);
+      setMeetDraft((result.gmail_draft as Record<string, unknown>) ?? null);
+      reload();
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function sendFollowupAction() {
     if (!conn) return;
-    setBusy(true);
+    setBusy("followup");
     try {
       const result = await api.sendFollowup(conn.id, {
         name: conn.name,
         company: conn.company_name,
         interests: conn.interests,
-        most_interesting: "They’re consolidating 3 tools into one",
+        most_interesting: "They're consolidating 3 tools into one",
+        what_you_learned: conn.research_notes ?? [],
       });
       setFollowup(result);
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
+
+  const routing: RoutingDecision | null =
+    decision && "target" in decision && typeof decision.target === "string"
+      ? (decision as RoutingDecision)
+      : null;
 
   return (
     <div className="space-y-5">
@@ -87,6 +171,7 @@ export function ConnectionDetail() {
               <Row label="Company size" value={conn.company_size?.toString() ?? "—"} />
               <Row label="Funding" value={conn.funding_stage ?? "—"} />
               <Row label="Source" value={conn.source} />
+              <Row label="Status" value={conn.status.replace(/_/g, " ")} />
             </Card>
 
             <Card title="Scores">
@@ -106,8 +191,64 @@ export function ConnectionDetail() {
                   {i}
                 </span>
               ))}
+              {conn.interests.length === 0 && (
+                <span className="text-sm text-ink-faint">No interests yet — capture from iOS or run meet pipeline.</span>
+              )}
             </div>
           </Card>
+
+          {(persistedMeet?.knowledge_graph?.length ?? 0) > 0 || conn.interests.length > 0 ? (
+            <Card title="Knowledge graph">
+              {persistedMeet?.knowledge_graph && persistedMeet.knowledge_graph.length > 0 ? (
+                persistedMeet.knowledge_graph.map((person, idx) => (
+                  <div key={idx} className="space-y-3 border-b border-subtle pb-4 last:border-0 last:pb-0">
+                    <KnowledgeGraphView
+                      personName={person.name ?? conn.name ?? "Contact"}
+                      interests={conn.interests}
+                      topicWeights={person.topic_weights}
+                      values={person.values}
+                      communicationStyle={person.communication_style}
+                      painPoints={person.pain_points}
+                      warmthScore={warmth?.warmth_score ?? conn.predicted_warmth}
+                      icpScore={warmth?.icp_score ?? conn.icp_score}
+                      band={warmth?.band}
+                      height={300}
+                    />
+                    {person.learnings && person.learnings.length > 0 && (
+                      <ul className="space-y-1 text-sm text-ink-muted">
+                        {person.learnings.map((l) => (
+                          <li key={l}>• {l}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <KnowledgeGraphView
+                  personName={conn.name ?? "Contact"}
+                  interests={conn.interests}
+                  warmthScore={warmth?.warmth_score ?? conn.predicted_warmth}
+                  icpScore={warmth?.icp_score ?? conn.icp_score}
+                  band={warmth?.band}
+                  height={280}
+                />
+              )}
+            </Card>
+          ) : null}
+
+          {persistedMeet?.relations && persistedMeet.relations.length > 0 && (
+            <Card title="Relations (from iOS)">
+              <ul className="space-y-2 text-sm text-ink-muted">
+                {persistedMeet.relations.map((r, i) => (
+                  <li key={i}>
+                    <span className="font-medium text-ink-900">{r.subject}</span>{" "}
+                    {r.predicate.replace(/_/g, " ")}{" "}
+                    <span className="font-medium text-ink-900">{r.object}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
 
           {conn.draft_body && (
             <Card title="Pre-meet outreach draft">
@@ -116,48 +257,61 @@ export function ConnectionDetail() {
             </Card>
           )}
 
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={simulateMeet}
-              disabled={busy}
-              className="btn-secondary disabled:opacity-50"
-            >
-              Simulate meet → route
-            </button>
-            <button
-              onClick={sendFollowup}
-              disabled={busy}
-              className="glass-interactive rounded-xl border border-orange/40 bg-orange/15 px-4 py-2 text-sm font-semibold text-flame disabled:opacity-50"
-            >
-              Draft post-meet follow-up
-            </button>
-          </div>
+          {persistedMeet && (
+            <Card title="Last meet result">
+              <Row label="Routed to" value={persistedMeet.routed_to ?? "—"} />
+              {persistedMeet.narrative && (
+                <p className="mt-2 text-sm text-ink-muted">{persistedMeet.narrative}</p>
+              )}
+              {persistedMeet.recorded_at && (
+                <p className="mt-2 text-xs text-ink-faint">{persistedMeet.recorded_at}</p>
+              )}
+            </Card>
+          )}
 
-          {decision && (
+          <Card title="Meet pipeline">
+            <p className="mb-3 text-xs text-ink-muted">
+              Encode → process (full agent) → signal (structured) → post-meet follow-up
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <ActionButton label="Encode transcript" busy={busy === "encode"} onClick={runEncode} />
+              <ActionButton label="Process meet" busy={busy === "process"} onClick={runProcessMeet} />
+              <ActionButton label="Route signal" busy={busy === "signal"} onClick={simulateMeet} />
+              <ActionButton
+                label="Post-meet follow-up"
+                busy={busy === "followup"}
+                onClick={sendFollowupAction}
+                primary
+              />
+            </div>
+          </Card>
+
+          {encodeResult && (
+            <Card title="Encode output">
+              <pre className="max-h-48 overflow-auto whitespace-pre-wrap text-xs text-ink-muted">
+                {JSON.stringify(encodeResult, null, 2)}
+              </pre>
+            </Card>
+          )}
+
+          {routing && (
             <Card title="Routing decision">
               <Row
                 label="Target"
-                value={decision.target === "crm_and_outreach" ? "CRM + outreach" : "Founder community"}
+                value={routing.target === "crm_and_outreach" ? "CRM + outreach" : "Founder community"}
               />
-              <Row label="Reason" value={decision.reason} />
-              {decision.uplift != null && (
-                <Row label="Warmth uplift" value={decision.uplift.toFixed(1)} />
+              <Row label="Reason" value={routing.reason} />
+              {routing.uplift != null && (
+                <Row label="Warmth uplift" value={routing.uplift.toFixed(1)} />
               )}
-              {decision.matched_candidates.length > 0 && (
+              {routing.matched_candidates.length > 0 && (
                 <Row
                   label="Best match"
-                  value={decision.matched_candidates.map((m) => m.name).join(", ")}
+                  value={routing.matched_candidates.map((m) => m.name).join(", ")}
                 />
               )}
               {meetDraft?.gmail_compose_url ? (
-                <a
-                  href={String(meetDraft.gmail_compose_url)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-3 inline-block rounded-lg bg-warmth-warm/90 px-3 py-1.5 text-xs font-medium text-ink-900 hover:bg-warmth-warm"
-                >
-                  Open Gmail draft · Lightfern polishes there
-                </a>
+                <GmailLink url={String(meetDraft.gmail_compose_url)} />
               ) : null}
             </Card>
           )}
@@ -169,14 +323,7 @@ export function ConnectionDetail() {
                 {String(followup.body ?? "")}
               </pre>
               {followup.gmail_compose_url ? (
-                <a
-                  href={String(followup.gmail_compose_url)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-3 inline-block rounded-lg bg-warmth-warm/90 px-3 py-1.5 text-xs font-medium text-ink-900 hover:bg-warmth-warm"
-                >
-                  Open in Gmail · Lightfern polishes it there
-                </a>
+                <GmailLink url={String(followup.gmail_compose_url)} label="Open in Gmail · Lightfern polishes it there" />
               ) : null}
               <div className="mt-2 text-xs text-ink-faint">status: {String(followup.status)}</div>
             </Card>
@@ -184,6 +331,45 @@ export function ConnectionDetail() {
         </>
       )}
     </div>
+  );
+}
+
+function ActionButton({
+  label,
+  busy,
+  onClick,
+  primary,
+}: {
+  label: string;
+  busy: boolean;
+  onClick: () => void;
+  primary?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={busy}
+      className={
+        primary
+          ? "glass-interactive rounded-xl border border-orange/40 bg-orange/15 px-4 py-2 text-sm font-semibold text-flame disabled:opacity-50"
+          : "btn-secondary disabled:opacity-50"
+      }
+    >
+      {busy ? "Running…" : label}
+    </button>
+  );
+}
+
+function GmailLink({ url, label = "Open Gmail draft · Lightfern polishes there" }: { url: string; label?: string }) {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className="mt-3 inline-block rounded-lg bg-warmth-warm/90 px-3 py-1.5 text-xs font-medium text-ink-900 hover:bg-warmth-warm"
+    >
+      {label}
+    </a>
   );
 }
 

@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "zero": {
+      "type": "http",
+      "url": "https://api.zero.inc/mcp"
+    },
+    "hubspot": {
+      "type": "http",
+      "url": "https://mcp.hubspot.com",
+      "oauth": {
+        "clientId": "1bbb4063-d830-4490-bed9-b3fa99e78a7f",
+        "callbackPort": 33418
+      }
+    }
+  }
+}

@@ -9,8 +9,7 @@ interface AsyncState<T> {
 
 /**
  * Minimal async data hook. Re-runs `fn` whenever `deps` change or `reload`
- * is called. Designed to work with the mock-backed `api` client today and a
- * real `fetch`-based client later without changing call sites.
+ * is called. Works with the FastAPI-backed `api` client.
  */
 export function useAsync<T>(fn: () => Promise<T>, deps: unknown[]): AsyncState<T> {
   const [data, setData] = useState<T | null>(null);

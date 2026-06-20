@@ -1,0 +1,11 @@
+{
+  "id": "draft_20260620T160251559697",
+  "status": "draft_ready",
+  "handoff": "gmail_lightfern",
+  "purpose": "pre_meet_intro",
+  "client_email": "getwarmth@gmail.com",
+  "to": "nicholasyswong@googlemail.com",
+  "subject": "Excited to connect at the conference, Nicholas Wong",
+  "body": "Hi Nicholas Wong,\n\nSaw you'll be at the conference and noticed your work at your team. Would love to swap notes on ai, gtm, revops.\n\n[Lightfern will polish this in Gmail]\n\n\n--- CONTEXT FOR LIGHTFERN (remove before sending) ---\nContext for Lightfern (delete before sending):\nWarmth sends scoring + lead data here so Lightfern can populate the\nfollow-up in Gmail. Human reviews/polishes in Gmail, then sends.\n\nCLIENT:\n  sender_email: getwarmth@gmail.com\n  sender_name: Warmth\n\nSCORES:\n  icp_score: 0.0\n  warmth_score: 8.58\n  predicted_score: 8.58\n\nLEAD:\n  contact_name: Nicholas Wong\n  contact_email: nicholasyswong@googlemail.com\ninterests: ai, gtm, revops\n",
+  "gmail_compose_url": "https://mail.google.com/mail/?view=cm&fs=1&su=Excited+to+connect+at+the+conference%2C+Nicholas+Wong&body=Hi+Nicholas+Wong%2C%0A%0ASaw+you%27ll+be+at+the+conference+and+noticed+your+work+at+your+team.+Would+love+to+swap+notes+on+ai%2C+gtm%2C+revops.%0A%0A%5BLightfern+will+polish+this+in+Gmail%5D%0A%0A%0A---+CONTEXT+FOR+LIGHTFERN+%28remove+before+sending%29+---%0AContext+for+Lightfern+%28delete+before+sending%29%3A%0AWarmth+sends+scoring+%2B+lead+data+here+so+Lightfern+can+populate+the%0Afollow-up+in+Gmail.+Human+reviews%2Fpolishes+in+Gmail%2C+then+sends.%0A%0ACLIENT%3A%0A++sender_email%3A+getwarmth%40gmail.com%0A++sender_name%3A+Warmth%0A%0ASCORES%3A%0A++icp_score%3A+0.0%0A++warmth_score%3A+8.58%0A++predicted_score%3A+8.58%0A%0ALEAD%3A%0A++contact_name%3A+Nicholas+Wong%0A++contact_email%3A+nicholasyswong%40googlemail.com%0Ainterests%3A+ai%2C+gtm%2C+revops%0A&to=nicholasyswong%40googlemail.com"
+}

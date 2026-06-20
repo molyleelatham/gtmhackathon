@@ -1,51 +1,70 @@
+import { Avatar } from "../components/Avatar";
 import { GlassCard } from "../components/Glass";
-import { COMMUNITY_GROUPS, type PermissionLevel } from "../lib/mockData";
-
-const PERMISSION_STYLES: Record<PermissionLevel, string> = {
-  admin: "border-signal-intent/45 bg-signal-intent/15 text-signal-intent",
-  edit: "border-signal-funding/45 bg-signal-funding/15 text-signal-funding",
-  comment: "border-signal-hiring/45 bg-signal-hiring/15 text-signal-hiring",
-  read: "border-subtle bg-muted text-ink-muted",
-};
-
-const ACTIONS: Record<PermissionLevel, string> = {
-  admin: "Manage access",
-  edit: "Share selected leads",
-  comment: "Add comment",
-  read: "Invite member",
-};
+import { api } from "../lib/api";
+import { useAsync } from "../lib/useAsync";
+import { ErrorBox, Loading } from "./Dashboard";
 
 export function Community() {
+  const members = useAsync(() => api.communityMembers(), []);
+  const dashboard = useAsync(() => api.dashboard(), []);
+
   return (
     <div className="space-y-5">
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-ink-900">Community Sharing</h1>
         <p className="mt-1 text-sm text-ink-muted">
-          Share leads and conversation intel with your groups.
+          Share leads and conversation intel with your founder network.
         </p>
       </header>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {COMMUNITY_GROUPS.map((group) => (
-          <GlassCard key={group.id} className="p-5">
-            <h3 className="text-base font-semibold text-ink-900">{group.name}</h3>
-            <p className="mt-0.5 text-sm text-ink-muted">
-              {group.members} members · {group.permission} access
+      {(members.error || dashboard.error) && (
+        <ErrorBox message={members.error ?? dashboard.error ?? ""} />
+      )}
+      {(members.loading || dashboard.loading) && <Loading />}
+
+      {members.data && (
+        <>
+          <GlassCard className="p-5">
+            <h3 className="text-base font-semibold text-ink-900">Founder Community</h3>
+            <p className="mt-1 text-sm text-ink-muted">
+              {members.data.length} members · {dashboard.data?.leads_in_crm ?? 0} leads in CRM
             </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <span className={`glass-pill capitalize ${PERMISSION_STYLES[group.permission]}`}>
-                {group.permission}
-              </span>
-              <span className="glass-pill border-orange/25 bg-orange/10 text-flame">
-                {group.sharedLeads} shared leads
-              </span>
-            </div>
-            <button type="button" className="btn-secondary mt-4 w-full py-2">
-              {ACTIONS[group.permission]}
-            </button>
           </GlassCard>
-        ))}
-      </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {members.data.map((member) => (
+              <GlassCard key={member.user_id} className="p-5">
+                <div className="flex items-center gap-3">
+                  <Avatar name={member.name} size="md" />
+                  <div>
+                    <h3 className="font-semibold text-ink-900">{member.name}</h3>
+                    <p className="text-xs text-ink-faint">{member.user_id.replace(/_/g, " ")}</p>
+                  </div>
+                </div>
+                {member.interests.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {member.interests.map((interest) => (
+                      <span
+                        key={interest}
+                        className="glass-pill border-orange/25 bg-orange/10 text-flame"
+                      >
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <button type="button" className="btn-secondary mt-4 w-full py-2">
+                  Share selected leads
+                </button>
+              </GlassCard>
+            ))}
+          </div>
+
+          {members.data.length === 0 && (
+            <p className="text-sm text-ink-faint">No community members configured yet.</p>
+          )}
+        </>
+      )}
     </div>
   );
 }

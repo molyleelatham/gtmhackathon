@@ -191,7 +191,11 @@ class PreMeetPipeline:
     # 4. Draft personalized outreach + create Gmail draft
     # ------------------------------------------------------------------ #
     async def draft_outreach(self, connection: PreMeetConnection) -> PreMeetConnection:
-        from ..api.integration_helpers import warmth_client_email, warmth_client_name
+        from ..api.integration_helpers import (
+            warmth_client_email,
+            warmth_client_name,
+            wrap_self_draft,
+        )
 
         personalized = await self.lightfern_client.personalize_outreach(
             recipient={"name": connection.name, "company": connection.company_name, "email": connection.email},
@@ -200,18 +204,36 @@ class PreMeetPipeline:
                 "notes": connection.research_notes,
                 "client_email": warmth_client_email(),
                 "client_name": warmth_client_name(),
+                "lead": {
+                    "contact_name": connection.name,
+                    "company_name": connection.company_name,
+                    "contact_email": connection.email,
+                    "icp_score": int(connection.icp_score),
+                },
+                "scores": {
+                    "icp_score": connection.icp_score,
+                    "warmth_score": connection.predicted_warmth,
+                    "predicted_score": connection.predicted_warmth,
+                },
             },
             purpose="pre_meet_intro",
         )
-        connection.draft_subject = personalized.get("subject")
-        connection.draft_body = personalized.get("body")
+        subject, body = wrap_self_draft(
+            personalized.get("subject") or "",
+            personalized.get("body") or "",
+            stage="pre_meet",
+            recipient_name=connection.name,
+            recipient_email=connection.email,
+        )
+        connection.draft_subject = subject
+        connection.draft_body = body
 
-        if self.gmail_client and connection.email:
+        if self.gmail_client:
             try:
                 draft = await self.gmail_client.create_email_draft(
-                    to=connection.email,
-                    subject=connection.draft_subject or "",
-                    body=connection.draft_body or "",
+                    to=warmth_client_email(),
+                    subject=subject,
+                    body=body,
                 )
                 connection.gmail_draft_id = draft.get("draft_id") or draft.get("id")
             except Exception as e:  # pragma: no cover - stub resilience

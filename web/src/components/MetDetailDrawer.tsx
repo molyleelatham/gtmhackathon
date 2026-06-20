@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Avatar } from "./Avatar";
 import { CompanyLogo } from "./CompanyLogo";
 import { ICPBadge } from "./ICPBadge";
+import { KnowledgeGraphView } from "./KnowledgeGraphView";
 import { LightfernMark, GmailMark } from "./Logos";
 
 export interface MetDetailData {
@@ -157,7 +158,18 @@ export function MetDetailDrawer({
           )}
 
           {person.interests.length > 0 && (
-            <Section title="Work interests">
+            <Section title="Interest knowledge graph">
+              <KnowledgeGraphView
+                personName={person.name}
+                interests={person.interests}
+                values={person.genuineInterests}
+                height={240}
+              />
+            </Section>
+          )}
+
+          {person.interests.length > 0 && (
+            <Section title="All interests">
               <div className="flex flex-wrap gap-2">
                 {person.interests.map((t) => (
                   <span
@@ -282,6 +294,13 @@ export function AttendeeDrawer({
             <p className="text-sm text-ink-800">{person.signal}</p>
           </Section>
           <Section title="Industry">{person.industry}</Section>
+          <Section title="Interest knowledge graph">
+            <KnowledgeGraphView
+              personName={person.name}
+              interests={person.interests}
+              height={220}
+            />
+          </Section>
           <Section title="Interests">
             <div className="flex flex-wrap gap-2">
               {person.interests.map((t) => (

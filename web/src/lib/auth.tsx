@@ -24,6 +24,7 @@ interface AuthContextValue {
 
 const STORAGE_KEY = "warmth.demo.user";
 
+/** Matches backend DEMO_USER_ID (`apps/api/store.py`). */
 const DEMO_USER: AuthUser = {
   uid: "demo-user",
   displayName: "Nicholas Wong",
@@ -34,10 +35,8 @@ const DEMO_USER: AuthUser = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 /**
- * Lightweight demo auth provider — no Firebase/network required so the first
- * draft runs anywhere. The session persists in localStorage. Swap the body of
- * `signInWithGoogle`/`signOut` for Firebase Auth (`signInWithPopup`) when the
- * backend is wired up; the consumer API stays identical.
+ * Demo auth with localStorage persistence — no Firebase required for hackathon E2E.
+ * Swap signInWithGoogle/signOut for Firebase Auth when production auth is wired.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);

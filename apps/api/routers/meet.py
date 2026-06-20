@@ -13,6 +13,7 @@ from ..integration_helpers import (
     use_agent_extraction,
     zero_client_optional,
 )
+from ..interest_helpers import interests_from_meet_summary
 from ...agent.meet_pipeline import MeetStageAgent
 from ....packages.core.models.meeting_signal import MeetingSignal, TopicTime
 from ....packages.core.models.person import PersonNode
@@ -103,6 +104,10 @@ def _persist_meet_result(connection_id: str, summary: dict) -> None:
         conn.draft_subject = draft.get("subject")
         conn.draft_body = draft.get("body")
         store.upsert_connection(conn)
+    merged_interests = interests_from_meet_summary(summary, list(conn.interests) if conn else [])
+    if conn and merged_interests:
+        conn.interests = merged_interests
+        store.upsert_connection(conn)
     store.record_meet_result(
         connection_id=connection_id,
         signal_id=connection_id,
@@ -110,6 +115,8 @@ def _persist_meet_result(connection_id: str, summary: dict) -> None:
         narrative=summary.get("narrative"),
         gmail_draft=summary.get("gmail_draft"),
         outreach_sequence=summary.get("outreach_sequence"),
+        interests=merged_interests,
+        knowledge_graph=summary.get("people") or [],
     )
 
 

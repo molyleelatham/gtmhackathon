@@ -29,8 +29,8 @@ struct ConnectionRow: View {
                 }
 
                 if !person.interests.isEmpty {
-                    HStack(spacing: 8) {
-                        ForEach(person.interests.prefix(3), id: \.self) { interest in
+                    WarmthFlowLayout(spacing: 8, lineSpacing: 8) {
+                        ForEach(person.interests, id: \.self) { interest in
                             InterestChip(text: interest, tint: person.band.tint)
                         }
                     }

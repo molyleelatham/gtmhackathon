@@ -1,4 +1,4 @@
-import type { SignalType } from "../lib/mockData";
+import type { SignalType } from "../lib/uiTypes";
 
 const LABELS: Record<SignalType, string> = {
   hiring: "Hiring",
