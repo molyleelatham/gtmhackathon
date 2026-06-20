@@ -1,4 +1,3 @@
-from typing import list
 from collections import Counter
 import re
 

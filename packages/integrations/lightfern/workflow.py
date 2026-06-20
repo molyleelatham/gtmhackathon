@@ -1,7 +1,7 @@
 import httpx
-from typing import Optional, dict, Any
+from typing import Optional, Any
 import os
-from ..core.models.lead import Lead
+from ...core.models.lead import Lead
 
 
 class LightfernClient:
@@ -72,6 +72,61 @@ class LightfernClient:
                 "reason": str(e)
             }
     
+    async def personalize_outreach(
+        self,
+        recipient: dict[str, Any],
+        context: dict[str, Any],
+        purpose: str = "pre_meet_intro",
+    ) -> dict[str, Any]:
+        """Personalize an outreach message using Lightfern.
+
+        Used pre-meet (intro to a high-intent attendee using the "parasocial"
+        research context) and post-meet (follow-up grounded in the captured
+        conversation signals).
+
+        STUB: returns a templated draft. TODO: call the real Lightfern API to
+        generate copy tuned to the sender's voice + recipient context.
+        """
+        name = recipient.get("name") or "there"
+        company = recipient.get("company") or "your team"
+        interests = ", ".join(context.get("interests", [])) or "what you're building"
+
+        if purpose == "post_meet_followup":
+            subject = f"Great meeting you, {name}"
+            body = (
+                f"Hi {name},\n\n"
+                f"Really enjoyed our chat about {interests}. "
+                f"Following up with what we discussed and a couple of ideas for {company}.\n\n"
+                f"[Lightfern STUB: personalized follow-up body]\n"
+            )
+        else:
+            subject = f"Excited to connect at the conference, {name}"
+            body = (
+                f"Hi {name},\n\n"
+                f"Saw you'll be at the conference and noticed your work at {company}. "
+                f"Would love to swap notes on {interests}.\n\n"
+                f"[Lightfern STUB: personalized intro body]\n"
+            )
+
+        return {
+            "status": "stubbed",
+            "purpose": purpose,
+            "subject": subject,
+            "body": body,
+        }
+
+    async def send_followup_email(
+        self,
+        lead: Lead,
+        context: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Trigger a post-meet follow-up email via Lightfern, grounded in the
+        full data pipeline context (pre-meet research + captured signals).
+
+        STUB: delegates to trigger_workflow with a followup type.
+        """
+        return await self.trigger_workflow(lead, workflow_type="post_meet_followup")
+
     async def trigger_enrichment_workflow(
         self,
         lead_id: str,

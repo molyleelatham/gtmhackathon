@@ -1,5 +1,5 @@
 import httpx
-from typing import Optional, dict, Any
+from typing import Optional, Any
 import os
 
 

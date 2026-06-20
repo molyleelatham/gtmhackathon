@@ -1,7 +1,7 @@
-from typing import Optional, dict
+from typing import Optional
 from enum import Enum
-from ...packages.core.models.lead import Lead
-from ...packages.core.models.conversation import ConversationIntelligence
+from ....packages.core.models.lead import Lead
+from ....packages.core.models.conversation import ConversationIntelligence
 
 
 class LeadRouting(str, Enum):
