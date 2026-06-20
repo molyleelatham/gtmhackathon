@@ -29,6 +29,8 @@ import asyncio
 from typing import Optional, Any
 from urllib.parse import urlparse
 
+from ....packages.core.url_safety import UnsafeUrlError, validate_scrape_url
+
 # ---------------------------------------------------------------------------
 # Playwright import guard — Playwright is an optional dep.
 # ---------------------------------------------------------------------------
@@ -266,6 +268,7 @@ class EventDirectoryScraper:
 
         Returns a list of normalised attendee dicts (see module docstring).
         """
+        url = validate_scrape_url(url)
         async with async_playwright() as pw:
             browser: Browser = await pw.chromium.launch(
                 headless=self.headless,

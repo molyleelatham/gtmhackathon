@@ -1,9 +1,9 @@
-import { Link } from "react-router-dom";
 import { landingContent } from "../../content/landingContent";
 import { WarmthLogo } from "../WarmthLogo";
 import { useScrollParallax } from "../../lib/useScrollReveal";
 import { ScrollReveal } from "./ScrollReveal";
 import { AwardBadge } from "./AwardBadge";
+import { PlatformAvailabilityCards } from "./PlatformAvailabilityCards";
 
 export function LandingHero() {
   const { ref: parallaxRef, offset } = useScrollParallax(0.06);
@@ -54,17 +54,7 @@ export function LandingHero() {
         </ScrollReveal>
 
         <ScrollReveal delay={640} variant="up" eager>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Link
-              to={landingContent.links.app}
-              className="rounded-xl bg-gradient-to-r from-ember to-flame px-6 py-3 text-sm font-semibold text-white shadow-glass transition-transform duration-300 hover:scale-[1.02]"
-            >
-              See it live
-            </Link>
-            <a href="#team" className="btn-secondary px-6 py-3 text-sm font-semibold">
-              Meet the team
-            </a>
-          </div>
+          <PlatformAvailabilityCards className="mt-10" />
         </ScrollReveal>
       </div>
     </section>

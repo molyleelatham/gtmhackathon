@@ -11,8 +11,6 @@ struct HomeView: View {
 
                 ScrollView {
                     VStack(spacing: 18) {
-                        eventModeHeader
-
                         if let error = model.homeError {
                             HomeInlineError(message: error) {
                                 Task { await model.refreshHome() }
@@ -43,31 +41,14 @@ struct HomeView: View {
             }
             .navigationTitle("Home")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    EventModeCompactButton()
+                }
+            }
             .task { await model.refreshHome() }
         }
         .tint(WarmthColor.emberRed)
-    }
-
-    private var eventModeHeader: some View {
-        @Bindable var settings = model.settings
-
-        return GlassCard {
-            Toggle(isOn: $settings.eventModeEnabled) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Event mode")
-                        .warmthText(.Warmth.headline)
-                    Text(model.isAtEventToday ? "Capture tab is prioritized while you're at an event." : "Off — Home stays your default tab.")
-                        .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
-                }
-            }
-            .tint(WarmthColor.emberRed)
-            .onChange(of: settings.eventModeEnabled) { _, enabled in
-                if enabled {
-                    WarmthHaptics.success()
-                    model.selectedTab = .capture
-                }
-            }
-        }
     }
 
     @ViewBuilder
@@ -219,6 +200,42 @@ struct HomeView: View {
         case .loading: return WarmthColor.amber
         case .idle: return WarmthColor.inkSecondary
         }
+    }
+}
+
+private struct EventModeCompactButton: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        @Bindable var settings = model.settings
+
+        Button {
+            settings.eventModeEnabled.toggle()
+            if settings.eventModeEnabled {
+                WarmthHaptics.success()
+                model.selectedTab = .capture
+            }
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: settings.eventModeEnabled ? "calendar.badge.clock.fill" : "calendar.badge.clock")
+                    .font(.system(size: 11, weight: .semibold))
+                Text("Event")
+                    .font(.Warmth.caption.weight(.semibold))
+            }
+            .foregroundStyle(settings.eventModeEnabled ? WarmthColor.warmWhite : WarmthColor.ink)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background {
+                if settings.eventModeEnabled {
+                    Capsule().fill(WarmthColor.emberGradient)
+                }
+            }
+            .warmthGlass(WarmthGlassStyle.interactive, in: Capsule(), fillSurface: !settings.eventModeEnabled)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Event mode")
+        .accessibilityValue(settings.eventModeEnabled ? "On" : "Off")
+        .accessibilityHint("Prioritize the Capture tab while at an event.")
     }
 }
 

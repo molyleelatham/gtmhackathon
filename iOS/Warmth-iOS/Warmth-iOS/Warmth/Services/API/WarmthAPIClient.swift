@@ -23,6 +23,7 @@ protocol CRMProviding: AnyObject {
     func fetchEvents() async throws -> [CRMDetectedEvent]
     func fetchICPProfile() async throws -> [CRMICPRow]
     func sendFollowup(connectionId: String) async throws -> CRMFollowUpDraft
+    func bootstrapUserProfileIfNeeded() async
 }
 
 @MainActor
@@ -74,7 +75,7 @@ final class WarmthAPIClient: CRMProviding {
         var request = URLRequest(url: baseURL.appendingPathComponent("api/v1/dashboard"))
         await auth?.applyAuthorization(to: &request)
         let (data, response) = try await session.data(for: request)
-        try validate(response)
+        try validate(response, data: data)
         return try decoder.decode(CRMDashboardSummary.self, from: data)
     }
 
@@ -124,6 +125,16 @@ final class WarmthAPIClient: CRMProviding {
         return CRMFollowUpDraft(subject: subject, body: body)
     }
 
+    func bootstrapUserProfileIfNeeded() async {
+        guard auth?.state.user?.id != "guest" else { return }
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/v1/users/bootstrap"))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = Data("{}".utf8)
+        await auth?.applyAuthorization(to: &request)
+        _ = try? await session.data(for: request)
+    }
+
     // MARK: - Internals
 
     private func listConnections() async throws -> [CRMConnection] {
@@ -136,13 +147,20 @@ final class WarmthAPIClient: CRMProviding {
         return try decoder.decode([CRMConnection].self, from: data)
     }
 
-    private func validate(_ response: URLResponse) throws {
+    private func validate(_ response: URLResponse, data: Data = Data()) throws {
         guard let http = response as? HTTPURLResponse else {
             throw CRMClientError.invalidResponse
         }
+        let detail = Self.apiDetail(from: data)
         guard (200..<300).contains(http.statusCode) else {
-            throw CRMClientError.httpStatus(http.statusCode)
+            throw CRMClientError.httpStatus(http.statusCode, detail: detail)
         }
+    }
+
+    private static func apiDetail(from data: Data) -> String? {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let detail = json["detail"] as? String else { return nil }
+        return detail
     }
 
     private func parseDetail(_ data: Data) throws -> CRMConnectionDetail {
@@ -204,13 +222,15 @@ final class WarmthAPIClient: CRMProviding {
 
 enum CRMClientError: LocalizedError {
     case invalidResponse
-    case httpStatus(Int)
+    case httpStatus(Int, detail: String? = nil)
     case notFound
 
     var errorDescription: String? {
         switch self {
         case .invalidResponse: return "Unexpected server response."
-        case .httpStatus(let code): return "Server returned HTTP \(code)."
+        case .httpStatus(let code, let detail):
+            if let detail, !detail.isEmpty { return "Server returned HTTP \(code): \(detail)" }
+            return "Server returned HTTP \(code)."
         case .notFound: return "Connection not found."
         }
     }
@@ -275,4 +295,6 @@ final class MockCRMClient: CRMProviding {
     func sendFollowup(connectionId: String) async throws -> CRMFollowUpDraft {
         CRMFollowUpDraft(subject: "Great meeting you", body: "Thanks for the conversation at the event.")
     }
+
+    func bootstrapUserProfileIfNeeded() async {}
 }

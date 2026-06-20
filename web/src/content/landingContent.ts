@@ -29,6 +29,15 @@ export const landingContent = {
     builtIn: "Built in one day",
     event: "GTM Hackathon London · 20 June 2026",
     venue: "The Building Centre",
+    availability: {
+      web: {
+        label: "Available on web",
+        cta: "See it live",
+      },
+      ios: {
+        label: "iOS app",
+      },
+    },
   },
   hackathon: {
     title: "The hackathon",
@@ -145,6 +154,25 @@ export const landingContent = {
       bio: "BSc Computing & IT at the University of Surrey and Sarawak Energy Berhad Scholarship Recipient. Excels in public speaking, graphic design, and video editing. Former bakery owner turned technologist. Public Relations Executive for Tutors in Action (Malaysia). Volunteer with WormingUp at Rainforest World Music Festival — passionate about technology for positive social impact.",
     },
   ] satisfies TeamMember[],
+  testFlight: {
+    label: "iOS on TestFlight — coming soon",
+  },
+  explore: {
+    title: "Ready to explore?",
+    subtitle: "Try Warmth on the web today — the native iOS app is on the way.",
+    web: {
+      title: "Web app",
+      description:
+        "Review events, warmth scores, ICP fit, connections, and follow-ups in your browser.",
+      cta: "Open the app",
+    },
+    ios: {
+      title: "iOS app",
+      description:
+        "Capture conversations on the event floor with phrase trigger, on-device NLP, and Apple Watch.",
+      cta: "Coming soon",
+    },
+  },
   links: {
     app: "/sign-in",
     hackathon: "https://gtmengineer.dev",

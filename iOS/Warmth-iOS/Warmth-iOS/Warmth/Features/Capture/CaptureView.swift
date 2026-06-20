@@ -67,10 +67,6 @@ struct CaptureView: View {
         }
         .task {
             MatchNotifier.shared.requestAuthorization()
-            model.speech.onWakeWordDetected = {
-                WarmthHaptics.success()
-                model.prepareNewCapture()
-            }
             await model.handleScenePhase(scenePhase)
         }
         .onChange(of: model.speech.transcript) { _, transcript in

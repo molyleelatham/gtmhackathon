@@ -106,3 +106,25 @@ clean: ## Clean up cache files
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 	find . -type f -name "*.pyo" -delete
+
+GCP_PROJECT ?= warmth-gtm-hackathon
+GCP_REGION ?= us-central1
+CLOUD_RUN_SERVICE ?= warmth-api
+
+deploy-api: ## Deploy FastAPI to GCP Cloud Run
+	gcloud run deploy $(CLOUD_RUN_SERVICE) \
+		--source . \
+		--project $(GCP_PROJECT) \
+		--region $(GCP_REGION) \
+		--allow-unauthenticated \
+		--port 8000 \
+		--min-instances 1 \
+		--max-instances 1 \
+		--concurrency 80 \
+		--cpu 1 \
+		--memory 1Gi \
+		--env-vars-file infra/cloudrun-env.yaml
+
+deploy-web: ## Build and deploy web to Firebase Hosting
+	cd web && npm run build
+	npx -y firebase-tools deploy --only hosting --project $(GCP_PROJECT)

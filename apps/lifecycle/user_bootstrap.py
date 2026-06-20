@@ -15,6 +15,24 @@ from ..api.store import get_store
 OWNER_DEMO_EMAIL = "dzakwan1844@gmail.com"
 
 
+def maybe_seed_owner_demo(uid: str, email: str | None) -> None:
+    """Ensure GTM Hackathon demo roster exists for the owner account."""
+    resolved = (email or "").lower()
+    if not resolved:
+        try:
+            import firebase_admin
+            if firebase_admin._apps:
+                from firebase_admin import auth as firebase_auth
+
+                record = firebase_auth.get_user(uid)
+                resolved = (record.email or "").lower()
+        except Exception:
+            return
+    if resolved != OWNER_DEMO_EMAIL.lower():
+        return
+    get_store(uid).ensure_user_seed(uid)
+
+
 class UserBootstrapService:
     """Upsert profile from Firebase Auth and ensure per-user demo roster."""
 
@@ -45,7 +63,6 @@ class UserBootstrapService:
             store.ensure_user_seed(uid)
             profile.demo_seeded = True
         elif existing is None and not profile.demo_seeded:
-            # Other Google accounts: empty dashboard until they add their own data.
             profile.demo_seeded = False
 
         if self.firestore:

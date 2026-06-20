@@ -167,6 +167,9 @@ final class AppModel {
     func refreshHome() async {
         homeError = nil
         do {
+            if auth.state.isSignedIn, auth.state.user?.id != "guest" {
+                await crmClient.bootstrapUserProfileIfNeeded()
+            }
             dashboard = try await crmClient.fetchDashboard()
             roster = try await crmClient.fetchRoster()
             communityMembers = try await crmClient.fetchCommunityMembers()
