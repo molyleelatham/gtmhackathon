@@ -3,14 +3,14 @@ import Speech
 import AVFoundation
 import UIKit
 
-/// Listens for hardcoded trigger phrases (e.g. "Hi, I'm Zack") using on-device speech recognition.
+/// Listens for hardcoded trigger phrases (e.g. "hey its nice to meet you") using on-device speech recognition.
 @MainActor
 final class PhraseTriggerEngine: NSObject, ObservableObject {
     static let shared = PhraseTriggerEngine()
 
     @Published private(set) var isListening = false
 
-    private let triggerPhrases = ["hi im zack", "im zack"]
+    private let triggerPhrases = ["hey its nice to meet you", "its nice to meet you"]
     private let triggerCooldown: TimeInterval = 3
 
     private var speechRecognizer: SFSpeechRecognizer?
