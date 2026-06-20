@@ -13,7 +13,9 @@ struct SettingsView: View {
                 ScrollView {
                     VStack(spacing: 18) {
                         AccountSection()
+                        EventModeSection()
                         BackendSection()
+                        ICPProfileSection()
                         WakePhraseSection()
                         PermissionsSection()
                         CalendarSection()
@@ -141,7 +143,44 @@ private struct AvatarView: View {
     }
 }
 
-// MARK: - 2. Backend
+// MARK: - 2. Event mode
+
+private struct EventModeSection: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        @Bindable var settings = model.settings
+
+        GlassCard {
+            VStack(alignment: .leading, spacing: 14) {
+                SectionHeader(title: "Event mode", systemImage: "calendar.badge.clock")
+
+                Toggle(isOn: $settings.eventModeEnabled) {
+                    Text("I'm at an event")
+                        .warmthText(.Warmth.body)
+                }
+                .tint(WarmthColor.emberRed)
+                .onChange(of: settings.eventModeEnabled) { _, enabled in
+                    if enabled {
+                        WarmthHaptics.success()
+                        model.selectedTab = .capture
+                    }
+                }
+
+                Toggle(isOn: $settings.eventModeDisabledOverride) {
+                    Text("Stay on Home even during calendar events")
+                        .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
+                }
+                .tint(WarmthColor.emberRed)
+
+                Text("Warmth checks your calendar (`GET /api/v1/events`) and opens Capture when an event is active today, unless you force Home.")
+                    .warmthText(.Warmth.caption, color: WarmthColor.inkSecondary)
+            }
+        }
+    }
+}
+
+// MARK: - 3. Backend
 
 private struct BackendSection: View {
     @Environment(AppModel.self) private var model
@@ -233,7 +272,41 @@ private struct DeliveryStatusLine: View {
     }
 }
 
-// MARK: - 3. Wake phrase
+// MARK: - 4. ICP profile
+
+private struct ICPProfileSection: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                SectionHeader(title: "ICP profile", systemImage: "target")
+
+                if model.icpProfile.isEmpty {
+                    Text("Read-only ICP criteria from the backend.")
+                        .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
+                    EmberButton(title: "Load ICP", systemImage: "arrow.clockwise", fill: false) {
+                        Task { await model.refreshICPProfile() }
+                    }
+                } else {
+                    ForEach(model.icpProfile) { row in
+                        HStack(alignment: .top) {
+                            Text(row.label)
+                                .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
+                                .frame(width: 110, alignment: .leading)
+                            Text(row.value)
+                                .warmthText(.Warmth.body)
+                            Spacer(minLength: 0)
+                        }
+                    }
+                }
+            }
+        }
+        .task { await model.refreshICPProfile() }
+    }
+}
+
+// MARK: - 5. Wake phrase
 
 private struct WakePhraseSection: View {
     var body: some View {
