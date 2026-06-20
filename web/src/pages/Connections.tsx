@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom";
+import { Avatar } from "../components/Avatar";
+import { CompanyLogo } from "../components/CompanyLogo";
+import { ConnectionWeb } from "../components/ConnectionWeb";
+import { WarmthBadge } from "../components/WarmthBadge";
 import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
 import { Loading, ErrorBox } from "./Dashboard";
-import { WarmthBadge } from "../components/WarmthBadge";
 
 export function Connections() {
   const { data, error, loading } = useAsync(() => api.listConnections(), []);
@@ -12,13 +15,15 @@ export function Connections() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <header>
-        <h1 className="text-2xl font-semibold">Connections</h1>
-        <p className="text-sm text-gray-400">
+        <h1 className="text-2xl font-bold tracking-tight text-ink-900">Connections</h1>
+        <p className="mt-1 text-sm text-ink-muted">
           Everyone Warmth has identified or met, scored by warmth.
         </p>
       </header>
+
+      <ConnectionWeb />
 
       {loading && <Loading />}
       {error && <ErrorBox message={error} />}
@@ -28,31 +33,39 @@ export function Connections() {
           <Link
             key={c.id}
             to={`/connections/${c.id}`}
-            className="rounded-xl border border-ink-600 bg-ink-800 p-4 transition hover:border-warmth-warm/50"
+            className="glass glass-interactive p-4"
           >
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="font-medium">{c.name ?? "Unknown"}</div>
-                <div className="text-xs text-gray-500">{c.title ?? ""}</div>
+            <div className="flex items-start gap-3">
+              <Avatar name={c.name ?? "Unknown"} size="md" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="font-semibold text-ink-900">{c.name ?? "Unknown"}</div>
+                    <div className="mt-0.5 flex items-center gap-2">
+                      <CompanyLogo company={c.company_name ?? ""} size="sm" />
+                      <span className="text-xs text-ink-muted">{c.title ?? ""}</span>
+                    </div>
+                  </div>
+                  <WarmthBadge score={c.predicted_warmth} />
+                </div>
+                <div className="mt-2 text-sm text-ink-muted">{c.company_name ?? "—"}</div>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {c.interests.slice(0, 3).map((i) => (
+                    <span
+                      key={i}
+                      className="glass-pill border-orange/25 bg-orange/10 text-flame"
+                    >
+                      {i}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <WarmthBadge score={c.predicted_warmth} />
-            </div>
-            <div className="mt-3 text-sm text-gray-400">{c.company_name ?? "—"}</div>
-            <div className="mt-2 flex flex-wrap gap-1">
-              {c.interests.slice(0, 3).map((i) => (
-                <span
-                  key={i}
-                  className="rounded-full bg-ink-700 px-2 py-0.5 text-xs text-gray-300"
-                >
-                  {i}
-                </span>
-              ))}
             </div>
           </Link>
         ))}
       </div>
       {data && data.length === 0 && (
-        <p className="text-sm text-gray-500">No connections yet.</p>
+        <p className="text-sm text-ink-faint">No connections yet.</p>
       )}
     </div>
   );

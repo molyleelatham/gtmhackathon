@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
 import { Loading, ErrorBox } from "./Dashboard";
 import { WarmthBadge } from "../components/WarmthBadge";
+import { GlassCard } from "../components/Glass";
 import type { RoutingDecision } from "../types";
 
 export function ConnectionDetail() {
@@ -56,8 +57,8 @@ export function ConnectionDetail() {
   }
 
   return (
-    <div className="space-y-6">
-      <Link to="/connections" className="text-sm text-gray-400 hover:underline">
+    <div className="space-y-5">
+      <Link to="/connections" className="text-sm text-ink-muted hover:text-flame">
         ← Connections
       </Link>
 
@@ -68,15 +69,17 @@ export function ConnectionDetail() {
         <>
           <header className="flex items-start justify-between">
             <div>
-              <h1 className="text-2xl font-semibold">{conn.name ?? "Unknown"}</h1>
-              <p className="text-sm text-gray-400">
+              <h1 className="text-2xl font-bold tracking-tight text-ink-900">
+                {conn.name ?? "Unknown"}
+              </h1>
+              <p className="mt-1 text-sm text-ink-muted">
                 {conn.title ?? ""} {conn.company_name ? `· ${conn.company_name}` : ""}
               </p>
             </div>
             <WarmthBadge score={conn.predicted_warmth} band={warmth?.band} />
           </header>
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-2">
             <Card title="Firmographics">
               <Row label="Industry" value={conn.industry ?? "—"} />
               <Row label="Company size" value={conn.company_size?.toString() ?? "—"} />
@@ -97,10 +100,7 @@ export function ConnectionDetail() {
           <Card title="Interests">
             <div className="flex flex-wrap gap-2">
               {conn.interests.map((i) => (
-                <span
-                  key={i}
-                  className="rounded-full bg-ink-700 px-2.5 py-0.5 text-xs text-gray-300"
-                >
+                <span key={i} className="glass-pill border-orange/25 bg-orange/10 text-flame">
                   {i}
                 </span>
               ))}
@@ -109,25 +109,23 @@ export function ConnectionDetail() {
 
           {conn.draft_body && (
             <Card title="Pre-meet outreach draft">
-              <div className="text-sm font-medium text-gray-200">{conn.draft_subject}</div>
-              <pre className="mt-2 whitespace-pre-wrap text-sm text-gray-400">
-                {conn.draft_body}
-              </pre>
+              <div className="text-sm font-medium text-ink-900">{conn.draft_subject}</div>
+              <pre className="mt-2 whitespace-pre-wrap text-sm text-ink-muted">{conn.draft_body}</pre>
             </Card>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={simulateMeet}
               disabled={busy}
-              className="rounded-lg border border-ink-600 px-4 py-2 text-sm hover:bg-ink-700 disabled:opacity-50"
+              className="glass-interactive rounded-xl border border-black/10 bg-white px-4 py-2 text-sm text-ink-800 disabled:opacity-50"
             >
               Simulate meet → route
             </button>
             <button
               onClick={sendFollowup}
               disabled={busy}
-              className="rounded-lg bg-warmth-warm/90 px-4 py-2 text-sm font-medium text-ink-900 hover:bg-warmth-warm disabled:opacity-50"
+              className="glass-interactive rounded-xl border border-orange/40 bg-orange/15 px-4 py-2 text-sm font-semibold text-flame disabled:opacity-50"
             >
               Draft post-meet follow-up
             </button>
@@ -154,13 +152,11 @@ export function ConnectionDetail() {
 
           {followup && (
             <Card title="Post-meet follow-up">
-              <div className="text-sm font-medium text-gray-200">
-                {String(followup.subject ?? "")}
-              </div>
-              <pre className="mt-2 whitespace-pre-wrap text-sm text-gray-400">
+              <div className="text-sm font-medium text-ink-900">{String(followup.subject ?? "")}</div>
+              <pre className="mt-2 whitespace-pre-wrap text-sm text-ink-muted">
                 {String(followup.body ?? "")}
               </pre>
-              <div className="mt-2 text-xs text-gray-500">status: {String(followup.status)}</div>
+              <div className="mt-2 text-xs text-ink-faint">status: {String(followup.status)}</div>
             </Card>
           )}
         </>
@@ -171,18 +167,18 @@ export function ConnectionDetail() {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-ink-600 bg-ink-800 p-5">
-      <h2 className="mb-3 text-sm font-semibold text-gray-300">{title}</h2>
+    <GlassCard className="p-5">
+      <h2 className="mb-3 text-sm font-semibold text-ink-muted">{title}</h2>
       {children}
-    </div>
+    </GlassCard>
   );
 }
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between border-b border-ink-700 py-2 text-sm last:border-0">
-      <span className="text-gray-500">{label}</span>
-      <span className="text-gray-200">{value}</span>
+    <div className="flex justify-between border-b border-black/[0.06] py-2 text-sm last:border-0">
+      <span className="text-ink-faint">{label}</span>
+      <span className="text-ink-900">{value}</span>
     </div>
   );
 }
