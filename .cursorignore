@@ -1,0 +1,21 @@
+# Xcode build output (54k+ files — crashes Source Control if indexed)
+**/.derivedData/
+**/DerivedData/
+.swiftpm/xcode/
+
+# Dependencies & build artifacts
+**/node_modules/
+**/dist/
+**/.firebase/
+
+# Python caches & venvs
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+.venv/
+
+# Runtime / local data
+drafts/
+/models/
+scripts/hubspot_contacts.json
