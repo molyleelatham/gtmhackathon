@@ -1,49 +1,32 @@
 import SwiftUI
-import AVFoundation
-import Speech
+import FirebaseCore
+import GoogleSignIn
 
 @main
 struct WarmthApp: App {
-    @Environment(\.scenePhase) private var scenePhase
+    @State private var model: AppModel
 
-    @StateObject private var listeningEngine = ConferenceListeningEngine.shared
-    @StateObject private var watchConnectivityService = WatchConnectivityService.shared
+    init() {
+        FirebaseApp.configure()
+        let settings = SettingsStore()
+        let appModel = AppModel(
+            auth: FirebaseAuthService(),
+            speech: SpeechService(),
+            signalClient: SignalClient(baseURL: settings.baseURL),
+            socialGraph: SocialGraphEngine(),
+            settings: settings
+        )
+        _model = State(initialValue: appModel)
+    }
 
     var body: some Scene {
         WindowGroup {
-            ListeningView()
-                .environmentObject(listeningEngine)
-                .environmentObject(watchConnectivityService)
-                .onAppear { requestPermissions() }
-                .onChange(of: scenePhase) { _, newPhase in
-                    switch newPhase {
-                    case .active:
-                        Task { await listeningEngine.start() }
-                    case .inactive, .background:
-                        listeningEngine.stop()
-                    @unknown default:
-                        break
-                    }
+            RootView()
+                .environment(model)
+                .tint(WarmthColor.emberRed)
+                .onOpenURL { url in
+                    GIDSignIn.sharedInstance.handle(url)
                 }
-        }
-    }
-
-    private func requestPermissions() {
-        AVAudioSession.sharedInstance().requestRecordPermission { granted in
-            print(granted ? "Microphone permission granted" : "Microphone permission denied")
-        }
-
-        SFSpeechRecognizer.requestAuthorization { status in
-            Task { @MainActor in
-                switch status {
-                case .authorized:
-                    await listeningEngine.start()
-                case .denied, .restricted:
-                    print("Speech recognition permission denied")
-                default:
-                    break
-                }
-            }
         }
     }
 }

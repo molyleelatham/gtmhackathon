@@ -69,5 +69,9 @@ tmp/
 temp/
 *.tmp
 
-# Locally-saved outreach drafts (Lightfern → Gmail handoff)
-drafts/
+# Xcode (user-specific state; generated project keeps shared data only)
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+DerivedData/
