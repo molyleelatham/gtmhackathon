@@ -56,6 +56,8 @@ infra/secrets/
 
 # GCP
 gcp-credentials.json
+google-oauth-client.json
+google-gmail-oauth.json
 
 # Logs
 *.log
@@ -69,3 +71,10 @@ gcp-credentials.json
 tmp/
 temp/
 *.tmp
+
+# Xcode (user-specific state; generated project keeps shared data only)
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+DerivedData/

@@ -45,8 +45,9 @@ class InterestAnalyzer:
             "efficiency": ["efficient", "streamlined", "optimized", "automated", "productive"],
             "growth": ["growth", "scale", "expand", "increase", "accelerate"],
             "quality": ["quality", "excellence", "premium", "high-quality", "best-in-class"],
+            "accuracy": ["accuracy", "accurate", "precise", "precision", "exact", "correct", "reliable"],
             "customer_focus": ["customer-centric", "user-focused", "customer satisfaction", "user experience"],
-            "transparency": ["transparent", "open", "honest", "clear", "communicative"],
+            "transparency": ["transparent", "honesty", "openness", "communicative"],
             "collaboration": ["collaborative", "teamwork", "partnership", "cooperation"],
             "sustainability": ["sustainable", "eco-friendly", "green", "environmental", "social impact"]
         }
@@ -89,16 +90,17 @@ class InterestAnalyzer:
         return detected_interests
     
     def _extract_values(self, text: str) -> list[str]:
-        """Extract values from text"""
+        """Extract values from text (word-boundary matched to avoid substring
+        false positives like "honest" inside "honestly")."""
         detected_values = []
-        
+
         for value, indicators in self.value_indicators.items():
             for indicator in indicators:
-                if indicator in text:
+                if re.search(rf"\b{re.escape(indicator)}\b", text):
                     if value not in detected_values:
                         detected_values.append(value)
                     break
-        
+
         return detected_values
     
     def _extract_pain_points(self, text: str) -> list[str]:

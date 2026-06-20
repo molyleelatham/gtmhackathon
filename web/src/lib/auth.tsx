@@ -9,6 +9,7 @@ import {
 } from "react";
 
 export interface AuthUser {
+  uid: string;
   displayName: string | null;
   email: string | null;
   photoURL: string | null;
@@ -24,6 +25,7 @@ interface AuthContextValue {
 const STORAGE_KEY = "warmth.demo.user";
 
 const DEMO_USER: AuthUser = {
+  uid: "demo-user",
   displayName: "Nicholas Wong",
   email: "nicholas@warmth.ai",
   photoURL: null,

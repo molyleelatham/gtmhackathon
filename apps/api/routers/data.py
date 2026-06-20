@@ -46,9 +46,12 @@ async def get_connection(connection_id: str):
     if not conn:
         return {"error": "not_found", "connection_id": connection_id}
     warmth = store.warmth_for_connection(connection_id)
+    meet = store.meet_result_for(connection_id)
     return {
         "connection": conn.model_dump(),
         "warmth": warmth.model_dump() if warmth else None,
+        "meet_result": meet,
+        "gmail_draft": (meet or {}).get("gmail_draft"),
     }
 
 

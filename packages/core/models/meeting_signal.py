@@ -2,6 +2,8 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field
 
+from .person import PersonNode
+
 
 class TopicTime(BaseModel):
     """How long was spent talking about a given topic during a meeting."""
@@ -34,6 +36,10 @@ class MeetingSignal(BaseModel):
     most_time_topic: Optional[str] = None
     what_you_learned: list[str] = Field(default_factory=list)
     most_interesting: Optional[str] = None
+
+    # evolving per-person context accumulated by the PersonContextBuilder across
+    # 30s windows (communication style, values, dominant topics, pains, learnings)
+    personal_context: Optional[PersonNode] = None
 
     # raw + provenance
     transcript_excerpt: Optional[str] = None

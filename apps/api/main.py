@@ -1,9 +1,17 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from ..listener.engine import PassiveListener
-from ...infra.firebase.firestore import FirestoreClient
-from ...packages.core.models.icp import ICPConfig
+from dotenv import load_dotenv
+
+# Load env: local .env first (developer overrides), then fill gaps from the
+# shared Google Secret Manager project. Must run before clients read os.getenv.
+load_dotenv()
+from ...packages.core.secrets import load_secrets_into_env  # noqa: E402
+load_secrets_into_env()
+
+from fastapi import FastAPI  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from ..listener.engine import PassiveListener  # noqa: E402
+from ...infra.firebase.firestore import FirestoreClient  # noqa: E402
+from ...packages.core.models.icp import ICPConfig  # noqa: E402
 
 
 # Global state
@@ -86,13 +94,15 @@ async def health_check():
 
 
 # Lifecycle routers: onboarding -> before-meet -> meet -> post-meet + dashboard data
-from .routers import onboarding, premeet, meet, postmeet, data
+from .routers import onboarding, premeet, meet, postmeet, data, conferences, signals
 
 app.include_router(onboarding.router)
 app.include_router(premeet.router)
 app.include_router(meet.router)
 app.include_router(postmeet.router)
 app.include_router(data.router)
+app.include_router(conferences.router)
+app.include_router(signals.router)
 
 
 if __name__ == "__main__":

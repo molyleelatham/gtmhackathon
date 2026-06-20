@@ -1,5 +1,6 @@
-from typing import Any
+from typing import Any, Optional
 from ...core.models.lead import Lead
+from ...core.models.person import PersonNode
 from ...core.schemas.zero_crm_schema import ZeroCRMPayload
 
 
@@ -29,6 +30,32 @@ class ZeroCRMMapper:
             signal_source=lead.signal_source,
             tags=lead.tags
         )
+
+    @staticmethod
+    def lead_to_zero_payload_with_context(
+        lead: Lead,
+        person: Optional[PersonNode],
+    ) -> ZeroCRMPayload:
+        """Zero CRM payload enriched with the evolved per-person context.
+
+        This is the Zero CRM push that carries:
+          "Anna is analytical, data-driven, cares about accuracy. Dominant
+           topic: pipeline visibility (0.8 weight). Recently learned HubSpot
+           has AI forecasting. High pain intensity around manual data entry."
+        """
+        payload = ZeroCRMMapper.lead_to_zero_payload(lead)
+        if person is None:
+            return payload
+
+        dominant = person.dominant_topic
+        payload.personal_context = person.to_narrative()
+        payload.communication_style = list(person.communication_style)
+        payload.values = list(person.values)
+        payload.dominant_topic = dominant[0] if dominant else None
+        payload.pain_points = [f"{p.topic} ({p.level})" for p in person.pain_points]
+        if person.name and not payload.contact_name:
+            payload.contact_name = person.name
+        return payload
     
     @staticmethod
     def enrich_lead_to_contact(enrichment_data: dict[str, Any]) -> dict[str, Any]:

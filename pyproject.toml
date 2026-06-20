@@ -6,7 +6,7 @@ authors = [
     {name = "Warmth Team", email = "team@warmth.ai"}
 ]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.14"
 dependencies = [
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
@@ -22,17 +22,26 @@ dependencies = [
     "google-cloud-pubsub>=2.19.0",
     "google-cloud-firestore>=2.13.0",
     "google-cloud-scheduler>=1.11.0",
-    "deepgram-sdk>=3.2.0",
-    "pyaudio>=0.2.14",
-    "rnnoise-python>=0.2.0",
+    "google-cloud-secret-manager>=2.16.0",
     "aiofiles>=23.2.1",
-    "asyncio>=3.4.3",
-    "beautifulsoup4>=4.12.0",  # Web scraping
-    "pypdf>=3.17.0",  # PDF parsing
+    "beautifulsoup4>=4.12.0",
+    "pypdf>=3.17.0",
     "requests>=2.31.0",
 ]
 
 [project.optional-dependencies]
+gmail = [
+    "google-api-python-client>=2.100.0",
+    "google-auth-oauthlib>=1.1.0",
+    "google-auth-httplib2>=0.2.0",
+]
+audio = [
+    "deepgram-sdk>=3.2.0",
+    "pyaudio>=0.2.14",
+]
+agent = [
+    "cursor-sdk>=0.1.0",
+]
 dev = [
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
@@ -45,6 +54,9 @@ dev = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["__init__.py", "apps", "packages", "infra"]
 
 [tool.black]
 line-length = 100

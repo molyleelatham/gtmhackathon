@@ -13,3 +13,12 @@ class ZeroCRMPayload(BaseModel):
     buying_signals: dict
     signal_source: str  # "tavily_search"|"conference_audio"
     tags: list[str] = Field(default_factory=list)
+
+    # Per-person context accumulated during the meet stage. `personal_context`
+    # is the human-readable narrative pushed onto the CRM record; the structured
+    # fields back automations / segmentation.
+    personal_context: Optional[str] = None
+    communication_style: list[str] = Field(default_factory=list)
+    values: list[str] = Field(default_factory=list)
+    dominant_topic: Optional[str] = None
+    pain_points: list[str] = Field(default_factory=list)

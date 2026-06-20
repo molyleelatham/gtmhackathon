@@ -1,19 +1,19 @@
 # Warmth — Integrated Conference Intelligence Platform
 
 > **GTM Hackathon · June 2026**
-> Stack: Python (Backend) + iOS/watchOS (Mobile) · FastAPI · Cursor SDK · Deepgram · Zero CRM · UnifyGTM · Google MCP
+> Stack: Python (Backend) + iOS/watchOS (Mobile) · FastAPI · Cursor SDK · Apple Speech (on-device ASR) · Zero CRM · UnifyGTM · Google MCP
 
 ## Overview
 
 Warmth is an integrated conference intelligence platform combining:
-- **Native iOS/watchOS App** - Mobile recording with phrase trigger ("hey its nice to meet you"), manual controls, Apple Watch, and Siri shortcuts
+- **Native iOS/watchOS App** - Passive name-triggered listening: the phone detects contact names (wake words), captures the conversation on-device, builds a social graph, and scores leads against your ICP
 - **Python Backend** - Server-side processing, CRM integration, and AI analysis
 
-When you attend conferences, start recording from the iPhone app (phrase or manual), Apple Watch, or Siri; the backend processes transcriptions, extracts intelligence, and manages CRM integrations.
+When you attend conferences, the iPhone listens for contact names; hearing one opens a 30-second on-device capture window that extracts people, companies, relationships, and ICP signals. Qualified leads buzz your Apple Watch and flow to the backend → Zero CRM → follow-up sequence.
 
 ## Key Features
 
-- **🎤 Phrase + Manual Recording**: Say **"hey its nice to meet you"** on iPhone (foreground), or use manual controls, Apple Watch complications, and Siri shortcuts
+- **🎤 Name-Triggered Passive Listening**: The phone wakes on contact names ("hey Anna", a first name) via a CoreML wake-word detector, then transcribes on-device with ICP-biased speech recognition
 - **👥 Lead Classification**: Automatically route leads to me/team/founders/community
 - **📋 Directory Scraping**: Scrape conference directories for attendees by interests
 - **🤝 First Connections**: Auto-enrich and draft emails via Google MCP
@@ -70,7 +70,6 @@ uv run python apps/listener/main.py
 
 Required environment variables (see `.env.example`):
 
-- **ASR**: `DEEPGRAM_API_KEY`
 - **Integrations**: `ZERO_CRM_API_KEY`, `UNIFY_GTM_API_KEY`, `CURSOR_SDK_API_KEY`
 - **Google MCP**: `GOOGLE_MCP_CREDENTIALS`, `GOOGLE_MCP_SERVER_URL`
 - **Signal Sources**: `TAVILY_API_KEY`
@@ -79,9 +78,48 @@ Required environment variables (see `.env.example`):
 - **Community**: `COMMUNITY_GROUPS_ENABLED`, `COMMUNITY_PERMISSIONS`
 - **User Config**: `USER_ROLE`, `TEAM_SIZE`, `COMPANY_STAGE`
 
+## Team Secrets (Google Secret Manager)
+
+Rather than passing `.env` files around, shared API keys live in **Google Secret
+Manager** for the team's GCP project. At startup the app pulls them into the
+process environment, so all existing `os.getenv(...)` calls keep working.
+
+**One-time setup (each developer):**
+
+```bash
+gcloud auth application-default login   # ADC for Secret Manager access
+export GCP_PROJECT_ID=<your-shared-project-id>   # or set in .env
+```
+
+**Seed the shared secrets once (from a working .env):**
+
+```bash
+make secrets-push        # uploads non-empty secrets from .env → Secret Manager
+```
+
+**Teammates pull them:**
+
+```bash
+make secrets-pull        # writes the shared secrets into their local .env
+# or rely on runtime loading — just `make run-api` and secrets load automatically
+make secrets-list        # see what's stored
+```
+
+**How resolution works at runtime** (`packages/core/secrets.py`):
+1. Local `.env` / real environment wins (developer overrides for testing).
+2. Anything still unset is filled from Secret Manager.
+3. If no `GCP_PROJECT_ID`, no credentials, or the SDK is missing, it logs a
+   warning and falls back to `.env`-only — so nothing breaks for local dev.
+   Set `DISABLE_SECRET_MANAGER=true` to opt out entirely.
+
+Secret ids equal the env-var names (e.g. secret `TAVILY_API_KEY`). Pure config
+knobs (URLs, booleans, sample rates) are skipped by `secrets-push` and stay in
+`.env`. Use `--prefix WARMTH_` on the CLI to namespace secrets within a project.
+
 ## Integrations
 
-- **Signal Detection**: Deepgram Nova-3 (ASR), Tavily Search
+- **On-Device Listening (iOS)**: Soniqo CoreML wake-word detection + SFSpeechRecognizer (on-device ASR) with an ICP custom language model; NLTagger social-graph extraction → `POST /api/signals` (see [iOS README](./iOS/Warmth-iOS/README.md))
+- **Signal Detection (backend)**: Tavily Search
 - **Lead Classification**: Custom routing logic (me/team/founders/community)
 - **Directory Scraping**: BeautifulSoup (web), PyPDF (documents)
 - **Enrichment**: UnifyGTM (firmographics), Zero CRM (contacts)

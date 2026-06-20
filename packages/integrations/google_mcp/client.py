@@ -10,23 +10,20 @@ class GoogleMCPClient:
     def __init__(self, credentials: Optional[str] = None):
         """
         Initialize Google MCP client
-        
-        Args:
-            credentials: Google credentials JSON string or path to credentials file
+
+        Credentials can live on the MCP server (GOOGLE_MCP_CREDENTIALS env on
+        the bridge) or be passed here for backward compatibility.
         """
         self.credentials = credentials or os.getenv("GOOGLE_MCP_CREDENTIALS")
-        
-        if not self.credentials:
-            raise ValueError("Google MCP credentials must be provided")
-        
-        # Load credentials
-        if os.path.exists(self.credentials):
-            with open(self.credentials, 'r') as f:
-                self.creds_dict = json.load(f)
-        else:
-            self.creds_dict = json.loads(self.credentials)
-        
-        # MCP server configuration
+        self.creds_dict: dict[str, Any] = {}
+
+        if self.credentials:
+            if os.path.exists(self.credentials):
+                with open(self.credentials, "r") as f:
+                    self.creds_dict = json.load(f)
+            else:
+                self.creds_dict = json.loads(self.credentials)
+
         self.mcp_server_url = os.getenv("GOOGLE_MCP_SERVER_URL", "http://localhost:3000")
     
     async def create_email_draft(
@@ -56,8 +53,9 @@ class GoogleMCPClient:
             "to": to,
             "subject": subject,
             "body": body,
-            "credentials": self.creds_dict
         }
+        if self.creds_dict:
+            payload["credentials"] = self.creds_dict
         
         if cc:
             payload["cc"] = cc
@@ -96,8 +94,9 @@ class GoogleMCPClient:
             "to": to,
             "subject": subject,
             "body": body,
-            "credentials": self.creds_dict
         }
+        if self.creds_dict:
+            payload["credentials"] = self.creds_dict
         
         if cc:
             payload["cc"] = cc

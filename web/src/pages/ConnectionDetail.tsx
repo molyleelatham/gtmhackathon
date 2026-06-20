@@ -14,6 +14,7 @@ export function ConnectionDetail() {
     [connectionId],
   );
   const [decision, setDecision] = useState<RoutingDecision | null>(null);
+  const [meetDraft, setMeetDraft] = useState<Record<string, unknown> | null>(null);
   const [followup, setFollowup] = useState<Record<string, unknown> | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -30,11 +31,12 @@ export function ConnectionDetail() {
         company: conn.company_name,
         interests: conn.interests,
         what_you_learned: ["Exploring a RevOps revamp", "Budget approved for Q3"],
-        most_interesting: "They’re consolidating 3 tools into one",
+        most_interesting: "They're consolidating 3 tools into one",
         topic_time: [{ topic: "pipeline", seconds: 240 }],
         most_time_topic: "pipeline",
       });
       setDecision(result);
+      setMeetDraft((result.gmail_draft as Record<string, unknown>) ?? null);
     } finally {
       setBusy(false);
     }
@@ -147,6 +149,16 @@ export function ConnectionDetail() {
                   value={decision.matched_candidates.map((m) => m.name).join(", ")}
                 />
               )}
+              {meetDraft?.gmail_compose_url ? (
+                <a
+                  href={String(meetDraft.gmail_compose_url)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-block rounded-lg bg-warmth-warm/90 px-3 py-1.5 text-xs font-medium text-ink-900 hover:bg-warmth-warm"
+                >
+                  Open Gmail draft · Lightfern polishes there
+                </a>
+              ) : null}
             </Card>
           )}
 
@@ -156,6 +168,16 @@ export function ConnectionDetail() {
               <pre className="mt-2 whitespace-pre-wrap text-sm text-ink-muted">
                 {String(followup.body ?? "")}
               </pre>
+              {followup.gmail_compose_url ? (
+                <a
+                  href={String(followup.gmail_compose_url)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-block rounded-lg bg-warmth-warm/90 px-3 py-1.5 text-xs font-medium text-ink-900 hover:bg-warmth-warm"
+                >
+                  Open in Gmail · Lightfern polishes it there
+                </a>
+              ) : null}
               <div className="mt-2 text-xs text-ink-faint">status: {String(followup.status)}</div>
             </Card>
           )}

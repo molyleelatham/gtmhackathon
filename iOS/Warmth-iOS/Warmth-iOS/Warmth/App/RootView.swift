@@ -1,0 +1,82 @@
+import SwiftUI
+
+/// Root shell: shows onboarding until complete, then the Liquid Glass tab bar
+/// (Capture · Connections · Settings).
+struct RootView: View {
+    @Environment(AppModel.self) private var model
+    @State private var authReady = false
+
+    var body: some View {
+        Group {
+            if !authReady {
+                ZStack {
+                    MeshGradientBackground()
+                    ProgressView()
+                        .tint(WarmthColor.emberRed)
+                }
+            } else if model.isOnboarded && model.auth.state.isSignedIn {
+                MainTabView()
+            } else if model.isOnboarded {
+                // Onboarding finished but session expired — sign in again, not full setup.
+                ReturningSignInView()
+            } else {
+                OnboardingFlow()
+            }
+        }
+        .animation(WarmthMotion.gentle, value: model.isOnboarded)
+        .animation(WarmthMotion.gentle, value: model.auth.state)
+        .task {
+            await model.auth.restore()
+            authReady = true
+        }
+    }
+}
+
+/// The three-tab Liquid Glass shell.
+struct MainTabView: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        @Bindable var model = model
+        TabView(selection: $model.selectedTab) {
+            Tab("Capture", systemImage: "waveform", value: WarmthTab.capture) {
+                CaptureView()
+            }
+            Tab("Connections", systemImage: "person.2.fill", value: WarmthTab.connections) {
+                ConnectionsView()
+            }
+            Tab("Settings", systemImage: "gearshape.fill", value: WarmthTab.settings) {
+                SettingsView()
+            }
+        }
+        .tint(WarmthColor.emberRed)
+        .onChange(of: model.speech.phase) { _, _ in
+            model.syncWatchState()
+        }
+        .onChange(of: Int(model.speech.elapsed)) { _, _ in
+            if model.speech.phase == .recording { model.syncWatchState() }
+        }
+    }
+}
+
+/// Auth-only gate for users who finished onboarding but signed out later.
+private struct ReturningSignInView: View {
+    var body: some View {
+        ZStack {
+            MeshGradientBackground(intensity: 1.05)
+            SignInStepView(advance: {})
+                .frame(maxWidth: 480)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 24)
+        }
+    }
+}
+
+#Preview {
+    RootView()
+        .environment({
+            let m = AppModel.preview
+            m.settings.didCompleteOnboarding = true
+            return m
+        }())
+}

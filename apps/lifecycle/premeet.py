@@ -63,11 +63,35 @@ class PreMeetPipeline:
     ) -> list[PreMeetConnection]:
         """Assemble pre-meet connections from manual input + directory scrape.
 
-        STUB: scraping is not implemented here (see packages BeautifulSoup deps);
-        manual_attendees are mapped directly.
+        If ``event.directory_url`` is set the Playwright scraper is used to
+        extract attendees from the conference directory page. Manual attendees
+        (if provided) are merged in and take priority (deduped by name).
         """
+        scraped: list[dict] = []
+        if event.directory_url:
+            try:
+                from ..scraper.sources.playwright_scraper import ConferenceDirectoryScraper
+                scraper = ConferenceDirectoryScraper(headless=True)
+                scraped = await scraper.scrape(event.directory_url)
+            except Exception as exc:
+                print(f"PreMeetPipeline scraper fallback: {exc}")
+
+        # Merge: manual attendees override scraped ones (dedup by name)
+        seen_names: set[str] = set()
+        raw: list[dict] = []
+        for att in (manual_attendees or []):
+            key = (att.get("name") or "").lower().strip()
+            if key:
+                seen_names.add(key)
+            raw.append(att)
+        for att in scraped:
+            key = (att.get("name") or "").lower().strip()
+            if key and key not in seen_names:
+                seen_names.add(key)
+                raw.append(att)
+
         connections: list[PreMeetConnection] = []
-        for att in manual_attendees or []:
+        for att in raw:
             connections.append(
                 PreMeetConnection(
                     event_id=event.id,
@@ -75,13 +99,12 @@ class PreMeetPipeline:
                     name=att.get("name"),
                     email=att.get("email"),
                     title=att.get("title"),
-                    company_name=att.get("company"),
+                    company_name=att.get("company") or att.get("company_name"),
                     company_domain=att.get("company_domain"),
                     interests=att.get("interests", []),
                     source=att.get("source", "manual"),
                 )
             )
-        # TODO: if event.directory_url is set, scrape it and append connections.
         return connections
 
     # ------------------------------------------------------------------ #
@@ -168,9 +191,16 @@ class PreMeetPipeline:
     # 4. Draft personalized outreach + create Gmail draft
     # ------------------------------------------------------------------ #
     async def draft_outreach(self, connection: PreMeetConnection) -> PreMeetConnection:
+        from ..api.integration_helpers import warmth_client_email, warmth_client_name
+
         personalized = await self.lightfern_client.personalize_outreach(
-            recipient={"name": connection.name, "company": connection.company_name},
-            context={"interests": connection.interests, "notes": connection.research_notes},
+            recipient={"name": connection.name, "company": connection.company_name, "email": connection.email},
+            context={
+                "interests": connection.interests,
+                "notes": connection.research_notes,
+                "client_email": warmth_client_email(),
+                "client_name": warmth_client_name(),
+            },
             purpose="pre_meet_intro",
         )
         connection.draft_subject = personalized.get("subject")

@@ -1,4 +1,4 @@
-.PHONY: help install test run-api run-listener test-tavily test-mic lint format
+.PHONY: help install test run-api run-listener test-tavily test-mic lint format secrets-push secrets-pull secrets-list
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -42,11 +42,39 @@ test-mic: ## Test microphone pipeline
 
 run-api: ## Run the FastAPI server
 	@echo "🚀 Starting FastAPI server..."
-	uv run uvicorn apps.api.main:app --reload --port 8000
+	cd .. && (uv run --directory warmth uvicorn warmth.apps.api.main:app --reload --port 8000 || PYTHONPATH=. warmth/.venv/bin/uvicorn warmth.apps.api.main:app --reload --host 0.0.0.0 --port 8000)
+
+run-meet-local: ## Run the lightweight MEET test server
+	@echo "🚀 Starting MEET local server..."
+	cd .. && uv run --directory warmth python warmth/scripts/serve_meet_local.py
+
+run-gmail-mcp: ## Run the Gmail MCP bridge (port 3000)
+	@echo "📬 Starting Gmail MCP bridge..."
+	cd .. && PYTHONPATH=. warmth/.venv/bin/uvicorn warmth.services.google_mcp_server.main:app --reload --host 0.0.0.0 --port $${GOOGLE_MCP_PORT:-3000}
+
+setup-gmail-mcp: ## OAuth setup for getwarmth@gmail.com Gmail MCP
+	@echo "🔐 Gmail OAuth setup..."
+	cd .. && PYTHONPATH=. warmth/.venv/bin/python warmth/scripts/setup_gmail_oauth.py
+
+install-gmail: ## Install Gmail MCP Python dependencies
+	@echo "📦 Installing Gmail MCP deps..."
+	cd .. && uv pip install --directory warmth google-api-python-client google-auth-oauthlib google-auth-httplib2
 
 run-listener: ## Run the listener service
 	@echo "🚀 Starting listener service..."
 	uv run python apps/listener/main.py
+
+secrets-push: ## Push local .env secrets to Google Secret Manager
+	@echo "🔐 Pushing secrets to Google Secret Manager..."
+	uv run python scripts/secrets_sync.py push --env-file .env
+
+secrets-pull: ## Pull team secrets from Google Secret Manager into .env
+	@echo "🔐 Pulling secrets from Google Secret Manager..."
+	uv run python scripts/secrets_sync.py pull --env-file .env
+
+secrets-list: ## List secrets stored in Google Secret Manager
+	@echo "🔐 Listing secrets in Google Secret Manager..."
+	uv run python scripts/secrets_sync.py list
 
 lint: ## Run linting
 	@echo "🔍 Running linting..."
