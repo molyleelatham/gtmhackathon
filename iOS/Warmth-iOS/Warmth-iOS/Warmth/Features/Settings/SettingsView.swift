@@ -165,10 +165,10 @@ private struct BackendSection: View {
                     .submitLabel(.done)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 12)
-                    .background(WarmthColor.warmWhite.opacity(0.5), in: .rect(cornerRadius: 12, style: .continuous))
+                    .background(WarmthColor.surfaceMuted, in: .rect(cornerRadius: 12, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .strokeBorder(WarmthColor.emberOrange.opacity(0.25), lineWidth: 0.5)
+                            .strokeBorder(WarmthColor.surfaceBorder.opacity(0.8), lineWidth: 0.5)
                     )
                     .onSubmit { applyURL() }
                     .onChange(of: settings.baseURLString) { _, _ in applyURL() }
@@ -248,10 +248,10 @@ private struct WakePhraseSection: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 14)
-                    .background(WarmthColor.amber.opacity(0.14), in: .rect(cornerRadius: 14, style: .continuous))
+                    .background(WarmthColor.amber.opacity(0.18), in: .rect(cornerRadius: 14, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .strokeBorder(WarmthColor.amber.opacity(0.35), lineWidth: 0.5)
+                            .strokeBorder(WarmthColor.amber.opacity(0.42), lineWidth: 0.5)
                     )
 
                 Text("Say this when you meet someone new and Warmth will start listening to capture the conversation.")
@@ -308,13 +308,10 @@ private struct PermissionsSection: View {
 
                 EmberButton(title: "Check permissions", systemImage: "checkmark.shield", fill: false) {
                     checking = true
-                    Task {
-                        let result = await model.speech.requestPermissions()
-                        granted = result
-                        checked = true
-                        checking = false
-                        if result { WarmthHaptics.success() } else { WarmthHaptics.warning() }
-                    }
+                    granted = model.speech.checkPermissions()
+                    checked = true
+                    checking = false
+                    if granted { WarmthHaptics.success() } else { WarmthHaptics.warning() }
                 }
             }
         }

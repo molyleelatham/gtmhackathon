@@ -56,7 +56,7 @@ private struct RecentConnectionCard: View {
         .frame(width: 92)
         .padding(.vertical, 14)
         .padding(.horizontal, 6)
-        .glassEffect(.regular, in: .rect(cornerRadius: 20))
+        .warmthGlass(WarmthGlassStyle.card, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 }
 

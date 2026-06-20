@@ -71,14 +71,46 @@ def _character_mask(source: Image.Image, radius: int = 4, feature_radius: int = 
     return dilate(white, radius), dilate(white, feature_radius)
 
 
+def _near_white_stroke(pixels, x: int, y: int, width: int, height: int, radius: int = 6) -> bool:
+    """True if pixel is part of the stroke or its anti-aliased halo."""
+    for dy in range(-radius, radius + 1):
+        for dx in range(-radius, radius + 1):
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < width and 0 <= ny < height:
+                r, g, b, _ = pixels[nx, ny]
+                if r + g + b > 480:
+                    return True
+    return False
+def _is_face_feature(pixels, x: int, y: int, width: int, height: int, radius: int = 4) -> bool:
+    """Eyes/mouth sit inside white fill — more white than dark neighbors, unlike the outer contour."""
+    white_neighbors = 0
+    dark_neighbors = 0
+    for dy in range(-radius, radius + 1):
+        for dx in range(-radius, radius + 1):
+            if dx == 0 and dy == 0:
+                continue
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < width and 0 <= ny < height:
+                r, g, b, _ = pixels[nx, ny]
+                total = r + g + b
+                if total > 500:
+                    white_neighbors += 1
+                elif total < 40:
+                    dark_neighbors += 1
+    return white_neighbors >= 10 and white_neighbors > dark_neighbors * 2
+
+
 def recolor_original(source: Path) -> Image.Image:
     """Map original black/white artwork to Warmth app colours, preserving exact edges."""
     img = Image.open(source).convert("RGBA")
     pixels = img.load()
     width, height = img.size
-    near_character, feature_zone = _character_mask(img)
     output = Image.new("RGBA", (width, height))
     out_pixels = output.load()
+
+    # Sun face region — restrict ink to eyes/mouth only, not stroke edges
+    face_y0, face_y1 = int(height * 0.10), int(height * 0.36)
+    face_x0, face_x1 = int(width * 0.20), int(width * 0.80)
 
     for y in range(height):
         ember = _ember_gradient(y, height)
@@ -89,19 +121,19 @@ def recolor_original(source: Path) -> Image.Image:
                 continue
 
             luminance = (r + g + b) / (3 * 255)
-            in_character = near_character[y][x]
-            in_features = feature_zone[y][x]
+            near_stroke = _near_white_stroke(pixels, x, y, width, height)
+            in_sun_face = face_y0 <= y <= face_y1 and face_x0 <= x <= face_x1
 
-            if luminance > 0.42 or (in_character and luminance > 0.18):
-                # Character strokes → warm white, anti-aliased against ember bg
-                strength = min(1.0, max(0.0, (luminance - 0.08) / 0.92))
-                color = _lerp(ember, WARM_WHITE, strength)
-            elif in_features and luminance <= 0.42:
-                # Eyes/mouth → ink on the white sun
-                strength = min(1.0, max(0.0, (0.42 - luminance) / 0.42))
+            if (
+                in_sun_face
+                and luminance <= 0.08
+                and _is_face_feature(pixels, x, y, width, height)
+            ):
+                strength = min(1.0, max(0.0, (0.08 - luminance) / 0.08))
                 color = _lerp(WARM_WHITE, INK, strength)
+            elif near_stroke:
+                color = WARM_WHITE
             else:
-                # Background → ember gradient
                 color = ember
 
             out_pixels[x, y] = (*color, a)

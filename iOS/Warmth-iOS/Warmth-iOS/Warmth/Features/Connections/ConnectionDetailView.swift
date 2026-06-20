@@ -146,7 +146,7 @@ private struct ICPGauge: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(WarmthColor.ink.opacity(0.08))
+                        .fill(WarmthColor.surfaceMuted)
                     Capsule()
                         .fill(WarmthColor.emberGradient)
                         .frame(width: max(8, geo.size.width * fraction))

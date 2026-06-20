@@ -4,18 +4,31 @@ import SwiftUI
 /// (Capture · Connections · Settings).
 struct RootView: View {
     @Environment(AppModel.self) private var model
+    @State private var authReady = false
 
     var body: some View {
         Group {
-            if model.isOnboarded && model.auth.state.isSignedIn {
+            if !authReady {
+                ZStack {
+                    MeshGradientBackground()
+                    ProgressView()
+                        .tint(WarmthColor.emberRed)
+                }
+            } else if model.isOnboarded && model.auth.state.isSignedIn {
                 MainTabView()
+            } else if model.isOnboarded {
+                // Onboarding finished but session expired — sign in again, not full setup.
+                ReturningSignInView()
             } else {
                 OnboardingFlow()
             }
         }
         .animation(WarmthMotion.gentle, value: model.isOnboarded)
         .animation(WarmthMotion.gentle, value: model.auth.state)
-        .task { await model.auth.restore() }
+        .task {
+            await model.auth.restore()
+            authReady = true
+        }
     }
 }
 
@@ -39,6 +52,22 @@ struct MainTabView: View {
         .tint(WarmthColor.emberRed)
         .onChange(of: model.speech.phase) { _, _ in
             model.syncWatchState()
+        }
+        .onChange(of: Int(model.speech.elapsed)) { _, _ in
+            if model.speech.phase == .recording { model.syncWatchState() }
+        }
+    }
+}
+
+/// Auth-only gate for users who finished onboarding but signed out later.
+private struct ReturningSignInView: View {
+    var body: some View {
+        ZStack {
+            MeshGradientBackground(intensity: 1.05)
+            SignInStepView(advance: {})
+                .frame(maxWidth: 480)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 24)
         }
     }
 }
