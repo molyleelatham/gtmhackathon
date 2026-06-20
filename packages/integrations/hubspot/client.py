@@ -153,6 +153,30 @@ class HubSpotClient:
             print(f"HubSpotClient.update_contact error: {exc}")
             return False
 
+    async def upsert_from_zero_payload(self, payload: Any) -> Optional[str]:
+        """Upsert a contact from a ``ZeroCRMPayload`` using the merged schema.
+
+        HubSpot is the source of record: this writes the same field set that goes
+        to Zero CRM (via ``zero_payload_to_hubspot_properties``); the native
+        Zero/Unify integrations propagate from here. Dedupes by email.
+        """
+        from .schema import zero_payload_to_hubspot_properties
+
+        props = zero_payload_to_hubspot_properties(payload)
+        email = props.get("email")
+        existing = await self.find_contact_by_email(email) if email else None
+        if existing:
+            hs_id = existing.get("id") or existing.get("properties", {}).get("hs_object_id")
+            if hs_id:
+                await self.update_contact(hs_id, props)
+                return hs_id
+        return await self.create_contact(
+            firstname=props.pop("firstname", None),
+            lastname=props.pop("lastname", None),
+            email=email,
+            custom_properties=props,
+        )
+
     # ------------------------------------------------------------------
     # Lists
     # ------------------------------------------------------------------

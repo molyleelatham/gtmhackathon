@@ -4,6 +4,7 @@ from typing import Optional
 
 from ...packages.integrations.zero_crm.client import ZeroCRMClient
 from ...packages.integrations.unify_gtm.client import UnifyGTMClient
+from ...packages.integrations.hubspot.client import HubSpotClient
 from ...packages.integrations.google_mcp.client import GoogleMCPClient
 from ...packages.integrations.lightfern.workflow import LightfernClient
 from ...packages.integrations.faxxing.client import FaxxingClient
@@ -29,6 +30,18 @@ def unify_client_optional() -> Optional[UnifyGTMClient]:
         return UnifyGTMClient()
     except Exception as e:
         print(f"UnifyGTM client unavailable: {e}")
+        return None
+
+
+def hubspot_client_optional() -> Optional[HubSpotClient]:
+    """HubSpot is the source of record; the pipeline writes here and the native
+    Zero/Unify integrations propagate. Returns None if no token configured."""
+    if not os.getenv("HUBSPOT_API_KEY"):
+        return None
+    try:
+        return HubSpotClient()
+    except Exception as e:
+        print(f"HubSpot client unavailable: {e}")
         return None
 
 
@@ -61,6 +74,26 @@ def warmth_client_email() -> str:
 
 def warmth_client_name() -> str:
     return os.getenv("WARMTH_CLIENT_NAME", "Warmth").strip()
+
+
+def wrap_self_draft(
+    subject: str,
+    body: str,
+    *,
+    stage: str,
+    recipient_name: Optional[str] = None,
+    recipient_email: Optional[str] = None,
+) -> tuple[str, str]:
+    """Format a draft addressed to our inbox with the intended contact noted."""
+    label = "Pre-meet" if stage == "pre_meet" else "Post-meet"
+    target = recipient_name or "contact"
+    if recipient_email:
+        target = f"{target} <{recipient_email}>"
+    header = f"Draft for {label} outreach → {target}\n(Open in Gmail; Lightfern polishes before you send to the contact.)\n"
+    tagged_subject = f"[{label}] {subject}"
+    if recipient_name:
+        tagged_subject += f" — {recipient_name}"
+    return tagged_subject, header + body
 
 
 def lead_from_connection(conn: PreMeetConnection) -> Lead:

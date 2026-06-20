@@ -16,10 +16,17 @@ from ...packages.integrations.zero_crm.mapper import ZeroCRMMapper
 from ...packages.integrations.faxxing.client import FaxxingClient
 from ...packages.integrations.lightfern.workflow import LightfernClient
 from ...packages.integrations.google_mcp.client import GoogleMCPClient
+from ...packages.integrations.hubspot.client import HubSpotClient
 from ...packages.ml.pipeline import RoutingTarget
 from ..lifecycle.meet import MeetPipeline
 from ..listener.intelligence.meet_encoder import MeetEncoder
-from ..api.integration_helpers import gmail_client_optional, warmth_client_email, warmth_client_name
+from ..api.integration_helpers import (
+    gmail_client_optional,
+    hubspot_client_optional,
+    warmth_client_email,
+    warmth_client_name,
+    wrap_self_draft,
+)
 
 
 class MeetStageAgent:
@@ -32,11 +39,13 @@ class MeetStageAgent:
         faxxing_client: Optional[FaxxingClient] = None,
         lightfern_client: Optional[LightfernClient] = None,
         gmail_client: Optional[GoogleMCPClient] = None,
+        hubspot_client: Optional[HubSpotClient] = None,
     ):
         self.encoder = encoder or MeetEncoder(use_agent=use_agent)
         self.faxxing_client = faxxing_client or FaxxingClient()
         self.lightfern_client = lightfern_client or LightfernClient()
         self.gmail_client = gmail_client or gmail_client_optional()
+        self.hubspot_client = hubspot_client or hubspot_client_optional()
         self.meet_pipeline = meet_pipeline or MeetPipeline(
             zero_client=zero_client,
             faxxing_client=self.faxxing_client,
@@ -105,16 +114,38 @@ class MeetStageAgent:
 
         if self.gmail_client:
             try:
-                created = await self.gmail_client.create_email_draft(
-                    to=lead.contact_email or warmth_client_email(),
-                    subject=gmail_draft.get("subject", ""),
-                    body=gmail_draft.get("body", ""),
+                subject, body = wrap_self_draft(
+                    gmail_draft.get("subject", ""),
+                    gmail_draft.get("body", ""),
+                    stage="post_meet",
+                    recipient_name=lead.contact_name or signal.name,
+                    recipient_email=lead.contact_email,
                 )
+                created = await self.gmail_client.create_email_draft(
+                    to=warmth_client_email(),
+                    subject=subject,
+                    body=body,
+                )
+                gmail_draft["subject"] = subject
+                gmail_draft["body"] = body
+                gmail_draft["to"] = warmth_client_email()
                 gmail_draft["gmail_draft_id"] = created.get("id")
             except Exception as e:
                 print(f"Gmail MCP draft fallback: {e}")
 
         zero_payload = ZeroCRMMapper.lead_to_zero_payload_with_context(lead, person)
+
+        # HubSpot is the source of record: write the same merged payload here and
+        # let the native Zero/Unify integrations propagate it (avoids dup writes).
+        hubspot_contact_id = None
+        if self.hubspot_client and decision.target == RoutingTarget.CRM_AND_OUTREACH:
+            try:
+                hubspot_contact_id = await self.hubspot_client.upsert_from_zero_payload(
+                    zero_payload
+                )
+            except Exception as e:
+                print(f"HubSpot upsert failed: {e}")
+
         outreach_sequence = None
         if decision.target == RoutingTarget.CRM_AND_OUTREACH and person is not None:
             outreach_sequence = await self.faxxing_client.personalize_sequence(person)
@@ -128,6 +159,7 @@ class MeetStageAgent:
             "decision": decision.model_dump(),
             "scores": scores,
             "zero_crm_payload": zero_payload.model_dump(),
+            "hubspot_contact_id": hubspot_contact_id,
             "gmail_draft": gmail_draft,
             "outreach_sequence": outreach_sequence,
             "pushed_to_crm": decision.target == RoutingTarget.CRM_AND_OUTREACH,
