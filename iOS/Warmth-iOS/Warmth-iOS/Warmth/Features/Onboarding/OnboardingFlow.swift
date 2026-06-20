@@ -98,7 +98,7 @@ private struct ProgressDots: View {
             ForEach(0..<total, id: \.self) { index in
                 Capsule()
                     .fill(index == current ? AnyShapeStyle(WarmthColor.emberGradient)
-                                           : AnyShapeStyle(WarmthColor.ink.opacity(0.18)))
+                                           : AnyShapeStyle(WarmthColor.surfaceBorder))
                     .frame(width: index == current ? 22 : 7, height: 7)
             }
         }

@@ -9,6 +9,8 @@ final class MockSpeechService: SpeechServicing {
     var audioLevel: Double = 0.3
     var elapsed: TimeInterval = 0
     var permissionError: String?
+    var permissionsDenied = false
+    var hasMicrophoneAccess = true
     var onWakeWordDetected: (() -> Void)?
 
     private var ticker: Task<Void, Never>?
@@ -19,6 +21,8 @@ final class MockSpeechService: SpeechServicing {
     }
 
     func requestPermissions() async -> Bool { true }
+
+    func checkPermissions() -> Bool { true }
 
     func startListening() async { phase = .listening; animate() }
 

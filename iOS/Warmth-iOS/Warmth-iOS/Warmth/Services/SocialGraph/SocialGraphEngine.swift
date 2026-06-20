@@ -28,7 +28,10 @@ struct SocialGraphEngine: SocialGraphProcessing {
         let trimmed = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
 
-        let names = entities(in: trimmed, tag: .personalName)
+        var names = entities(in: trimmed, tag: .personalName)
+        if names.isEmpty {
+            names = introNameFallback(in: trimmed)
+        }
         let orgs = entities(in: trimmed, tag: .organizationName)
 
         // We need at least a person to anchor a node.
@@ -64,7 +67,22 @@ struct SocialGraphEngine: SocialGraphProcessing {
             }
             return true
         }
+        if targetTag == .personalName && results.isEmpty {
+            return introNameFallback(in: text)
+        }
         return results
+    }
+
+    /// Regex fallback when NLTagger misses common self-introduction patterns.
+    func introNameFallback(in text: String) -> [String] {
+        let pattern = #"(?i)\b(?:i['']?m|i am|my name is|this is)\s+([A-Z][\w\-']+(?:\s+[A-Z][\w\-']+)?)"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+        let range = NSRange(text.startIndex..., in: text)
+        guard let match = regex.firstMatch(in: text, options: [], range: range),
+              match.numberOfRanges > 1,
+              let nameRange = Range(match.range(at: 1), in: text) else { return [] }
+        let name = String(text[nameRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+        return name.isEmpty ? [] : [name]
     }
 
     // MARK: - Relations (regex SPO)

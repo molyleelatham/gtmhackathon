@@ -11,11 +11,23 @@ import GoogleSignIn
 @MainActor
 @Observable
 final class FirebaseAuthService: AuthProviding {
+    private enum Keys {
+        static let guestSession = "warmth.guestSessionActive"
+    }
+
+    private let defaults: UserDefaults
     private(set) var state: AuthState = .unknown
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
 
     func restore() async {
         if let user = Auth.auth().currentUser {
+            defaults.set(false, forKey: Keys.guestSession)
             state = .signedIn(map(user))
+        } else if defaults.bool(forKey: Keys.guestSession) {
+            state = .signedIn(WarmthUser(id: "guest", displayName: "Guest", email: nil, photoURL: nil))
         } else {
             state = .signedOut
         }
@@ -41,6 +53,7 @@ final class FirebaseAuthService: AuthProviding {
                 accessToken: result.user.accessToken.tokenString
             )
             let authResult = try await Auth.auth().signIn(with: credential)
+            defaults.set(false, forKey: Keys.guestSession)
             state = .signedIn(map(authResult.user))
         } catch let error as NSError {
             if error.code == GIDSignInError.canceled.rawValue { throw AuthError.cancelled }
@@ -49,10 +62,12 @@ final class FirebaseAuthService: AuthProviding {
     }
 
     func continueAsGuest() {
+        defaults.set(true, forKey: Keys.guestSession)
         state = .signedIn(WarmthUser(id: "guest", displayName: "Guest", email: nil, photoURL: nil))
     }
 
     func signOut() {
+        defaults.set(false, forKey: Keys.guestSession)
         try? Auth.auth().signOut()
         GIDSignIn.sharedInstance.signOut()
         state = .signedOut

@@ -32,7 +32,7 @@ struct MeshGradientBackground: View {
 
     var body: some View {
         MeshGradient(width: 3, height: 3, points: points, colors: colors)
-            .overlay(WarmthColor.warmWhite.opacity(0.35))
+            .overlay(WarmthColor.warmWhite.opacity(0.48))
             .ignoresSafeArea()
             .onAppear {
                 guard animated else { return }

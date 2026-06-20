@@ -50,7 +50,7 @@ struct RecordOrb: View {
                     Circle().strokeBorder(WarmthColor.warmWhite.opacity(0.35), lineWidth: 1)
                 )
                 .overlay { orbContent }
-                .glassEffect(.regular.interactive(), in: .circle)
+                .warmthGlass(WarmthGlassStyle.interactive, in: Circle(), fillSurface: false)
                 .shadow(color: WarmthColor.emberRed.opacity(0.35), radius: 30, y: 12)
                 .scaleEffect(orbScale)
                 .animation(WarmthMotion.breathe, value: breathing)

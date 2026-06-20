@@ -99,8 +99,8 @@ struct ReviewCardView: View {
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
-                            .background(band.tint.opacity(0.16), in: .capsule)
-                            .overlay(Capsule().strokeBorder(band.tint.opacity(0.35), lineWidth: 0.5))
+                            .background(band.tint.opacity(0.18), in: .capsule)
+                            .overlay(Capsule().strokeBorder(band.tint.opacity(0.4), lineWidth: 0.5))
                         }
                         .buttonStyle(.plain)
                     }
@@ -116,7 +116,7 @@ struct ReviewCardView: View {
                     .onSubmit(addInterest)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 9)
-                    .background(WarmthColor.ink.opacity(0.05), in: .capsule)
+                    .background(WarmthColor.surfaceMuted, in: .capsule)
 
                 Button(action: addInterest) {
                     Image(systemName: "plus")
@@ -166,7 +166,7 @@ struct ReviewCardView: View {
                 .scrollContentBackground(.hidden)
                 .frame(minHeight: 90)
                 .padding(10)
-                .background(WarmthColor.ink.opacity(0.05), in: .rect(cornerRadius: 14))
+                .background(WarmthColor.surfaceMuted, in: .rect(cornerRadius: 14))
         }
     }
 
@@ -190,7 +190,7 @@ struct ReviewCardView: View {
                 .foregroundStyle(WarmthColor.ink)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 9)
-                .background(WarmthColor.ink.opacity(0.05), in: .rect(cornerRadius: 12))
+                .background(WarmthColor.surfaceMuted, in: .rect(cornerRadius: 12))
         }
     }
 
