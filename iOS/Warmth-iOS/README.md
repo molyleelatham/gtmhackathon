@@ -53,8 +53,13 @@ Requires:
 
 ## Setup
 
-1. Configure backend API URL in `AppConstants.swift`
-2. Add required Info.plist usage descriptions (no `.xcodeproj` is checked into this repo — add these when creating the Xcode project):
+1. **Firebase iOS app** (already registered in project `warmth-gtm-hackathon`):
+   - Bundle ID: `com.warmth.gtmhackathon`
+   - Config file: `Warmth-iOS/Warmth/GoogleService-Info.plist`
+   - When creating the Xcode project, use the same bundle ID and add the plist to the **Warmth** target (Copy Bundle Resources).
+
+2. Configure backend API URL in `AppConstants.swift`
+3. Add required Info.plist usage descriptions (no `.xcodeproj` is checked into this repo — add these when creating the Xcode project):
 
 ```xml
 <key>NSMicrophoneUsageDescription</key>

@@ -51,6 +51,7 @@ htmlcov/
 # Firebase
 firebase-*.json
 service-account-key.json
+infra/secrets/
 
 # GCP
 gcp-credentials.json
