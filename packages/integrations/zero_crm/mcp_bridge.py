@@ -19,7 +19,7 @@ Usage (inside an agent context that has MCP tools available)::
         company_name="NorthWind Labs",
         icp_score=88,
         warmth_score=81,
-        conference_name="SaaStr 2026",
+        event_name="SaaStr 2026",
     )
     list_id = await bridge.get_or_create_hot_leads_list("SaaStr 2026 Hot Leads")
     await bridge.add_contacts_to_list(list_id, [contact_id])
@@ -85,7 +85,7 @@ class ZeroMCPBridge:
         company_id: Optional[str] = None,
         icp_score: Optional[float] = None,
         warmth_score: Optional[float] = None,
-        conference_name: Optional[str] = None,
+        event_name: Optional[str] = None,
         list_ids: Optional[list[str]] = None,
     ) -> Optional[str]:
         """Create or find a contact in Zero CRM; return its UUID.
@@ -125,17 +125,17 @@ class ZeroMCPBridge:
         ).get("id")
 
         # Attach a note with scoring context
-        if contact_id and (icp_score is not None or conference_name):
+        if contact_id and (icp_score is not None or event_name):
             note_parts = []
-            if conference_name:
-                note_parts.append(f"**Conference:** {conference_name}")
+            if event_name:
+                note_parts.append(f"**Event:** {event_name}")
             if icp_score is not None:
                 note_parts.append(f"**ICP Score:** {icp_score:.0f}/100")
             if warmth_score is not None:
                 note_parts.append(f"**Warmth Score:** {warmth_score:.0f}/100")
             if note_parts:
                 await self._call("add_note", {
-                    "name": f"Pre-meet intel — {conference_name or 'conference'}",
+                    "name": f"Pre-meet intel — {event_name or 'event'}",
                     "emoji": "🎯",
                     "content": "\n".join(note_parts),
                     "contactId": contact_id,
@@ -234,7 +234,7 @@ class ZeroMCPBridge:
     async def push_hot_leads(
         self,
         leads: list[dict[str, Any]],
-        conference_name: str,
+        event_name: str,
         hot_leads_list_id: Optional[str] = None,
     ) -> list[str]:
         """Upsert a list of scored lead dicts into Zero CRM.
@@ -246,7 +246,7 @@ class ZeroMCPBridge:
         """
         if hot_leads_list_id is None:
             hot_leads_list_id = await self.get_or_create_hot_leads_list(
-                f"{conference_name} — Hot Leads"
+                f"{event_name} — Hot Leads"
             )
 
         contact_ids: list[str] = []
@@ -269,7 +269,7 @@ class ZeroMCPBridge:
                 company_id=company_id,
                 icp_score=lead.get("icp_score"),
                 warmth_score=lead.get("predicted_warmth"),
-                conference_name=conference_name,
+                event_name=event_name,
                 list_ids=[hot_leads_list_id],
             )
             if contact_id:

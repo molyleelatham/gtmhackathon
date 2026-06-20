@@ -1,7 +1,7 @@
 # Warmth Web Dashboard
 
 The browser-based **personal CRM** for Warmth. The iPhone + Apple Watch apps
-**capture** connections at conferences; this dashboard is where you **monitor,
+**capture** connections at events; this dashboard is where you **monitor,
 review, and manage** them across the lifecycle:
 
 1. **Before meet** — detected events, enriched + warmth-scored attendees, outreach drafts
@@ -30,7 +30,7 @@ uv run uvicorn apps.api.main:app --reload --port 8000
 ```
 
 The backend ships with an in-memory demo store (`apps/api/store.py`) seeded with
-a sample conference and connections, so the dashboard renders without Firebase or
+a sample event and connections, so the dashboard renders without Firebase or
 external API keys.
 
 ## Pages
@@ -38,7 +38,7 @@ external API keys.
 | Route | Purpose |
 |-------|---------|
 | `/` | Dashboard — stats, upcoming events, top leads |
-| `/events` | Detected conferences |
+| `/events` | Detected events |
 | `/events/:id` | Before-meet pipeline + ranked leads |
 | `/connections` | All connections by warmth |
 | `/connections/:id` | Detail, scores, routing + follow-up actions |

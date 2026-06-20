@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Warmth web dashboard — personal CRM to monitor and manage conference connections",
+  "description": "Warmth web dashboard — personal CRM to monitor and manage event connections",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

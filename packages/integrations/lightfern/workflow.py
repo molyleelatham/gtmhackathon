@@ -156,10 +156,10 @@ class LightfernClient:
                 f"[Lightfern will polish this in Gmail]\n"
             )
         else:
-            subject = f"Excited to connect at the conference, {name}"
+            subject = f"Excited to connect at the event, {name}"
             body = (
                 f"Hi {name},\n\n"
-                f"Saw you'll be at the conference and noticed your work at {company}. "
+                f"Saw you'll be at the event and noticed your work at {company}. "
                 f"Would love to swap notes on {interests}.\n\n"
                 f"[Lightfern will polish this in Gmail]\n"
             )

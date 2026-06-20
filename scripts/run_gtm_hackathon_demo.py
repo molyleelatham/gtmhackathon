@@ -47,7 +47,7 @@ GTM_HACKATHON = DetectedEvent(
     id="event_gtm_hackathon_2026",
     user_id="demo-user",
     name="GTM Hackathon",
-    event_type=EventType.CONFERENCE,
+    event_type=EventType.EVENT,
     location="London, UK",
     start_date=datetime(2026, 6, 20, 9, 0),
     end_date=datetime(2026, 6, 20, 18, 0),
@@ -128,7 +128,7 @@ async def run_demo(
         connection_id=top.id,
         name=top.name,
         company=top.company_name,
-        interests=top.interests or ["GTM", "conference intelligence"],
+        interests=top.interests or ["GTM", "event intelligence"],
         most_interesting="Building warmth scoring on top of Zero CRM ICP fit",
         what_you_learned=[
             "They invest in B2B SaaS with strong GTM motion",

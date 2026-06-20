@@ -3,7 +3,7 @@
 
 Steps:
   1. Pull upcoming events from Google Calendar (via MCP bridge)
-  2. Pick the best conference/meeting event (or next event with attendees)
+  2. Pick the best event/meeting event (or next event with attendees)
   3. Merge calendar attendees with CSV research contacts
   4. Run PreMeetPipeline (enrich → ICP/warmth score → outreach drafts)
   5. Create a briefing Gmail draft summarizing all ranked contacts
@@ -104,10 +104,10 @@ def _pick_calendar_event(
 
 
 def _pick_event(events: list) -> Optional[Any]:
-    """Prefer conference-like events; else next event with attendees."""
+    """Prefer event-like events; else next event with attendees."""
     if not events:
         return None
-    hints = ["conference", "summit", "expo", "meetup", "demo day", "hackathon", "gtm", "saas"]
+    hints = ["event", "summit", "expo", "meetup", "demo day", "hackathon", "gtm", "saas"]
     scored: list[tuple[float, Any]] = []
     for ev in events:
         text = f"{ev.name} {ev.location or ''}".lower()
@@ -257,7 +257,7 @@ async def run_e2e(
             id="event_gtm_hackathon_2026",
             user_id=DEMO_USER,
             name="GTM Hackathon",
-            event_type=EventType.CONFERENCE,
+            event_type=EventType.EVENT,
             location="London, UK",
             start_date=datetime(2026, 6, 20, 9, 0),
             end_date=datetime(2026, 6, 20, 18, 0),

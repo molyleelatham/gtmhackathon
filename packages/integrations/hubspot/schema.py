@@ -30,7 +30,7 @@ Field parity with ``ZeroCRMPayload`` (packages/core/schemas/zero_crm_schema.py):
     dominant_topic         -> warmth_dominant_topic
     pain_points            -> warmth_pain_points       ("; " joined)
 
-Plus conference-CSV enrichment fields (warmth_fund, warmth_sector_focus, …).
+Plus event-CSV enrichment fields (warmth_fund, warmth_sector_focus, …).
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ PROPERTY_GROUP_LABEL = "Warmth Enrichment"
 
 # Single source of truth for the custom contact properties. Order = display order.
 CUSTOM_PROPERTIES: list[dict[str, Any]] = [
-    # --- Conference / CSV enrichment ---------------------------------------
+    # --- Event / CSV enrichment ---------------------------------------
     {"name": "warmth_fund", "label": "Fund", "type": "string", "fieldType": "text"},
     {"name": "warmth_fund_description", "label": "Fund Description", "type": "string", "fieldType": "textarea"},
     {"name": "warmth_fund_size", "label": "Fund Size (Approx.)", "type": "string", "fieldType": "text"},
@@ -84,7 +84,7 @@ CUSTOM_PROPERTIES: list[dict[str, Any]] = [
     {"name": "warmth_pain_points", "label": "Pain Points", "type": "string", "fieldType": "textarea"},
 ]
 
-# CSV column -> HubSpot property, for the conference importer.
+# CSV column -> HubSpot property, for the event importer.
 CSV_COLUMN_MAP: dict[str, str] = {
     "Fund": "warmth_fund",
     "Fund Description": "warmth_fund_description",
@@ -159,12 +159,12 @@ class HubSpotMapper:
         person: "Optional[PersonNode]" = None,
         *,
         predicted_warmth: Optional[float] = None,
-        conference_name: Optional[str] = None,
+        event_name: Optional[str] = None,
     ) -> dict[str, str]:
         """Convert a ``Lead`` (+ optional evolved person context) to HubSpot props.
 
         Routes through ``ZeroCRMMapper`` so HubSpot and Zero receive an identical
-        field set, then layers on HubSpot-only extras (warmth score, conference).
+        field set, then layers on HubSpot-only extras (warmth score, event).
         """
         from ...core.schemas.zero_crm_schema import ZeroCRMPayload  # noqa: F401
         from ..zero_crm.mapper import ZeroCRMMapper
@@ -177,8 +177,8 @@ class HubSpotMapper:
         props = zero_payload_to_hubspot_properties(payload)
         if predicted_warmth is not None:
             props["warmth_warmth_score"] = _num(predicted_warmth)
-        if conference_name:
-            props["warmth_notes"] = f"Conference: {conference_name}"
+        if event_name:
+            props["warmth_notes"] = f"Event: {event_name}"
         return props
 
     @staticmethod

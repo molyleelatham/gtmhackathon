@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 load_dotenv()
 
 from packages.core.schemas.transcript_schema import TranscriptEvent
-from packages.integrations.asr.deepgram.client import DeepgramConferenceClient
+from packages.integrations.asr.deepgram.client import DeepgramEventClient
 
 
 async def test_microphone_pipeline():
@@ -33,7 +33,7 @@ async def test_microphone_pipeline():
             print(f"   Confidence: {event.confidence}")
             print(f"   Final: {event.is_final}")
         
-        client = DeepgramConferenceClient(on_transcript=on_transcript)
+        client = DeepgramEventClient(on_transcript=on_transcript)
         
         print("⚠️  Note: Full microphone testing requires:")
         print("   - PyAudio installation")

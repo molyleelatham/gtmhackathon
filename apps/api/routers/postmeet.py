@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from ..store import store
+from ..store import get_store
 from ..integration_helpers import gmail_client_optional, lead_from_connection, warmth_client_email, warmth_client_name
 from ...lifecycle.postmeet import PostMeetPipeline
 from ....packages.core.models.lead import Lead
@@ -29,10 +29,10 @@ async def send_followup(connection_id: str, req: FollowUpRequest):
     Does not send: returns a `draft_ready` draft with a `gmail_compose_url` for
     the user to open in Gmail, where Lightfern completes/polishes it.
     """
-    conn = store.get_connection(connection_id)
-    warmth = store.warmth_for_connection(connection_id)
+    conn = get_store().get_connection(connection_id)
+    warmth = get_store().warmth_for_connection(connection_id)
 
-    lead = store.leads.get(req.lead_id) if req.lead_id else None
+    lead = get_store().leads.get(req.lead_id) if req.lead_id else None
     if lead is None and conn:
         lead = lead_from_connection(conn)
     if lead is None:
@@ -75,5 +75,5 @@ async def send_followup(connection_id: str, req: FollowUpRequest):
     if conn:
         conn.draft_subject = draft.get("subject")
         conn.draft_body = draft.get("body")
-        store.upsert_connection(conn)
+        get_store().upsert_connection(conn)
     return draft

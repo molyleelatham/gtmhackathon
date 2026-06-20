@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
 from ..integration_helpers import (
@@ -14,7 +14,8 @@ from ..integration_helpers import (
     unify_client_optional,
     zero_client_optional,
 )
-from ..store import store, DEMO_USER_ID
+from ..store import get_store
+from ..user_context import get_user_id
 from ...lifecycle.contact_sync import ContactSyncPipeline
 from ....packages.core.models.icp import ICPConfig
 from ....packages.core.models.lead import Lead
@@ -87,11 +88,12 @@ def _derive_signals(
 
 
 @router.get("/dashboard")
-async def dashboard(user_id: str = DEMO_USER_ID):
+async def dashboard():
+    user_id = get_user_id()
     """Summary stats + the current pipeline at a glance for the dashboard home."""
-    events = store.list_events(user_id)
+    events = get_store().list_events(user_id)
     all_connections = [
-        c for e in events for c in store.connections_for_event(e.id)
+        c for e in events for c in get_store().connections_for_event(e.id)
     ]
     hot = [c for c in all_connections if c.predicted_warmth >= 70]
     return {
@@ -99,7 +101,7 @@ async def dashboard(user_id: str = DEMO_USER_ID):
         "events": len(events),
         "connections": len(all_connections),
         "hot_leads": len(hot),
-        "leads_in_crm": len(store.list_leads()),
+        "leads_in_crm": len(get_store().list_leads()),
         "upcoming_events": [e.model_dump() for e in events],
         "top_leads": [
             c.model_dump()
@@ -112,21 +114,23 @@ async def dashboard(user_id: str = DEMO_USER_ID):
 
 @router.get("/leads")
 async def list_leads():
-    return [l.model_dump() for l in store.list_leads()]
+    return [l.model_dump() for l in get_store().list_leads()]
 
 
 @router.get("/connections")
 async def list_connections():
-    return [c.model_dump() for c in store.pre_connections.values()]
+    user_id = get_user_id()
+    return [c.model_dump() for c in get_store().list_connections(user_id)]
 
 
 @router.get("/connections/{connection_id}")
 async def get_connection(connection_id: str):
-    conn = store.pre_connections.get(connection_id)
-    if not conn:
-        return {"error": "not_found", "connection_id": connection_id}
-    warmth = store.warmth_for_connection(connection_id)
-    meet = store.meet_result_for(connection_id)
+    user_id = get_user_id()
+    conn = get_store().get_connection(connection_id)
+    if not conn or conn.user_id != user_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Connection not found")
+    warmth = get_store().warmth_for_connection(connection_id)
+    meet = get_store().meet_result_for(connection_id)
     return {
         "connection": conn.model_dump(),
         "warmth": warmth.model_dump() if warmth else None,
@@ -137,14 +141,14 @@ async def get_connection(connection_id: str):
 
 @router.get("/community/members")
 async def community_members():
-    return store.community_members
+    return get_store().community_members
 
 
 @router.post("/dashboard/sync-gtm-hackathon")
 async def sync_gtm_hackathon_dashboard():
     """Refresh in-memory dashboard roster from GTM Hackathon calendar + Tavily data."""
-    event = store.refresh_gtm_hackathon()
-    connections = store.connections_for_event(event.id)
+    event = get_store().refresh_gtm_hackathon(user_id=get_user_id())
+    connections = get_store().connections_for_event(event.id)
     return {
         "status": "ok",
         "event": event.model_dump(),
@@ -161,7 +165,7 @@ async def sync_contacts():
     if data_file.exists():
         attendees = json.loads(data_file.read_text())
 
-    event = store.refresh_gtm_hackathon(attendees)
+    event = get_store().refresh_gtm_hackathon(attendees, user_id=get_user_id())
     pipeline = ContactSyncPipeline(
         hubspot_client=hubspot_client_optional(),
         unify_client=unify_client_optional(),
@@ -170,11 +174,12 @@ async def sync_contacts():
     sync_result = await pipeline.process_batch(
         attendees=attendees,
         event_id=event.id,
-        conference_name=event.name,
+        event_name=event.name,
     )
     connections = sync_result.get("connections", [])
-    store.refresh_gtm_hackathon(
+    get_store().refresh_gtm_hackathon(
         attendees,
+        user_id=get_user_id(),
         premeet_results=connections,
         sync_results=sync_result,
     )
@@ -189,19 +194,20 @@ async def sync_contacts():
 
 
 @router.get("/dashboard/roster")
-async def dashboard_roster(user_id: str = DEMO_USER_ID):
+async def dashboard_roster():
+    user_id = get_user_id()
     """Attending + met tabs and signal feed for the dashboard home."""
-    events = store.list_events(user_id)
+    events = get_store().list_events(user_id)
     primary = events[0] if events else None
     connections = (
-        store.connections_for_event(primary.id)
+        get_store().connections_for_event(primary.id)
         if primary
-        else list(store.pre_connections.values())
+        else get_store().list_connections(user_id)
     )
     sorted_attendees = sorted(connections, key=lambda c: c.icp_score, reverse=True)
     met: list[dict[str, Any]] = []
     for conn in connections:
-        meet = store.meet_result_for(conn.id)
+        meet = get_store().meet_result_for(conn.id)
         if meet:
             met.append(
                 {
@@ -217,7 +223,7 @@ async def dashboard_roster(user_id: str = DEMO_USER_ID):
         "event": primary.model_dump() if primary else None,
         "attendees": [c.model_dump() for c in sorted_attendees],
         "met": met,
-        "signals": _derive_signals(connections, store.list_leads()),
+        "signals": _derive_signals(connections, get_store().list_leads()),
     }
 
 
@@ -282,7 +288,7 @@ async def match_attendee(req: MatchAttendeeRequest):
     from ...listener.intelligence.attendee_matcher import AttendeeMatcher
     from ....packages.core.models.meeting_signal import MeetingSignal
 
-    pipeline_leads = [c.model_dump() for c in store.pre_connections.values()]
+    pipeline_leads = [c.model_dump() for c in get_store().pre_connections.values()]
     signal = MeetingSignal(name=req.name, company=req.company)
     matcher = AttendeeMatcher()
     result = matcher.match(signal, matcher.candidates_from_pipeline(pipeline_leads))
@@ -295,9 +301,9 @@ async def match_attendee(req: MatchAttendeeRequest):
         }
 
     conn_id = result.candidate.external_id
-    conn = store.get_connection(conn_id) if conn_id else None
-    warmth = store.warmth_for_connection(conn_id) if conn_id else None
-    meet = store.meet_result_for(conn_id) if conn_id else None
+    conn = get_store().get_connection(conn_id) if conn_id else None
+    warmth = get_store().warmth_for_connection(conn_id) if conn_id else None
+    meet = get_store().meet_result_for(conn_id) if conn_id else None
     kg = (meet or {}).get("knowledge_graph") or []
     interests = list(conn.interests) if conn else []
 

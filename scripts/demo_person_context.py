@@ -93,7 +93,7 @@ async def main() -> None:
         company_name=anna.company or "Acme RevOps",
         contact_name=anna.name,
         icp_score=78,
-        signal_source="conference_audio",
+        signal_source="event_audio",
     )
 
     payload = ZeroCRMMapper.lead_to_zero_payload_with_context(lead, signal.personal_context)

@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from ..store import store
+from ..store import get_store
 from ..integration_helpers import gmail_client_optional, unify_client_optional, zero_client_optional
 from ...lifecycle.premeet import PreMeetPipeline
 
@@ -28,7 +28,7 @@ class PreMeetRequest(BaseModel):
 @router.post("/events/{event_id}/premeet")
 async def run_premeet(event_id: str, req: PreMeetRequest):
     """Run the before-meet pipeline: enrich -> warmth-score -> draft outreach."""
-    event = store.get_event(event_id)
+    event = get_store().get_event(event_id)
     if not event:
         return {"error": "not_found", "event_id": event_id}
 
@@ -43,14 +43,14 @@ async def run_premeet(event_id: str, req: PreMeetRequest):
         top_n=req.top_n,
     )
     for c in top:
-        store.upsert_connection(c)
-    store.upsert_event(event)
+        get_store().upsert_connection(c)
+    get_store().upsert_event(event)
     return {"event_id": event_id, "ranked_leads": [c.model_dump() for c in top]}
 
 
 @router.get("/events/{event_id}/leads")
 async def get_event_leads(event_id: str):
     """Highest-intent pre-meet leads for an event, ranked by predicted warmth."""
-    conns = store.connections_for_event(event_id)
+    conns = get_store().connections_for_event(event_id)
     conns.sort(key=lambda c: (c.predicted_warmth, c.icp_score), reverse=True)
     return [c.model_dump() for c in conns]
