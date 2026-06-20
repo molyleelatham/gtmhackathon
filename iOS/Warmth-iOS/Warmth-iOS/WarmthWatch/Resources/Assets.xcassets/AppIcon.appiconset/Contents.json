@@ -1,0 +1,80 @@
+{
+  "images": [
+    {
+      "filename": "AppIcon-watchos-marketing.png",
+      "idiom": "watchos-marketing",
+      "scale": "1x",
+      "size": "1024x1024"
+    },
+    {
+      "filename": "AppIcon-46x46@2x.png",
+      "idiom": "watch",
+      "scale": "2x",
+      "size": "46x46"
+    },
+    {
+      "filename": "AppIcon-45x45@2x.png",
+      "idiom": "watch",
+      "scale": "2x",
+      "size": "45x45"
+    },
+    {
+      "filename": "AppIcon-44x44@2x.png",
+      "idiom": "watch",
+      "scale": "2x",
+      "size": "44x44"
+    },
+    {
+      "filename": "AppIcon-42x42@2x.png",
+      "idiom": "watch",
+      "scale": "2x",
+      "size": "42x42"
+    },
+    {
+      "filename": "AppIcon-41x41@2x.png",
+      "idiom": "watch",
+      "scale": "2x",
+      "size": "41x41"
+    },
+    {
+      "filename": "AppIcon-40x40@2x.png",
+      "idiom": "watch",
+      "scale": "2x",
+      "size": "40x40"
+    },
+    {
+      "filename": "AppIcon-38x38@2x.png",
+      "idiom": "watch",
+      "scale": "2x",
+      "size": "38x38"
+    },
+    {
+      "filename": "AppIcon-24x24@2x.png",
+      "idiom": "watch",
+      "scale": "2x",
+      "size": "24x24"
+    },
+    {
+      "filename": "AppIcon-27.5x27.5@2x.png",
+      "idiom": "watch",
+      "scale": "2x",
+      "size": "27.5x27.5"
+    },
+    {
+      "filename": "AppIcon-33x33@2x.png",
+      "idiom": "watch",
+      "scale": "2x",
+      "size": "33x33"
+    },
+    {
+      "filename": "AppIcon-29x29@2x.png",
+      "idiom": "watch",
+      "scale": "2x",
+      "size": "29x29"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
+}
