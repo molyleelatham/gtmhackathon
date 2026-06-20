@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Avatar } from "./Avatar";
 import { CompanyLogo } from "./CompanyLogo";
 import { ICPBadge } from "./ICPBadge";
@@ -48,7 +49,7 @@ export function MetDetailDrawer({
 
   if (!person) return null;
 
-  return (
+  return createPortal(
     <>
       <div
         className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
@@ -56,11 +57,11 @@ export function MetDetailDrawer({
         aria-hidden
       />
       <aside
-        className="glass-strong fixed inset-y-0 right-0 z-50 flex w-[min(460px,100vw)] min-h-0 animate-drawer-in flex-col rounded-none rounded-l-3xl"
+        className="drawer-panel fixed inset-y-0 right-0 z-50 flex h-dvh max-h-dvh w-[min(460px,100vw)] animate-drawer-in flex-col overflow-hidden"
         role="dialog"
         aria-label={`${person.name} conversation details`}
       >
-        <div className="border-b border-subtle px-6 py-5">
+        <div className="shrink-0 border-b border-subtle px-6 py-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-4">
               <Avatar name={person.name} size="xl" />
@@ -231,7 +232,8 @@ export function MetDetailDrawer({
           </div>
         </div>
       </aside>
-    </>
+    </>,
+    document.body,
   );
 }
 
@@ -252,15 +254,15 @@ export function AttendeeDrawer({
 }) {
   if (!person) return null;
 
-  return (
+  return createPortal(
     <>
       <div
         className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden
       />
-      <aside className="glass-strong fixed inset-y-0 right-0 z-50 flex w-[min(400px,100vw)] animate-drawer-in flex-col rounded-none rounded-l-3xl">
-        <div className="flex items-start gap-4 border-b border-subtle px-6 py-5">
+      <aside className="drawer-panel fixed inset-y-0 right-0 z-50 flex h-dvh max-h-dvh w-[min(400px,100vw)] animate-drawer-in flex-col overflow-hidden">
+        <div className="flex shrink-0 items-start gap-4 border-b border-subtle px-6 py-5">
           <Avatar name={person.name} size="lg" />
           <div className="flex-1">
             <h2 className="text-lg font-bold text-ink-900">{person.name}</h2>
@@ -275,7 +277,7 @@ export function AttendeeDrawer({
             ✕
           </button>
         </div>
-        <div className="space-y-4 px-6 py-5">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
           <Section title="Why they matter">
             <p className="text-sm text-ink-800">{person.signal}</p>
           </Section>
@@ -291,7 +293,8 @@ export function AttendeeDrawer({
           </Section>
         </div>
       </aside>
-    </>
+    </>,
+    document.body,
   );
 }
 
