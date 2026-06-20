@@ -32,7 +32,7 @@ export function PreMeet() {
 
   return (
     <div className="space-y-5">
-      <Link to="/events" className="text-sm text-ink-muted hover:text-flame">
+      <Link to="/app/events" className="text-sm text-ink-muted hover:text-flame">
         ← Events
       </Link>
 
@@ -42,7 +42,7 @@ export function PreMeet() {
             {event.data?.name ?? "Event"} — Before meet
           </h1>
           <p className="mt-1 text-sm text-ink-muted">
-            Enriched, warmth-scored attendees ranked by intent for pre-conference outreach.
+            Enriched, warmth-scored attendees ranked by intent for pre-event outreach.
           </p>
         </div>
         <button
@@ -78,7 +78,7 @@ export function PreMeet() {
               >
                 <td className="px-4 py-3">
                   <Link
-                    to={`/connections/${c.id}`}
+                    to={`/app/connections/${c.id}`}
                     className="font-medium text-ink-900 hover:text-flame"
                   >
                     {c.name ?? "Unknown"}

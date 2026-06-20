@@ -11,10 +11,16 @@ class EventSource(str, Enum):
 
 
 class EventType(str, Enum):
-    CONFERENCE = "conference"
+    EVENT = "event"
     MEETING = "meeting"
     MEETUP = "meetup"
     UNKNOWN = "unknown"
+
+    @classmethod
+    def _missing_(cls, value: object):
+        if value == "event":
+            return cls.EVENT
+        return None
 
 
 class LifecycleStage(str, Enum):
@@ -44,18 +50,18 @@ class CalendarEvent(BaseModel):
 class DetectedEvent(BaseModel):
     """An event Warmth has classified as worth running the lifecycle on.
 
-    For the demo this is a tech conference detected from the user's calendar.
+    For the demo this is a tech event detected from the user's calendar.
     """
     id: str = Field(default_factory=lambda: f"event_{datetime.now().timestamp()}")
     user_id: str
     calendar_event_id: Optional[str] = None
     name: str
-    event_type: EventType = EventType.CONFERENCE
+    event_type: EventType = EventType.EVENT
     location: Optional[str] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
-    directory_url: Optional[str] = None  # conference attendee directory to scrape
-    confidence: float = 0.0  # how confident detection is that this is a conference
+    directory_url: Optional[str] = None  # event attendee directory to scrape
+    confidence: float = 0.0  # how confident detection is that this is an event
     stage: LifecycleStage = LifecycleStage.BEFORE_MEET
     attendee_count: int = 0
     premeet_completed: bool = False

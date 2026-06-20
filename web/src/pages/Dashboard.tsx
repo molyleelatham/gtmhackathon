@@ -314,7 +314,7 @@ export function Dashboard() {
                 ? "Passive listening on — simulated match"
                 : eventLocation
                   ? `${eventLocation} · ranked by ICP fit`
-                  : "Your conference roster, ranked by fit."}
+                  : "Your event roster, ranked by fit."}
           </p>
         </div>
         <div className="flex max-w-full flex-wrap items-center gap-2 sm:justify-end">
@@ -381,7 +381,7 @@ export function Dashboard() {
         <section className="glass p-4">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-ink-900">Top leads</h2>
-            <Link to="/leads" className="text-xs font-semibold text-flame hover:text-ember">
+            <Link to="/app/leads" className="text-xs font-semibold text-flame hover:text-ember">
               View CRM →
             </Link>
           </div>
@@ -389,7 +389,7 @@ export function Dashboard() {
             {summary.data.top_leads.map((lead) => (
               <Link
                 key={lead.id}
-                to={`/connections/${lead.id}`}
+                to={`/app/connections/${lead.id}`}
                 className="glass-interactive flex items-center gap-2 rounded-xl border border-subtle px-3 py-2 text-sm"
               >
                 <Avatar name={lead.name ?? "?"} size="sm" />
@@ -515,7 +515,7 @@ export function Dashboard() {
       <AttendeeConnectedModal
         match={attendeeMatch}
         onClose={() => setAttendeeMatch(null)}
-        onViewProfile={(id) => navigate(`/connections/${id}`)}
+        onViewProfile={(id) => navigate(`/app/connections/${id}`)}
       />
 
       <ThinkingPipelinePanel

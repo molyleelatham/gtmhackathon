@@ -1,17 +1,17 @@
-# Warmth — Active Conference Intelligence Platform
+# Warmth — Active Event Intelligence Platform
 
-> **Active Conference Companion × Auto Connection System**
+> **Active Event Companion × Auto Connection System**
 > GTM Hackathon · June 2026 · Stack: Python · FastAPI · Cursor SDK · Porcupine · Deepgram · Zero CRM · UnifyGTM · Google MCP
 
 ---
 
 ## Vision Overview
 
-Warmth is an active conference intelligence system that works like "Siri for conferences." When you attend conferences, Warmth:
+Warmth is an active event intelligence system that works like "Siri for events." When you attend events, Warmth:
 
 1. **Wake Word Activation**: Say "Hey Anna" to start recording conversations (using Porcupine wake word detection)
 2. **Lead Classification**: Automatically classifies leads for you, your team, founders, or community/friends
-3. **Directory Scraping**: Scrapes conference directories to identify attendees by interests (funding, investors, founders)
+3. **Directory Scraping**: Scrapes event directories to identify attendees by interests (funding, investors, founders)
 4. **First Connections**: Makes initial connections by scraping data, enriching with Zero CRM → UnifyGTM → drafting emails via Google MCP
 5. **Real-time Intelligence**: During conversations, captures interests, topics discussed, what you learned, what they care about, and values
 6. **CRM Integration**: Sends all conversation intelligence to CRM automatically
@@ -40,7 +40,7 @@ warmth/
 │   │   │   ├── conversations.py      # GET/POST /conversations (real-time intelligence)
 │   │   │   ├── leads.py              # GET/POST /leads, /leads/{id}/enrich
 │   │   │   ├── connections.py        # GET/POST /connections (first connections)
-│   │   │   ├── conferences.py        # GET/POST /conferences (directory scraping)
+│   │   │   ├── event_runs.py        # GET/POST /event-runs (directory scraping)
 │   │   │   ├── agents.py             # GET/POST /agents (auto outbound strategy)
 │   │   │   ├── community.py          # GET/POST /community (sharing features)
 │   │   │   └── icp.py                # GET/PUT /icp/config
@@ -49,7 +49,7 @@ warmth/
 │   │       ├── auth.py               # API key / JWT auth
 │   │       └── ratelimit.py          # token bucket per integration
 │   │
-│   ├── listener/                     # Active conference listener service
+│   ├── listener/                     # Active event listener service
 │   │   ├── main.py                   # async entrypoint
 │   │   ├── engine.py                 # ActiveListener orchestrator
 │   │   │
@@ -58,8 +58,8 @@ warmth/
 │   │   │   ├── audio_capture.py      # Continuous audio capture
 │   │   │   └── state_manager.py      # Recording state management
 │   │   │
-│   │   ├── asr/                      # Conference ASR layer
-│   │   │   ├── conference_listener.py  # Deepgram Nova-3 WebSocket stream
+│   │   ├── asr/                      # Event ASR layer
+│   │   │   ├── event_listener.py  # Deepgram Nova-3 WebSocket stream
 │   │   │   ├── noise_suppressor.py     # RNNoise / Krisp SDK pre-processing
 │   │   │   ├── diariser.py             # Speaker separation + filtering
 │   │   │   └── transcript_buffer.py    # Rolling 30s context window
@@ -80,10 +80,10 @@ warmth/
 │   │       ├── icp_filter.py         # Company size / ARR pre-filter
 │   │       └── dedup.py              # Firebase Firestore dedup
 │   │
-│   ├── scraper/                      # Conference directory scraper
+│   ├── scraper/                      # Event directory scraper
 │   │   ├── main.py                   # async entrypoint
 │   │   ├── engine.py                 # Scraper orchestrator
-│   │   ├── directory_parser.py       # Parse conference directories
+│   │   ├── directory_parser.py       # Parse event directories
 │   │   ├── attendee_extractor.py     # Extract attendee information
 │   │   ├── interest_matcher.py       # Match interests (funding, investors, founders)
 │   │   └── sources/
@@ -108,7 +108,7 @@ warmth/
 │   │   │   ├── lead.py               # Lead(contact, company, signals, icp_score)
 │   │   │   ├── conversation.py       # Conversation intelligence model
 │   │   │   ├── connection.py         # First connection model
-│   │   │   ├── conference.py         # Conference directory model
+│   │   │   ├── event.py         # Event directory model
 │   │   │   ├── community.py          # Community sharing model
 │   │   │   ├── agent.py              # Auto agent model
 │   │   │   ├── icp.py                # ICPConfig(size_range, arr_range, tech_stack)
@@ -118,7 +118,7 @@ warmth/
 │   │   │   ├── lead_schema.py
 │   │   │   ├── conversation_schema.py # Conversation intelligence schema
 │   │   │   ├── connection_schema.py   # First connection schema
-│   │   │   ├── conference_schema.py   # Conference directory schema
+│   │   │   ├── event_schema.py   # Event directory schema
 │   │   │   ├── community_schema.py    # Community sharing schema
 │   │   │   ├── agent_schema.py        # Auto agent schema
 │   │   │   ├── zero_crm_schema.py    # Zero CRM push payload shape
@@ -224,7 +224,7 @@ warmth/
     ├── test_mic_pipeline.py
     ├── test_tavily_pipeline.py
     ├── test_porcupine_pipeline.py    # ★ NEW
-    └── test_conference_scraper.py   # ★ NEW
+    └── test_event_scraper.py   # ★ NEW
 ```
 
 ---
@@ -243,7 +243,7 @@ warmth/
 │       ↓                                                             │
 │  noise_suppressor.py  ←── RNNoise (free) or Krisp SDK              │
 │       ↓  (clean audio chunks, 50ms / 800 frames)                   │
-│  conference_listener.py                                             │
+│  event_listener.py                                             │
 │       ↓  (WebSocket stream)                                         │
 │  Deepgram Nova-3 API                                                │
 │       model=nova-3                                                  │
@@ -277,7 +277,7 @@ warmth/
 ┌───────────────────────────────────────▼─────────────────────────────┐
 │  LAYER 2 — CONFERENCE DIRECTORY SCRAPING                           │
 │                                                                     │
-│  Conference URL/PDF ──▶ directory_parser.py                        │
+│  Event URL/PDF ──▶ directory_parser.py                        │
 │       ↓                                                             │
 │  attendee_extractor.py ──▶ Extract attendee info                   │
 │       ↓                                                             │
@@ -348,13 +348,13 @@ class LeadClassifier:
         pass
 ```
 
-### 3. Conference Directory Scraping
+### 3. Event Directory Scraping
 
 ```python
 # apps/scraper/directory_parser.py
 class ConferenceDirectoryParser:
     async def parse_directory(self, source: str) -> list[Attendee]:
-        """Parse conference directory from URL or PDF"""
+        """Parse event directory from URL or PDF"""
         if source.endswith('.pdf'):
             return await self._parse_pdf(source)
         else:
@@ -474,7 +474,7 @@ COMMUNITY_PERMISSIONS=default
 || Layer | Technology |
 ||---|---|
 || Wake Word Detection | **Porcupine** (custom "Hey Anna" wake word) |
-|| ASR — Conference | **Deepgram Nova-3** (WebSocket streaming, diarize, keyterms) |
+|| ASR — Event | **Deepgram Nova-3** (WebSocket streaming, diarize, keyterms) |
 || Audio Pre-processing | **RNNoise** (free, on-device) or Krisp SDK |
 || Mic Capture | PyAudio (16kHz, mono, 50ms chunks) |
 || API | FastAPI + Pydantic v2 |
@@ -494,4 +494,4 @@ COMMUNITY_PERMISSIONS=default
 
 ---
 
-This architecture transforms Warmth from a passive listening system into an active conference intelligence companion that helps you make meaningful connections, capture valuable conversation insights, and automate follow-up strategies intelligently.
+This architecture transforms Warmth from a passive listening system into an active event intelligence companion that helps you make meaningful connections, capture valuable conversation insights, and automate follow-up strategies intelligently.

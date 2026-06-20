@@ -82,7 +82,7 @@ export async function runLiveDemo(
 ) {
   let steps = initialSteps();
   const firstName = target.name.split(" ")[0];
-  const transcript = `Hi ${firstName}, nice to meet you — great to connect at the conference.`;
+  const transcript = `Hi ${firstName}, nice to meet you — great to connect at the event.`;
 
   const patch = (id: string, patchStep: Partial<PipelineStep>) => {
     steps = steps.map((s) => (s.id === id ? { ...s, ...patchStep } : s));

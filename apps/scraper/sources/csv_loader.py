@@ -1,11 +1,11 @@
-"""CSV conference attendee loader.
+"""CSV event attendee loader.
 
 Maps a CSV export (e.g. from a pre-event research spreadsheet) into the
 normalised attendee dict format used by the pre-meet pipeline.
 
 Supported CSV schemas:
 
-  Schema A — Warmth investor/conference export (data.csv):
+  Schema A — Warmth investor/event export (data.csv):
     Columns: Name, Title, Fund, Fund Description, Fund Size (Approx.),
              Typical Stage, Sector Focus, Classification, Notes
 
@@ -61,7 +61,7 @@ def _derive_domain(company_name: Optional[str]) -> Optional[str]:
 
 
 # ---------------------------------------------------------------------------
-# Schema A: Warmth investor/conference export
+# Schema A: Warmth investor/event export
 # ---------------------------------------------------------------------------
 
 _SCHEMA_A_REQUIRED = {"Name", "Title", "Fund"}

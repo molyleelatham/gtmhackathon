@@ -17,7 +17,7 @@ class Signal(BaseModel):
     company_domain: Optional[str] = None
     signal_type: SignalType
     raw_text: str
-    source: str  # "tavily_search"|"conference_audio"
+    source: str  # "tavily_search"|"event_audio"
     keywords_hit: list[str] = Field(default_factory=list)
     detected_at: datetime = Field(default_factory=datetime.utcnow)
     icp_pre_score: Optional[float] = None

@@ -2,16 +2,15 @@ import Foundation
 
 /// High-level capture phases that drive the hero Capture UI.
 enum CapturePhase: Equatable, Sendable {
-    case idle           // not listening
-    case listening      // mic on, waiting for the wake word
-    case recording      // wake word fired (or manual start); transcribing
+    case idle
+    case recording
 }
 
 enum SpeechAuthorization: Sendable {
     case notDetermined, denied, authorized, restricted
 }
 
-/// Abstraction over the speech pipeline (AVAudioEngine + wake word + SFSpeechRecognizer)
+/// Abstraction over the speech pipeline (AVAudioEngine + SFSpeechRecognizer)
 /// so the Capture UI can be driven by a mock in previews and tests.
 @MainActor
 protocol SpeechServicing: AnyObject {
@@ -30,11 +29,7 @@ protocol SpeechServicing: AnyObject {
     func requestPermissions() async -> Bool
     /// Read current permission status without showing a system prompt.
     func checkPermissions() -> Bool
-    /// Begin listening for the wake word.
-    func startListening() async
-    /// Begin recording immediately (manual start / wake-word fired).
+    /// Begin recording and live transcription immediately.
     func startRecording() async
     func stopAndReset()
-    /// Callback fired the moment the wake word is detected.
-    var onWakeWordDetected: (() -> Void)? { get set }
 }

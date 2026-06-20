@@ -87,7 +87,7 @@ export function connectionToMetPerson(
       ? [narrative]
       : note
         ? [note]
-        : ["Met at the conference — follow up while context is fresh."];
+        : ["Met at the event — follow up while context is fresh."];
 
   return {
     id: conn.id,

@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from ..store import store
+from ..store import get_store
 from ..integration_helpers import (
     gmail_client_optional,
     lead_from_connection,
@@ -78,18 +78,18 @@ def _agent(use_agent: Optional[bool] = None) -> MeetStageAgent:
 def _persist_meet_result(connection_id: str, summary: dict) -> None:
     decision = summary.get("decision") or {}
     warmth_data = decision.get("warmth") or {}
-    conn = store.get_connection(connection_id)
+    conn = get_store().get_connection(connection_id)
     if conn and warmth_data:
         actual = warmth_data.get("actual_score")
         if actual is not None:
             conn.predicted_warmth = float(actual)
-            store.upsert_connection(conn)
+            get_store().upsert_connection(conn)
         band = warmth_data.get("band", "warm")
         try:
             warmth_band = WarmthBand(band)
         except ValueError:
             warmth_band = WarmthBand.WARM
-        store.upsert_warmth(
+        get_store().upsert_warmth(
             WarmthScore(
                 connection_id=connection_id,
                 icp_score=int(warmth_data.get("icp_score") or 0),
@@ -103,12 +103,12 @@ def _persist_meet_result(connection_id: str, summary: dict) -> None:
     if conn and draft:
         conn.draft_subject = draft.get("subject")
         conn.draft_body = draft.get("body")
-        store.upsert_connection(conn)
+        get_store().upsert_connection(conn)
     merged_interests = interests_from_meet_summary(summary, list(conn.interests) if conn else [])
     if conn and merged_interests:
         conn.interests = merged_interests
-        store.upsert_connection(conn)
-    store.record_meet_result(
+        get_store().upsert_connection(conn)
+    get_store().record_meet_result(
         connection_id=connection_id,
         signal_id=connection_id,
         routed_to=summary.get("routed_to", "unknown"),
@@ -117,6 +117,7 @@ def _persist_meet_result(connection_id: str, summary: dict) -> None:
         outreach_sequence=summary.get("outreach_sequence"),
         interests=merged_interests,
         knowledge_graph=summary.get("people") or [],
+        matched_candidates=decision.get("matched_candidates") or [],
     )
 
 
@@ -149,14 +150,14 @@ async def process_meet(req: EncodeRequest):
         self_speaker_id=req.self_speaker_id,
         connection_id=req.connection_id,
         prior_warmth=(
-            store.warmth_for_connection(req.connection_id)
+            get_store().warmth_for_connection(req.connection_id)
             if req.connection_id
             else None
         ),
-        community_members=store.community_members,
+        community_members=get_store().community_members,
         lead=(
-            lead_from_connection(store.get_connection(req.connection_id))
-            if req.connection_id and store.get_connection(req.connection_id)
+            lead_from_connection(get_store().get_connection(req.connection_id))
+            if req.connection_id and get_store().get_connection(req.connection_id)
             else None
         ),
     )
@@ -185,11 +186,11 @@ async def process_signal(payload: MeetingSignalInput):
         personal_context=payload.personal_context,
     )
     prior = (
-        store.warmth_for_connection(payload.connection_id)
+        get_store().warmth_for_connection(payload.connection_id)
         if payload.connection_id
         else None
     )
-    conn = store.get_connection(payload.connection_id) if payload.connection_id else None
+    conn = get_store().get_connection(payload.connection_id) if payload.connection_id else None
     agent = _agent()
     summary = await agent.run(
         turns=[
@@ -202,7 +203,7 @@ async def process_signal(payload: MeetingSignalInput):
         connection_id=payload.connection_id,
         prior_warmth=prior,
         lead=lead_from_signal(signal, conn),
-        community_members=store.community_members,
+        community_members=get_store().community_members,
     )
     if payload.connection_id:
         _persist_meet_result(payload.connection_id, summary)

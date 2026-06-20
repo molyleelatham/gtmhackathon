@@ -6,8 +6,8 @@ from typing import Optional, Callable, Any
 from ....core.schemas.transcript_schema import TranscriptEvent
 
 
-class DeepgramConferenceClient:
-    """Deepgram Nova-3 WebSocket client for conference transcription"""
+class DeepgramEventClient:
+    """Deepgram Nova-3 WebSocket client for event transcription"""
     
     def __init__(
         self,

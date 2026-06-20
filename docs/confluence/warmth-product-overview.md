@@ -1,15 +1,15 @@
 # Warmth — Product Overview
 
-> **Conference Intelligence Platform · GTM Hackathon · June 2026**
+> **Event Intelligence Platform · GTM Hackathon · June 2026**
 > Stack: Python (Backend) + iOS/watchOS (Mobile) + React (Web) · FastAPI · Zero CRM · UnifyGTM · Google MCP · Lightfern
 
 ---
 
 ## What is Warmth?
 
-**Warmth** is a conference intelligence platform that turns chaotic networking into a structured, scored, and actionable personal CRM.
+**Warmth** is a event intelligence platform that turns chaotic networking into a structured, scored, and actionable personal CRM.
 
-At a conference you might meet 50+ people. Most tools only help *after* the fact. Warmth is designed to:
+At an event you might meet 50+ people. Most tools only help *after* the fact. Warmth is designed to:
 
 1. **Prepare** — know who's worth meeting before you walk the floor
 2. **Capture** — record and extract intelligence *during* the conversation, hands-free
@@ -22,7 +22,7 @@ At a conference you might meet 50+ people. Most tools only help *after* the fact
 
 | Surface | Role | When you use it |
 |---------|------|-----------------|
-| **iOS + Apple Watch** | **Capture** — phrase trigger, manual recording, on-device NLP | On the conference floor |
+| **iOS + Apple Watch** | **Capture** — phrase trigger, manual recording, on-device NLP | On the event floor |
 | **Web Dashboard** | **Review & manage** — events, leads, warmth scores, follow-ups | Before/after the event, at your desk |
 | **Python Backend** | **Intelligence pipeline** — ML scoring, CRM, email, enrichment | Always running server-side |
 
@@ -32,7 +32,7 @@ At a conference you might meet 50+ people. Most tools only help *after* the fact
 
 ## The Warmth Lifecycle
 
-Every conference connection moves through four stages:
+Every event connection moves through four stages:
 
 ```
 Onboarding ──> Before meet ──────────> Meet ───────────────> Post meet
@@ -45,14 +45,14 @@ Onboarding ──> Before meet ──────────> Meet ────
 ### Stage 1 — Onboarding
 
 - Connect **Google Calendar + Gmail** via Google MCP
-- Scan upcoming events and **detect conferences** (e.g. "SaaStr Annual 2026")
+- Scan upcoming events and **detect events** (e.g. "SaaStr Annual 2026")
 - Seeds the lifecycle for each detected event
 
 **Code:** `apps/lifecycle/onboarding.py`, `packages/integrations/google_calendar/`
 
 ### Stage 2 — Before Meet
 
-- Build an **attendee dataset** from calendar invites, conference directory scraping, and manual input
+- Build an **attendee dataset** from calendar invites, event directory scraping, and manual input
 - **Enrich** firmographics via **UnifyGTM** (company size, industry, funding stage)
 - Pull **ICP profile + ICP fit** from **Zero CRM** (Warmth does not own ICP — Zero does)
 - Run the **WarmthModel** to predict pre-meet warmth and produce a **prioritization score**
@@ -178,7 +178,7 @@ A perfect ICP fit can still be cold. A non-ICP person can be extremely warm. War
 | `POST /api/v1/connections/{id}/followup` | Post meet |
 | `GET /api/v1/dashboard`, `/leads`, `/connections` | Web dashboard reads |
 
-The backend ships with an in-memory demo store (`apps/api/store.py`) seeded with a sample conference so the API and dashboard are demoable without external credentials.
+The backend ships with an in-memory demo store (`apps/api/store.py`) seeded with a sample event so the API and dashboard are demoable without external credentials.
 
 ---
 
@@ -198,7 +198,7 @@ The backend ships with an in-memory demo store (`apps/api/store.py`) seeded with
 | Route | Purpose |
 |-------|---------|
 | `/` | Dashboard — stats, upcoming events, top leads |
-| `/events` | Detected conferences |
+| `/events` | Detected events |
 | `/events/:id` | Before-meet pipeline + ranked leads |
 | `/connections` | All connections sorted by warmth |
 | `/connections/:id` | Detail view — scores, routing, follow-up actions |
@@ -270,7 +270,7 @@ The backend ships with an in-memory demo store (`apps/api/store.py`) seeded with
 
 ## Summary
 
-**Warmth = Conference capture + warmth scoring + intelligent routing + automated follow-up.**
+**Warmth = Event capture + warmth scoring + intelligent routing + automated follow-up.**
 
 - **Mobile** captures the moment (phrase trigger, speech, on-device NLP)
 - **Backend** enriches, scores, and decides where each connection goes

@@ -58,7 +58,7 @@ export function avatarImageUrl(
   return `https://api.dicebear.com/7.x/${AVATAR_STYLE}/png?seed=${seed}&size=${px * 2}&backgroundColor=2a1c12`;
 }
 
-/** Two-letter initials for a professional conference look. */
+/** Two-letter initials for a professional event look. */
 export function personInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();

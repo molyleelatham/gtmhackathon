@@ -165,7 +165,7 @@ final class SocialGraphEngine {
         for keyword in company?.icpKeywordsHit ?? [] {
             score += (vocabulary.keywordWeights[keyword] ?? 0) * 0.5
         }
-        // Conference audio source bonus, matching the backend pre-scorer.
+        // Event audio source bonus, matching the backend pre-scorer.
         score += 5
         return min(score, 100)
     }

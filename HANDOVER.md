@@ -7,7 +7,7 @@ wired, what's blocked, and the exact next steps.
 
 ## TL;DR
 
-Warmth is a conference-intelligence platform with two capture surfaces and one
+Warmth is an event-intelligence platform with two capture surfaces and one
 **Gmail-first handoff**:
 
 ```
@@ -42,7 +42,7 @@ Xcode project: **`iOS/Warmth-iOS/Warmth.xcodeproj`** (XcodeGen, PR #3 on `main`)
 | Backend URL (Settings) | default `http://127.0.0.1:8000`; on device use Mac LAN IP |
 
 Legacy wake-word pipeline sources still exist under
-`Warmth-iOS/Warmth-iOS/Warmth/Services/` (`ConferenceListeningEngine`, etc.) but
+`Warmth-iOS/Warmth-iOS/Warmth/Services/` (`EventListeningEngine`, etc.) but
 are **not** in the Xcode target — the shipped app uses `CapturedSignal`.
 
 Setup: `iOS/Warmth-iOS/README.md` · open `Warmth.xcodeproj` · physical device
@@ -56,7 +56,7 @@ recommended.
 
 | Endpoint | Purpose |
 |----------|---------|
-| `POST /api/signals` | iOS `CapturedSignal` (+ legacy `ConferenceAudioSignal`) → `MeetStageAgent` → store + Gmail draft |
+| `POST /api/signals` | iOS `CapturedSignal` (+ legacy `EventAudioSignal`) → `MeetStageAgent` → store + Gmail draft |
 | `POST /api/v1/meet/encode` | Diarized transcript → `MeetingSignal` + KG |
 | `POST /api/v1/meet/process` | Encode + score + Gmail handoff |
 | `POST /api/v1/meet/signals` | Structured `MeetingSignal` → route + draft |
@@ -71,7 +71,7 @@ Key files:
 | Meet orchestrator (single Lightfern path) | `apps/agent/meet_pipeline.py` |
 | Demo store | `apps/api/store.py` |
 | iOS schema | `packages/core/schemas/captured_signal.py` |
-| Legacy iOS schema | `packages/core/schemas/conference_audio_signal.py` |
+| Legacy iOS schema | `packages/core/schemas/event_audio_signal.py` |
 
 Run API from repo root (`gtmhackathon/`):
 

@@ -16,7 +16,7 @@ class ConnectionStatus(str, Enum):
 
 class FirstConnection(BaseModel):
     id: str = Field(default_factory=lambda: f"conn_{datetime.now().timestamp()}")
-    conference_id: Optional[str] = None
+    event_id: Optional[str] = None
     attendee_id: str
     attendee_name: str
     attendee_email: Optional[str] = None

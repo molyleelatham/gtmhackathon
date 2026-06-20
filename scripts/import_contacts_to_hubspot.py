@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Import conference contacts from a CSV into HubSpot.
+"""Import event contacts from a CSV into HubSpot.
 
 Creates (idempotently) a set of custom contact properties to hold the enrichment
 context from the CSV, then bulk-creates the contacts populated with those

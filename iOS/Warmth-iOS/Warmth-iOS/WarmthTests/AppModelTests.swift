@@ -25,6 +25,7 @@ final class AppModelTests: XCTestCase {
         crmClient = MockCRMClient()
         sessionLog = SessionCaptureLog(sessionId: "test-session")
         settings = SettingsStore(defaults: defaults)
+        settings.didCompleteOnboarding = true
 
         model = AppModel(
             auth: auth,
@@ -47,9 +48,19 @@ final class AppModelTests: XCTestCase {
     }
 
     func testIsOnboardedReflectsSettings() {
-        XCTAssertFalse(model.isOnboarded)
-        model.completeOnboarding()
-        XCTAssertTrue(model.isOnboarded)
+        settings.didCompleteOnboarding = false
+        let fresh = AppModel(
+            auth: auth,
+            speech: speech,
+            signalClient: signalClient,
+            crmClient: crmClient,
+            socialGraph: MockSocialGraph(),
+            sessionLog: sessionLog,
+            settings: settings
+        )
+        XCTAssertFalse(fresh.isOnboarded)
+        fresh.completeOnboarding()
+        XCTAssertTrue(fresh.isOnboarded)
         XCTAssertTrue(settings.didCompleteOnboarding)
     }
 
@@ -87,10 +98,7 @@ final class AppModelTests: XCTestCase {
         speech.transcript = "Nice to meet you — I'm Diego from Helio Robotics."
         speech.phase = .recording
 
-        model.stopCaptureFromWatch()
-
-        // capturePerson runs in a detached Task; give it a moment to finish.
-        try? await Task.sleep(for: .milliseconds(50))
+        await model.stopCapture(source: .watch)
 
         XCTAssertEqual(speech.phase, .idle)
         XCTAssertEqual(sessionLog.people.count, 1)
@@ -101,26 +109,39 @@ final class AppModelTests: XCTestCase {
         speech.transcript = "   "
         speech.phase = .recording
 
-        model.stopCaptureFromWatch()
-        try? await Task.sleep(for: .milliseconds(50))
-
+        await model.stopCapture(source: .watch)
         XCTAssertEqual(speech.phase, .idle)
         XCTAssertTrue(sessionLog.people.isEmpty)
         XCTAssertTrue(signalClient.sent.isEmpty)
     }
 
     func testStartCaptureFromWatchStartsRecording() async {
-        model.startCaptureFromWatch()
-        try? await Task.sleep(for: .milliseconds(50))
-
+        await model.startCapture(source: .watch)
         XCTAssertEqual(speech.phase, .recording)
+        XCTAssertEqual(model.selectedTab, .capture)
+    }
+
+    func testStartCaptureRespectsDisabledWatchPref() async {
+        settings.capturePreferences.setEnabled(.watch, enabled: false)
+        await model.startCapture(source: .watch)
+        XCTAssertEqual(speech.phase, .idle)
+    }
+
+    func testStartCaptureSetsPendingPersonNameFromSiri() async {
+        await model.startCapture(source: .siri, personName: "Sarah")
+        XCTAssertEqual(model.pendingCapturePersonName, "Sarah")
+        XCTAssertEqual(speech.phase, .recording)
+    }
+
+    func testStartCaptureRespectsDisabledManualPref() async {
+        settings.capturePreferences.setEnabled(.manual, enabled: false)
+        await model.startCapture(source: .manual)
+        XCTAssertEqual(speech.phase, .idle)
     }
 
     func testSyncWatchStateUsesLatestCapturedPerson() async {
         await model.capturePerson(from: "Maya from NorthWind Labs")
         model.syncWatchState()
-        // WatchSessionService has no readable last-person surface; verify no crash
-        // and that recording state mirrors speech phase.
         XCTAssertFalse(model.watch.isRecording)
     }
 
@@ -138,9 +159,20 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(updated.signalClient.baseURL.absoluteString, "https://custom.backend.test")
         XCTAssertEqual(updated.crmClient.baseURL.absoluteString, "https://custom.backend.test")
     }
+
+    func testLaunchTabUsesEventMode() {
+        settings.eventModeEnabled = true
+        model.applyLaunchTabIfNeeded()
+        XCTAssertEqual(model.selectedTab, .capture)
+    }
+
+    func testLaunchTabDefaultsToHome() {
+        settings.eventModeEnabled = false
+        model.applyLaunchTabIfNeeded()
+        XCTAssertEqual(model.selectedTab, .home)
+    }
 }
 
-/// Returns nil for every transcript — used to exercise the early-exit path in `capturePerson`.
 private struct EmptySocialGraph: SocialGraphProcessing {
     func process(transcript: String) -> PersonNode? { nil }
 }

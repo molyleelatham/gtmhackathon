@@ -4,16 +4,26 @@ import Foundation
 @MainActor
 @Observable
 final class SettingsStore {
-    // Friend's FastAPI backend (apps/api) reachable from the phone over the shared
-    // hotspot/Wi-Fi. ATS permits this via NSAllowsLocalNetworking. Override in Settings
-    // if the Mac's LAN IP changes (run `ipconfig getifaddr en0`) or once deployed.
-    static let defaultBaseURL = "http://172.20.10.9:8000"
+    static let defaultBaseURL = BackendConfiguration.defaultBaseURL
 
     private enum Keys {
         static let baseURL = "warmth.backendBaseURL"
         static let onboarded = "warmth.didCompleteOnboarding"
         static let calendarConnected = "warmth.calendarConnected"
+        static let eventModeEnabled = "warmth.eventModeEnabled"
+        static let eventModeDisabledOverride = "warmth.eventModeDisabledOverride"
+        static let capturePreferences = "warmth.capturePreferences"
     }
+
+    /// Loopback/placeholder hosts that never resolve from a physical device.
+    private static let staleBaseURLs: Set<String> = [
+        "",
+        "http://127.0.0.1:8010",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "http://localhost:8010",
+        "https://api.warmth.example.com",
+    ]
 
     private let defaults: UserDefaults
 
@@ -29,33 +39,84 @@ final class SettingsStore {
         didSet { defaults.set(calendarConnected, forKey: Keys.calendarConnected) }
     }
 
-    /// Loopback/placeholder hosts that never resolve from a physical device — if a
-    /// prior build persisted one of these, upgrade it to the current default so the
-    /// phone reaches the live backend without a manual Settings edit.
-    private static let staleBaseURLs: Set<String> = [
-        "",
-        "http://127.0.0.1:8010",
-        "http://127.0.0.1:8000",
-        "http://localhost:8000",
-        "http://localhost:8010",
-        "https://api.warmth.example.com",
-    ]
+    /// Manual Event mode — treat the user as on the event floor (Capture tab).
+    var eventModeEnabled: Bool {
+        didSet { defaults.set(eventModeEnabled, forKey: Keys.eventModeEnabled) }
+    }
+
+    /// Force Home even when calendar says an event is active today.
+    var eventModeDisabledOverride: Bool {
+        didSet { defaults.set(eventModeDisabledOverride, forKey: Keys.eventModeDisabledOverride) }
+    }
+
+    /// Which capture activation methods the user has enabled.
+    var capturePreferences: CaptureActivationPreferences {
+        didSet { persistCapturePreferences() }
+    }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let stored = defaults.string(forKey: Keys.baseURL)
+        let raw: String
         if let stored, !Self.staleBaseURLs.contains(stored) {
-            self.baseURLString = stored
+            raw = stored
         } else {
-            self.baseURLString = Self.defaultBaseURL
-            defaults.set(Self.defaultBaseURL, forKey: Keys.baseURL)
+            raw = Self.defaultBaseURL
         }
+        let resolved = BackendConfiguration.normalizedBaseURLString(raw)
+        self.baseURLString = resolved
         self.didCompleteOnboarding = defaults.bool(forKey: Keys.onboarded)
         self.calendarConnected = defaults.bool(forKey: Keys.calendarConnected)
+        self.eventModeEnabled = defaults.bool(forKey: Keys.eventModeEnabled)
+        self.eventModeDisabledOverride = defaults.bool(forKey: Keys.eventModeDisabledOverride)
+        self.capturePreferences = Self.loadCapturePreferences(from: defaults)
+        if stored != resolved {
+            defaults.set(resolved, forKey: Keys.baseURL)
+        }
+    }
+
+    private static func loadCapturePreferences(from defaults: UserDefaults) -> CaptureActivationPreferences {
+        guard let data = defaults.data(forKey: Keys.capturePreferences),
+              let decoded = try? JSONDecoder().decode(CaptureActivationPreferences.self, from: data) else {
+            return .default
+        }
+        return decoded
+    }
+
+    private func persistCapturePreferences() {
+        guard let data = try? JSONEncoder().encode(capturePreferences) else { return }
+        defaults.set(data, forKey: Keys.capturePreferences)
     }
 
     /// Validated URL, falling back to the default if the user typed something invalid.
     var baseURL: URL {
         URL(string: baseURLString) ?? URL(string: Self.defaultBaseURL)!
+    }
+}
+
+extension SettingsStore {
+    /// Whether the user should land on Capture (calendar window or manual Event mode).
+    func isAtEventToday(calendarEvents: [CRMDetectedEvent]) -> Bool {
+        if eventModeDisabledOverride { return false }
+        if eventModeEnabled { return true }
+        return Self.calendarMatchToday(in: calendarEvents)
+    }
+
+    static func calendarMatchToday(in events: [CRMDetectedEvent]) -> Bool {
+        let today = Calendar.current.startOfDay(for: Date())
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let fallback = ISO8601DateFormatter()
+
+        for event in events {
+            guard let startRaw = event.startDate, let endRaw = event.endDate else { continue }
+            let start = formatter.date(from: startRaw) ?? fallback.date(from: startRaw)
+            let end = formatter.date(from: endRaw) ?? fallback.date(from: endRaw)
+            guard let start, let end else { continue }
+            let startDay = Calendar.current.startOfDay(for: start)
+            let endDay = Calendar.current.startOfDay(for: end)
+            if startDay <= today && today <= endDay { return true }
+        }
+        return false
     }
 }

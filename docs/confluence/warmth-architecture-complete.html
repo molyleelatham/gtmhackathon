@@ -1,8 +1,8 @@
 <h1>Warmth — Complete Architecture &amp; Technical Reference</h1>
 
-<p><time datetime="2026-06-20">June 2026</time> · GTM Hackathon · Conference Intelligence Platform</p>
+<p><time datetime="2026-06-20">June 2026</time> · GTM Hackathon · Event Intelligence Platform</p>
 
-<div data-type="panel-info"><p><strong>One-liner:</strong> Warmth turns conference networking into a scored personal CRM — capture on mobile, score with ML, route to CRM or community, follow up from the web dashboard.</p></div>
+<div data-type="panel-info"><p><strong>One-liner:</strong> Warmth turns event networking into a scored personal CRM — capture on mobile, score with ML, route to CRM or community, follow up from the web dashboard.</p></div>
 
 <hr/>
 
@@ -31,7 +31,7 @@
 
 <h2 id="overview">1. Product overview</h2>
 
-<p><strong>Warmth</strong> is a conference intelligence platform for founders, sales, and GTM teams. At a conference you might meet 50+ people; Warmth helps you:</p>
+<p><strong>Warmth</strong> is a event intelligence platform for founders, sales, and GTM teams. At an event you might meet 50+ people; Warmth helps you:</p>
 <ul>
 <li><strong>Prepare</strong> — know who is worth meeting before you walk the floor</li>
 <li><strong>Capture</strong> — record and extract intelligence during the conversation, hands-free</li>
@@ -43,7 +43,7 @@
 <table>
 <thead><tr><th>Surface</th><th>Role</th><th>When</th></tr></thead>
 <tbody>
-<tr><td><strong>iOS + Apple Watch</strong></td><td>Capture — phrase trigger, speech, on-device NLP</td><td>On the conference floor</td></tr>
+<tr><td><strong>iOS + Apple Watch</strong></td><td>Capture — phrase trigger, speech, on-device NLP</td><td>On the event floor</td></tr>
 <tr><td><strong>Web dashboard</strong></td><td>Review &amp; manage — events, leads, warmth, follow-ups</td><td>Before/after the event</td></tr>
 <tr><td><strong>Python backend</strong></td><td>Lifecycle pipelines, ML routing, integrations</td><td>Always-on server</td></tr>
 </tbody>
@@ -167,7 +167,7 @@
 <table>
 <thead><tr><th>Stage</th><th>What happens</th><th>Code</th></tr></thead>
 <tbody>
-<tr><td><strong>Onboarding</strong></td><td>Connect Google Calendar + Gmail; detect conferences</td><td><code>apps/lifecycle/onboarding.py</code></td></tr>
+<tr><td><strong>Onboarding</strong></td><td>Connect Google Calendar + Gmail; detect events</td><td><code>apps/lifecycle/onboarding.py</code></td></tr>
 <tr><td><strong>Before Meet</strong></td><td>Build attendee list, UnifyGTM enrich, Zero ICP fit, predict warmth, draft outreach</td><td><code>apps/lifecycle/premeet.py</code></td></tr>
 <tr><td><strong>Meet</strong></td><td>Capture signals → ML pipeline → route CRM or community</td><td><code>apps/lifecycle/meet.py</code>, <code>packages/ml/pipeline.py</code></td></tr>
 <tr><td><strong>Post Meet</strong></td><td>Gmail draft with full context; Lightfern polishes; user sends</td><td><code>apps/lifecycle/postmeet.py</code></td></tr>
@@ -279,7 +279,7 @@ syncWatchState() → Watch complication updates
 <tr><td>postmeet</td><td><code>/api/v1</code></td><td>Follow-up draft generation</td></tr>
 <tr><td>data</td><td><code>/api/v1/dashboard</code>, connections, leads</td><td>Web dashboard reads</td></tr>
 <tr><td>signals</td><td><code>POST /api/signals</code></td><td>iOS ingress (CapturedSignal)</td></tr>
-<tr><td>conferences</td><td>conference-specific</td><td>Conference metadata</td></tr>
+<tr><td>conferences</td><td>event-specific</td><td>Event metadata</td></tr>
 </tbody>
 </table>
 
@@ -310,7 +310,7 @@ ingest_captured_signal()
 <thead><tr><th>Route</th><th>Page</th><th>Purpose</th></tr></thead>
 <tbody>
 <tr><td><code>/</code></td><td>Dashboard</td><td>Stats, upcoming events, top leads</td></tr>
-<tr><td><code>/events</code></td><td>Events</td><td>Detected conferences</td></tr>
+<tr><td><code>/events</code></td><td>Events</td><td>Detected events</td></tr>
 <tr><td><code>/events/:id</code></td><td>PreMeet</td><td>Ranked leads, outreach actions</td></tr>
 <tr><td><code>/connections</code></td><td>Connections</td><td>All connections by warmth</td></tr>
 <tr><td><code>/connections/:id</code></td><td>ConnectionDetail</td><td>Scores, routing, follow-up</td></tr>
@@ -417,7 +417,7 @@ Content-Type: application/json
 <table>
 <thead><tr><th>Model</th><th>Description</th></tr></thead>
 <tbody>
-<tr><td><code>DetectedEvent</code></td><td>Conference from calendar detection</td></tr>
+<tr><td><code>DetectedEvent</code></td><td>Event from calendar detection</td></tr>
 <tr><td><code>PreMeetConnection</code></td><td>Attendee before meeting (enriched)</td></tr>
 <tr><td><code>MeetingSignal</code></td><td>Live capture: name, interests, topic_time, takeaways</td></tr>
 <tr><td><code>WarmthScore</code></td><td>ICP + warmth + predicted/actual/uplift</td></tr>
@@ -534,7 +534,7 @@ xcodebuild build -scheme Warmth -destination 'platform=iOS Simulator,name=iPhone
 <h2 id="jira">17. Jira backlog</h2>
 <p>Full sprint backlog tracked in Jira project <strong>KAN</strong>:</p>
 <ul>
-<li><strong>Epic:</strong> <a href="https://dzak.atlassian.net/browse/KAN-1">KAN-1 — Warmth — Conference Intelligence Platform</a></li>
+<li><strong>Epic:</strong> <a href="https://dzak.atlassian.net/browse/KAN-1">KAN-1 — Warmth — Event Intelligence Platform</a></li>
 <li><strong>Board:</strong> <a href="https://dzak.atlassian.net/jira/software/projects/KAN/boards/1">KAN Board</a></li>
 </ul>
 

@@ -1,9 +1,10 @@
 import Foundation
-import SpeechWakeWord   // SPM: https://github.com/soniqo/speech-swift
+import SpeechWakeWord
 
 /// Thin wrapper around the Soniqo wake-word detector. Keywords are built
 /// dynamically from the user's contact / ICP names so the phone reacts to
 /// "hey anna", "hey sarah", or a bare first name.
+@MainActor
 final class WakeWordEngine: ObservableObject {
     private var detector: WakeWordDetector?
     private var session: WakeWordSession?
@@ -29,12 +30,11 @@ final class WakeWordEngine: ObservableObject {
         detector = try await WakeWordDetector.fromPretrained(keywords: keywords)
         session = try detector?.createSession()
         phraseToName = mapping
-
-        await MainActor.run { self.isConfigured = true }
+        isConfigured = true
     }
 
     /// Push 16 kHz mono Float32 audio and get back any detections.
-    func push(audio: [Float]) -> [WakeWordDetection] {
+    func push(audio: [Float]) -> [KeywordDetection] {
         (try? session?.pushAudio(audio)) ?? []
     }
 

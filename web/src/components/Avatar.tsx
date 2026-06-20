@@ -3,10 +3,12 @@ import { avatarImageUrl, avatarPalette, personInitials } from "../lib/avatars";
 
 export function Avatar({
   name,
+  photoURL,
   size = "md",
   className = "",
 }: {
   name: string;
+  photoURL?: string | null;
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 }) {
@@ -17,12 +19,13 @@ export function Avatar({
     xl: "h-20 w-20 text-base",
   };
   const [failed, setFailed] = useState(false);
+  const src = photoURL && !failed ? photoURL : avatarImageUrl(name, size);
 
   useEffect(() => {
     setFailed(false);
-  }, [name]);
+  }, [name, photoURL]);
 
-  if (failed) {
+  if ((photoURL && failed) || (!photoURL && failed)) {
     const [from, to] = avatarPalette(name);
     const initials = personInitials(name);
     return (
@@ -38,7 +41,7 @@ export function Avatar({
 
   return (
     <img
-      src={avatarImageUrl(name, size)}
+      src={src}
       alt=""
       width={size === "sm" ? 36 : size === "md" ? 44 : size === "lg" ? 56 : 80}
       height={size === "sm" ? 36 : size === "md" ? 44 : size === "lg" ? 56 : 80}

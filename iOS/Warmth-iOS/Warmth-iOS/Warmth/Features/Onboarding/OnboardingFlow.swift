@@ -8,7 +8,7 @@ struct OnboardingFlow: View {
 
     /// Ordered onboarding steps. `rawValue` doubles as the progress index.
     enum Step: Int, CaseIterable, Comparable {
-        case welcome, signIn, permissions, calendar, finish
+        case welcome, signIn, permissions, captureMethods, calendar, finish
 
         static func < (lhs: Step, rhs: Step) -> Bool { lhs.rawValue < rhs.rawValue }
     }
@@ -57,6 +57,9 @@ struct OnboardingFlow: View {
                 .transition(stepTransition)
         case .permissions:
             PermissionsStepView(advance: advance)
+                .transition(stepTransition)
+        case .captureMethods:
+            CaptureMethodsStepView(advance: advance)
                 .transition(stepTransition)
         case .calendar:
             CalendarStepView(advance: advance)

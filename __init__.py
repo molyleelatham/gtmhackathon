@@ -1,1 +1,1 @@
-"""Warmth — conference intelligence platform."""
+"""Warmth — event intelligence platform."""

@@ -4,9 +4,18 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
+import {
+  onAuthStateChanged,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  type User,
+} from "firebase/auth";
+import { auth, googleSignInProvider } from "./firebase";
+import { api, setAuthTokenGetter } from "./api";
 
 export interface AuthUser {
   uid: string;
@@ -20,60 +29,78 @@ interface AuthContextValue {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  getIdToken: () => Promise<string | null>;
 }
-
-const STORAGE_KEY = "warmth.demo.user";
-
-/** Matches backend DEMO_USER_ID (`apps/api/store.py`). */
-const DEMO_USER: AuthUser = {
-  uid: "demo-user",
-  displayName: "Nicholas Wong",
-  email: "nicholas@warmth.ai",
-  photoURL: null,
-};
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/**
- * Demo auth with localStorage persistence — no Firebase required for hackathon E2E.
- * Swap signInWithGoogle/signOut for Firebase Auth when production auth is wired.
- */
+function mapFirebaseUser(user: User): AuthUser {
+  return {
+    uid: user.uid,
+    displayName: user.displayName,
+    email: user.email,
+    photoURL: user.photoURL,
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const bootstrapStarted = useRef<string | null>(null);
+
+  const getIdToken = useCallback(async (): Promise<string | null> => {
+    const current = auth.currentUser;
+    if (!current) return null;
+    try {
+      return await current.getIdToken();
+    } catch {
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setUser(JSON.parse(stored) as AuthUser);
-    } catch {
-      /* ignore corrupt storage */
-    }
-    setLoading(false);
+    setAuthTokenGetter(getIdToken);
+    return () => setAuthTokenGetter(null);
+  }, [getIdToken]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (!firebaseUser) {
+        bootstrapStarted.current = null;
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      const mapped = mapFirebaseUser(firebaseUser);
+      setUser(mapped);
+      setLoading(false);
+
+      if (bootstrapStarted.current !== mapped.uid) {
+        bootstrapStarted.current = mapped.uid;
+        void api.bootstrapProfile().catch(() => {
+          /* best-effort; profile sync can retry on next navigation */
+        });
+      }
+    });
+
+    return unsubscribe;
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
-    await new Promise((r) => setTimeout(r, 300));
-    setUser(DEMO_USER);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEMO_USER));
-    } catch {
-      /* ignore */
-    }
+    const result = await signInWithPopup(auth, googleSignInProvider());
+    setUser(mapFirebaseUser(result.user));
   }, []);
 
   const signOut = useCallback(async () => {
+    bootstrapStarted.current = null;
+    await firebaseSignOut(auth);
     setUser(null);
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      /* ignore */
-    }
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, signInWithGoogle, signOut }),
-    [user, loading, signInWithGoogle, signOut],
+    () => ({ user, loading, signInWithGoogle, signOut, getIdToken }),
+    [user, loading, signInWithGoogle, signOut, getIdToken],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

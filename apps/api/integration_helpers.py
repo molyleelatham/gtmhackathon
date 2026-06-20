@@ -114,5 +114,5 @@ def lead_from_signal(signal: MeetingSignal, conn: Optional[PreMeetConnection] = 
     return Lead(
         company_name=signal.company or "Unknown Company",
         contact_name=signal.name,
-        signal_source="conference_audio",
+        signal_source="event_audio",
     )

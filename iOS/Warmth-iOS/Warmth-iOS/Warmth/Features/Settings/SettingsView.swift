@@ -1,7 +1,6 @@
 import SwiftUI
 
 /// Settings tab: scrollable Liquid Glass cards over the ambient mesh gradient.
-/// Covers account, backend wiring, the wake phrase, permissions and calendar.
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
 
@@ -13,8 +12,10 @@ struct SettingsView: View {
                 ScrollView {
                     VStack(spacing: 18) {
                         AccountSection()
+                        EventModeSection()
                         BackendSection()
-                        WakePhraseSection()
+                        ICPProfileSection()
+                        CaptureMethodsSection()
                         PermissionsSection()
                         CalendarSection()
                         SettingsFooter()
@@ -141,7 +142,44 @@ private struct AvatarView: View {
     }
 }
 
-// MARK: - 2. Backend
+// MARK: - 2. Event mode
+
+private struct EventModeSection: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        @Bindable var settings = model.settings
+
+        GlassCard {
+            VStack(alignment: .leading, spacing: 14) {
+                SectionHeader(title: "Event mode", systemImage: "calendar.badge.clock")
+
+                Toggle(isOn: $settings.eventModeEnabled) {
+                    Text("I'm at an event")
+                        .warmthText(.Warmth.body)
+                }
+                .tint(WarmthColor.emberRed)
+                .onChange(of: settings.eventModeEnabled) { _, enabled in
+                    if enabled {
+                        WarmthHaptics.success()
+                        model.selectedTab = .capture
+                    }
+                }
+
+                Toggle(isOn: $settings.eventModeDisabledOverride) {
+                    Text("Stay on Home even during calendar events")
+                        .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
+                }
+                .tint(WarmthColor.emberRed)
+
+                Text("Warmth checks your calendar and opens Capture when an event is active today. Enable floor listening below for contact-name detection at events.")
+                    .warmthText(.Warmth.caption, color: WarmthColor.inkSecondary)
+            }
+        }
+    }
+}
+
+// MARK: - 3. Backend
 
 private struct BackendSection: View {
     @Environment(AppModel.self) private var model
@@ -153,7 +191,7 @@ private struct BackendSection: View {
             VStack(alignment: .leading, spacing: 14) {
                 SectionHeader(title: "Backend", systemImage: "server.rack")
 
-                Text("Where captured signals are uploaded.")
+                Text("Where captured signals are uploaded. Defaults to the hosted Warmth API (same as the web dashboard).")
                     .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
 
                 TextField("Base URL", text: $settings.baseURLString)
@@ -233,35 +271,62 @@ private struct DeliveryStatusLine: View {
     }
 }
 
-// MARK: - 3. Wake phrase
+// MARK: - 4. ICP profile
 
-private struct WakePhraseSection: View {
+private struct ICPProfileSection: View {
+    @Environment(AppModel.self) private var model
+
     var body: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 12) {
-                SectionHeader(title: "Wake phrase", systemImage: "waveform.badge.mic")
+                SectionHeader(title: "ICP profile", systemImage: "target")
 
-                Text("“\(WakeWord.phrase)”")
-                    .font(.Warmth.title2)
-                    .italic()
-                    .foregroundStyle(WarmthColor.ink)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 14)
-                    .background(WarmthColor.amber.opacity(0.18), in: .rect(cornerRadius: 14, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .strokeBorder(WarmthColor.amber.opacity(0.42), lineWidth: 0.5)
-                    )
+                if model.icpProfile.isEmpty {
+                    Text("Read-only ICP criteria from the backend.")
+                        .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
+                    EmberButton(title: "Load ICP", systemImage: "arrow.clockwise", fill: false) {
+                        Task { await model.refreshICPProfile() }
+                    }
+                } else {
+                    ForEach(model.icpProfile) { row in
+                        HStack(alignment: .top) {
+                            Text(row.label)
+                                .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
+                                .frame(width: 110, alignment: .leading)
+                            Text(row.value)
+                                .warmthText(.Warmth.body)
+                            Spacer(minLength: 0)
+                        }
+                    }
+                }
+            }
+        }
+        .task { await model.refreshICPProfile() }
+    }
+}
 
-                Text("Say this when you meet someone new and Warmth will start listening to capture the conversation.")
-                    .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
+// MARK: - Capture methods
+
+private struct CaptureMethodsSection: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        @Bindable var settings = model.settings
+
+        GlassCard {
+            VStack(alignment: .leading, spacing: 14) {
+                SectionHeader(title: "Capture methods", systemImage: "hand.tap.fill")
+
+                CaptureMethodsPicker(
+                    preferences: $settings.capturePreferences,
+                    showsSetupHints: true
+                )
             }
         }
     }
 }
 
-// MARK: - 4. Permissions
+// MARK: - Permissions
 
 private struct PermissionsSection: View {
     @Environment(AppModel.self) private var model

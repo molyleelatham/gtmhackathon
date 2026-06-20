@@ -1,9 +1,7 @@
-import os
-import json
 from typing import Optional, Any
 from datetime import datetime
-import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import firestore
+from .admin import ensure_firebase_initialized
 from ...packages.core.models.signal import Signal
 from ...packages.core.models.lead import Lead
 
@@ -18,29 +16,7 @@ class FirestoreClient:
         Args:
             service_account_key: Path to service account key JSON file or JSON string
         """
-        if not firebase_admin._apps:
-            # Initialize Firebase app
-            if service_account_key:
-                # Check if it's a file path or JSON string
-                if os.path.exists(service_account_key):
-                    cred = credentials.Certificate(service_account_key)
-                else:
-                    cred_dict = json.loads(service_account_key)
-                    cred = credentials.Certificate(cred_dict)
-            else:
-                # Try to get from environment variable
-                service_account_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY")
-                if service_account_json:
-                    if os.path.exists(service_account_json):
-                        cred = credentials.Certificate(service_account_json)
-                    else:
-                        cred_dict = json.loads(service_account_json)
-                        cred = credentials.Certificate(cred_dict)
-                else:
-                    raise ValueError("Firebase service account key must be provided")
-            
-            firebase_admin.initialize_app(cred)
-        
+        ensure_firebase_initialized(service_account_key)
         self.db = firestore.client()
     
     async def save_signal(self, signal: Signal) -> str:

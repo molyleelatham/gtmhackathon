@@ -1,13 +1,13 @@
 # Warmth — iOS Personal CRM Recording App
 
-> **iOS/watchOS Native Conference Intelligence**
+> **iOS/watchOS Native Event Intelligence**
 > Personal CRM · iOS 17+ · watchOS 10+ · SwiftUI · Porcupine · WatchConnectivity
 
 ---
 
 ## Vision Overview
 
-Warmth is a native iOS personal CRM recording app that uses always-listening wake word detection on iPhone to seamlessly record conference conversations. The Apple Watch serves as a remote control via complications, with minimal UI for recording state management. All processing happens on-device with optional cloud sync for CRM integration.
+Warmth is a native iOS personal CRM recording app that uses always-listening wake word detection on iPhone to seamlessly record event conversations. The Apple Watch serves as a remote control via complications, with minimal UI for recording state management. All processing happens on-device with optional cloud sync for CRM integration.
 
 ---
 
@@ -634,21 +634,21 @@ class BatteryOptimizedWakeWord: WakeWordEngine {
 }
 ```
 
-### 2. Conference Mode Detection
+### 2. Event Mode Detection
 
 ```swift
-class ConferenceModeManager {
-    @Published var isConferenceMode = false
+class EventModeManager {
+    @Published var isEventMode = false
     
-    func enableConferenceMode() {
-        isConferenceMode = true
+    func enableEventMode() {
+        isEventMode = true
         // Enable full wake word detection
         // Disable battery optimizations
         // Increase audio quality
     }
     
-    func disableConferenceMode() {
-        isConferenceMode = false
+    func disableEventMode() {
+        isEventMode = false
         // Enable battery optimizations
         // Reduce wake word check frequency
     }
@@ -715,7 +715,7 @@ class ConferenceModeManager {
 - Wake word detection: <5% CPU usage
 - Memory footprint: <50MB when idle
 - Recording: ~100MB per hour of audio
-- Battery impact: <5% per hour in conference mode
+- Battery impact: <5% per hour in event mode
 
 ### 3. User Experience
 - Frictionless wake word activation

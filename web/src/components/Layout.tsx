@@ -6,12 +6,12 @@ import { useAsync } from "../lib/useAsync";
 import { Avatar } from "./Avatar";
 
 const nav = [
-  { to: "/", label: "Dashboard", icon: "◫", end: true },
-  { to: "/connections", label: "Connections", icon: "👥" },
-  { to: "/leads", label: "CRM Leads", icon: "◆" },
-  { to: "/events", label: "Events", icon: "📅" },
-  { to: "/pipeline", label: "Pipeline", icon: "⚡" },
-  { to: "/community", label: "Community", icon: "◎" },
+  { to: "/app", label: "Dashboard", icon: "◫", end: true },
+  { to: "/app/connections", label: "Connections", icon: "👥" },
+  { to: "/app/leads", label: "CRM Leads", icon: "◆" },
+  { to: "/app/events", label: "Events", icon: "📅" },
+  { to: "/app/pipeline", label: "Pipeline", icon: "⚡" },
+  { to: "/app/community", label: "Community", icon: "◎" },
 ];
 
 export function Layout() {
@@ -29,7 +29,13 @@ export function Layout() {
         }`}
       >
         <div className={`mb-6 flex items-center ${collapsed ? "justify-center" : "gap-3 px-1"}`}>
-          {!collapsed && <Avatar name={user?.displayName ?? "User"} size="sm" />}
+          {!collapsed && (
+            <Avatar
+              name={user?.displayName ?? "User"}
+              photoURL={user?.photoURL}
+              size="sm"
+            />
+          )}
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-bold text-ink-900">
@@ -92,7 +98,7 @@ export function Layout() {
 
         <div className="mt-auto space-y-1 pt-4">
           <NavLink
-            to="/settings"
+            to="/app/settings"
             title={collapsed ? "Settings" : undefined}
             className={({ isActive }) =>
               `flex items-center rounded-xl py-2.5 text-sm transition-all ${

@@ -27,19 +27,22 @@ final class CaptureWindow {
     /// Prepare the ICP custom language model once. Safe to call repeatedly.
     func prepareLanguageModel() async {
         guard customModelURL == nil else { return }
+        let phrases = vocabulary.biasPhrases
         do {
             let url = FileManager.default.temporaryDirectory
                 .appendingPathComponent("warmth-icp.bin")
-            let data = SFCustomLanguageModelData(
-                locale: Locale(identifier: "en_US"),
-                identifier: "ai.warmth.icp",
-                version: "1.0"
-            ) {
-                for phrase in vocabulary.biasPhrases {
-                    SFCustomLanguageModelData.PhraseCount(phrase: phrase, count: 10)
+            try await Task.detached(priority: .utility) {
+                let data = SFCustomLanguageModelData(
+                    locale: Locale(identifier: "en_US"),
+                    identifier: "ai.warmth.icp",
+                    version: "1.0"
+                ) {
+                    for phrase in phrases {
+                        SFCustomLanguageModelData.PhraseCount(phrase: phrase, count: 10)
+                    }
                 }
-            }
-            try await data.export(to: url)
+                try await data.export(to: url)
+            }.value
             customModelURL = url
         } catch {
             print("CaptureWindow: custom LM prep failed (continuing without): \(error)")

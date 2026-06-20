@@ -8,7 +8,7 @@
 
 **Have open:**
 - iPhone with Warmth app on the Capture screen (orb visible)
-- `warmth_conference_demo.xlsx` open on your laptop, on the **Summary** sheet
+- `warmth_event_demo.xlsx` open on your laptop, on the **Summary** sheet
 - Terminal with the API running (`make run-api` from `warmth/`)
 
 **Timing:** ~3–4 minutes
@@ -19,7 +19,7 @@
 
 ---
 
-**"Every time you go to a conference, you come home with the same problem."**
+**"Every time you go to an event, you come home with the same problem."**
 
 You met maybe 30 people. You remember 8. You follow up with 3. And the 3 you follow up with — you write basically the same email to all of them because you can't remember what made each conversation different.
 
@@ -31,7 +31,7 @@ That's not a discipline problem. That's a tooling problem. There's nothing captu
 
 *[hold up the phone — show the orb on Capture screen]*
 
-I'm at a conference. I walk up to someone. I say:
+I'm at an event. I walk up to someone. I say:
 
 **"Hey, it's nice to meet you."**
 
@@ -85,7 +85,7 @@ This drops into Gmail. Lightfern polishes it. I review, I send. The whole follow
 
 **"Here's what that looks like across a full day."**
 
-*[back to Sheet 0: Conference Summary]*
+*[back to Sheet 0: Event Summary]*
 
 10 people researched before I walked in. Pre-meet emails drafted overnight.
 
@@ -99,7 +99,7 @@ Zero manual logging.
 
 **"The insight behind this is simple."**
 
-Most GTM tools treat conferences as a lead list problem. Scrape the attendees, send everyone the same sequence, hope something lands.
+Most GTM tools treat events as a lead list problem. Scrape the attendees, send everyone the same sequence, hope something lands.
 
 That's not how good relationships start. Good GTM is real connection — and real connection has a moment. It's in the room. It's in what someone actually says when they're not on a sales call.
 
@@ -130,9 +130,9 @@ Note-taking captures words. Warmth captures a person model — communication sty
 Wake phrase requires active trigger. Audio never leaves the device for NLP — Apple NaturalLanguage runs on-device. Only the structured signal (names, topics, keywords) hits the backend. We're explicit about that in the app permissions flow.
 
 **"Why not just use Notion or HubSpot notes?"**
-Because you're not on your laptop when you're on the conference floor. And even if you were — structured data that feeds a warmth model is different from a text block in a note. The scoring and routing only work because the data is structured at capture time, not retrospectively.
+Because you're not on your laptop when you're on the event floor. And even if you were — structured data that feeds a warmth model is different from a text block in a note. The scoring and routing only work because the data is structured at capture time, not retrospectively.
 
 **"What's the business model?"**
-Per-seat SaaS. Sales teams, founders, BD people who go to more than two conferences a year. The ROI is one warm deal that wouldn't have converted from a cold follow-up.
+Per-seat SaaS. Sales teams, founders, BD people who go to more than two events a year. The ROI is one warm deal that wouldn't have converted from a cold follow-up.
 
 ---

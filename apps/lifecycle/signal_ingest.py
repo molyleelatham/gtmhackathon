@@ -1,4 +1,4 @@
-"""Ingest iOS signals into the meet pipeline + store."""
+"""Ingest iOS signals into the meet pipeline + get_store()."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -7,13 +7,13 @@ from typing import Any, Optional
 from ..agent.meet_pipeline import MeetStageAgent
 from ..api.integration_helpers import use_agent_extraction, zero_client_optional
 from ..api.interest_helpers import interests_from_meet_summary
-from ..api.store import store, DEMO_USER_ID
+from ..api.store import get_store, DEMO_USER_ID
 from ...packages.core.models.event import DetectedEvent, EventType, LifecycleStage
 from ...packages.core.models.lead import Lead
 from ...packages.core.models.pre_connection import PreMeetConnection, PreMeetStatus
 from ...packages.core.models.warmth import WarmthScore, WarmthBand
 from ...packages.core.schemas.captured_signal import CapturedSignalPayload
-from ...packages.core.schemas.conference_audio_signal import ConferenceAudioSignal
+from ...packages.core.schemas.event_audio_signal import EventAudioSignal
 
 
 # Idempotency cache: client signal key -> connection id
@@ -29,26 +29,26 @@ def _band_from_score(score: float) -> WarmthBand:
 
 
 def _default_event() -> DetectedEvent:
-    events = store.list_events(DEMO_USER_ID)
+    events = get_store().list_events(DEMO_USER_ID)
     if events:
         return events[0]
     event = DetectedEvent(
-        id="event_live_conference",
+        id="event_live_capture",
         user_id=DEMO_USER_ID,
-        name="Live Conference",
-        event_type=EventType.CONFERENCE,
+        name="Live Event",
+        event_type=EventType.EVENT,
         location="On-site",
         confidence=1.0,
         stage=LifecycleStage.MEET,
     )
-    store.upsert_event(event)
+    get_store().upsert_event(event)
     return event
 
 
 def _duplicate_response(conn_id: str) -> dict[str, Any]:
-    conn = store.pre_connections.get(conn_id)
-    warmth = store.warmth_for_connection(conn_id)
-    meet = store.meet_result_for(conn_id)
+    conn = get_store().pre_connections.get(conn_id)
+    warmth = get_store().warmth_for_connection(conn_id)
+    meet = get_store().meet_result_for(conn_id)
     return {
         "status": "duplicate",
         "connection_id": conn_id,
@@ -84,7 +84,7 @@ async def _run_meet_pipeline(
         turns=turns,
         speaker_attrs=speaker_attrs,
         self_speaker_id=self_speaker_id,
-        community_members=store.community_members,
+        community_members=get_store().community_members,
     )
 
     decision = summary["decision"]
@@ -104,11 +104,11 @@ async def _run_meet_pipeline(
         predicted_warmth=float(predicted),
         intent_score=int(icp_pre_score),
         status=PreMeetStatus.MET if summary["pushed_to_crm"] else PreMeetStatus.SCORED,
-        source="conference_audio",
+        source="event_audio",
         draft_subject=(summary.get("gmail_draft") or {}).get("subject"),
         draft_body=(summary.get("gmail_draft") or {}).get("body"),
     )
-    store.upsert_connection(conn)
+    get_store().upsert_connection(conn)
 
     warmth = WarmthScore(
         connection_id=conn.id,
@@ -118,18 +118,18 @@ async def _run_meet_pipeline(
         actual_score=float(actual),
         band=_band_from_score(float(actual)),
     )
-    store.upsert_warmth(warmth)
+    get_store().upsert_warmth(warmth)
 
     lead = Lead(
         company_name=company_name or "Unknown Company",
         contact_name=name,
         icp_score=int(icp_pre_score),
-        signal_source="conference_audio",
+        signal_source="event_audio",
         tags=merged_interests,
     )
-    store.upsert_lead(lead)
+    get_store().upsert_lead(lead)
 
-    store.record_meet_result(
+    get_store().record_meet_result(
         connection_id=conn.id,
         signal_id=signal_key,
         routed_to=summary["routed_to"],
@@ -139,6 +139,7 @@ async def _run_meet_pipeline(
         interests=merged_interests,
         relations=relations or [],
         knowledge_graph=summary.get("people") or [],
+        matched_candidates=(summary.get("decision") or {}).get("matched_candidates") or [],
     )
 
     _ingested[signal_key] = conn.id
@@ -160,7 +161,7 @@ async def _run_meet_pipeline(
 
 
 def _legacy_signal_to_turns(
-    payload: ConferenceAudioSignal,
+    payload: EventAudioSignal,
 ) -> tuple[list[dict], dict[int, dict], int]:
     speaker_id = 1
     attrs = {
@@ -211,7 +212,7 @@ async def ingest_captured_signal(payload: CapturedSignalPayload) -> dict[str, An
     )
 
 
-async def ingest_ios_signal(payload: ConferenceAudioSignal) -> dict[str, Any]:
+async def ingest_ios_signal(payload: EventAudioSignal) -> dict[str, Any]:
     """Run legacy wake-word pipeline Signal through MeetStageAgent."""
     turns, attrs, self_speaker = _legacy_signal_to_turns(payload)
     return await _run_meet_pipeline(

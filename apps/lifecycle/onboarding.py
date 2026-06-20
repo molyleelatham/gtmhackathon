@@ -1,8 +1,8 @@
 """Onboarding stage.
 
 When a user enters the app we connect their email + Google Calendar via MCP,
-pull their events, and detect which ones are conferences worth running the
-Warmth lifecycle on (e.g. the demo tech conference).
+pull their events, and detect which ones are events worth running the
+Warmth lifecycle on (e.g. the demo tech event).
 """
 from datetime import datetime, timedelta
 from typing import Optional
@@ -32,10 +32,10 @@ class OnboardingService:
         user_id: str,
         lookahead_days: int = 60,
     ) -> list[DetectedEvent]:
-        """Pull calendar events and return the ones detected as conferences."""
+        """Pull calendar events and return the ones detected as events."""
         now = datetime.utcnow()
         events: list[CalendarEvent] = await self.calendar_client.list_events(
             time_min=now,
             time_max=now + timedelta(days=lookahead_days),
         )
-        return self.calendar_client.detect_conferences(events, user_id=user_id)
+        return self.calendar_client.detect_events(events, user_id=user_id)

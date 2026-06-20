@@ -1,11 +1,10 @@
 import SwiftUI
 
-/// The hero Capture screen. A breathing ember orb anchors the experience: tap to
-/// listen for the wake word, then record a conversation. While recording, the orb
-/// becomes a live waveform, the backdrop heats up, a live transcript streams into a
-/// glass card, and a prominent Stop control commits the captured person.
+/// The hero Capture screen. Tap the ember orb to record; optional passive floor
+/// listening runs when enabled in Settings.
 struct CaptureView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.scenePhase) private var scenePhase
     @State private var isStartingCapture = false
 
     var body: some View {
@@ -18,13 +17,16 @@ struct CaptureView: View {
             VStack(spacing: 0) {
                 header
 
+                if model.isPassiveFloorListeningActive {
+                    passiveFloorBanner
+                }
+
                 if let error = model.speech.permissionError {
                     permissionBanner(error)
                 }
 
                 Spacer(minLength: 8)
 
-                // Timer + hero orb.
                 VStack(spacing: 18) {
                     if phase == .recording {
                         Text(formattedElapsed)
@@ -43,23 +45,12 @@ struct CaptureView: View {
 
                 Spacer(minLength: 8)
 
-                // Phase-specific controls / transcript.
-                Group {
-                    switch phase {
-                    case .idle:
-                        EmptyView()
-                    case .listening:
-                        listeningControls
-                    case .recording:
-                        recordingControls
-                    }
+                if phase == .recording {
+                    recordingControls
+                        .padding(.horizontal, 20)
                 }
-                .padding(.horizontal, 20)
 
                 Spacer(minLength: 16)
-
-                RecentConnectionsStrip(connections: model.crmClient.connections)
-                    .padding(.bottom, 8)
             }
             .padding(.top, 8)
             .animation(WarmthMotion.snappy, value: phase)
@@ -71,20 +62,19 @@ struct CaptureView: View {
                 .transition(.scale.combined(with: .opacity))
             }
         }
+        .onChange(of: scenePhase) { _, phase in
+            Task { await model.handleScenePhase(phase) }
+        }
         .task {
-            // Permission for the push-style "Attendee matched" banner.
             MatchNotifier.shared.requestAuthorization()
-            // Light extra flourish; the service already fires its own haptic.
             model.speech.onWakeWordDetected = {
                 WarmthHaptics.success()
                 model.prepareNewCapture()
             }
+            await model.handleScenePhase(scenePhase)
         }
         .onChange(of: model.speech.transcript) { _, transcript in
-            // Fire during passive listening too, so "hi {name}" pops the match card
-            // without requiring the wake phrase first (mirrors the web dashboard).
-            let phase = model.speech.phase
-            guard phase == .listening || phase == .recording, !transcript.isEmpty else { return }
+            guard model.speech.phase == .recording, !transcript.isEmpty else { return }
             Task { await model.tryMatchAttendee(from: transcript) }
         }
     }
@@ -96,11 +86,40 @@ struct CaptureView: View {
             Text("Warmth")
                 .font(.Warmth.title)
                 .foregroundStyle(WarmthColor.ink)
-            Text("Capture every connection")
-                .font(.Warmth.footnote)
-                .foregroundStyle(WarmthColor.inkSecondary)
+            if let name = model.pendingCapturePersonName, model.speech.phase == .recording {
+                Text("Meeting \(name)")
+                    .font(.Warmth.footnote)
+                    .foregroundStyle(WarmthColor.emberRed)
+            } else {
+                Text("Capture every connection")
+                    .font(.Warmth.footnote)
+                    .foregroundStyle(WarmthColor.inkSecondary)
+            }
         }
         .padding(.top, 4)
+    }
+
+    private var passiveFloorBanner: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 6) {
+                Label("Floor listening", systemImage: "ear")
+                    .font(.Warmth.caption.weight(.semibold))
+                    .foregroundStyle(WarmthColor.emberOrange)
+                Text("Say a contact name — Warmth opens a 30s capture window.")
+                    .font(.Warmth.footnote)
+                    .foregroundStyle(WarmthColor.inkSecondary)
+                let transcript = model.passiveFloorTranscript.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !transcript.isEmpty {
+                    Text(transcript)
+                        .font(.Warmth.footnote)
+                        .foregroundStyle(WarmthColor.ink)
+                        .lineLimit(2)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
     }
 
     private func permissionBanner(_ message: String) -> some View {
@@ -120,23 +139,18 @@ struct CaptureView: View {
         .transition(.move(edge: .top).combined(with: .opacity))
     }
 
-    // MARK: - Caption under the orb
-
     @ViewBuilder
     private var caption: some View {
         switch model.speech.phase {
         case .idle:
-            Text("Tap the orb to begin")
-                .font(.Warmth.callout)
-                .foregroundStyle(WarmthColor.inkSecondary)
-        case .listening:
-            VStack(spacing: 4) {
-                Text("Listening for")
+            if model.settings.capturePreferences.isEnabled(.manual) {
+                Text("Tap the orb to record")
                     .font(.Warmth.callout)
                     .foregroundStyle(WarmthColor.inkSecondary)
-                Text("\u{201C}\(WakeWord.phrase)\u{201D}")
-                    .font(.Warmth.headline)
-                    .foregroundStyle(WarmthColor.emberRed)
+            } else {
+                Text("Use Siri, your watch, or Action Button to start")
+                    .font(.Warmth.callout)
+                    .foregroundStyle(WarmthColor.inkSecondary)
                     .multilineTextAlignment(.center)
             }
         case .recording:
@@ -145,43 +159,6 @@ struct CaptureView: View {
                 .foregroundStyle(WarmthColor.inkSecondary)
         }
     }
-
-    // MARK: - Listening controls
-
-    private var listeningControls: some View {
-        VStack(spacing: 12) {
-            passiveTranscriptHint
-            EmberButton(title: "Start recording now", systemImage: "record.circle") {
-                _ = beginCaptureIfAllowed { await model.speech.startRecording() }
-            }
-            EmberButton(title: "Cancel", fill: false) {
-                model.speech.stopAndReset()
-                model.syncWatchState()
-            }
-        }
-    }
-
-    /// Compact live transcript shown while passively listening — surfaces that we're
-    /// hearing the room and matching greetings, mirroring the web "Live transcript" card.
-    private var passiveTranscriptHint: some View {
-        let transcript = model.speech.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
-        return GlassCard {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Live transcript")
-                    .font(.Warmth.caption)
-                    .foregroundStyle(WarmthColor.inkSecondary)
-                    .textCase(.uppercase)
-                Text(transcript.isEmpty ? "Listening… try \u{201C}Hi Molly\u{201D}" : transcript)
-                    .font(.Warmth.footnote)
-                    .foregroundStyle(transcript.isEmpty ? WarmthColor.inkSecondary : WarmthColor.ink)
-                    .lineLimit(2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .animation(WarmthMotion.gentle, value: transcript)
-            }
-        }
-    }
-
-    // MARK: - Recording controls
 
     private var recordingControls: some View {
         VStack(spacing: 16) {
@@ -225,52 +202,33 @@ struct CaptureView: View {
         }
     }
 
-    // MARK: - Interaction
-
     private func handleOrbTap() {
+        guard model.settings.capturePreferences.isEnabled(.manual) else {
+            WarmthHaptics.warning()
+            return
+        }
         guard !isStartingCapture else { return }
 
         switch model.speech.phase {
         case .idle:
             model.prepareNewCapture()
-            _ = beginCaptureIfAllowed { await model.speech.startListening() }
-        case .listening:
-            _ = beginCaptureIfAllowed { await model.speech.startRecording() }
+            isStartingCapture = true
+            Task { @MainActor in
+                defer { isStartingCapture = false }
+                await model.startManualCapture()
+            }
         case .recording:
-            handleStop()
+            Task { await model.stopManualCapture() }
+            WarmthHaptics.success()
         }
-    }
-
-    /// Returns false when capture must not proceed (denied permissions or in-flight start).
-    @discardableResult
-    private func beginCaptureIfAllowed(start: @escaping () async -> Void) -> Bool {
-        if model.speech.permissionsDenied {
-            _ = model.speech.checkPermissions()
-            WarmthHaptics.warning()
-            return false
-        }
-        isStartingCapture = true
-        Task { @MainActor in
-            defer { isStartingCapture = false }
-            guard await model.speech.requestPermissions() else { return }
-            guard model.speech.hasMicrophoneAccess else { return }
-            await start()
-            model.syncWatchState()
-        }
-        return true
     }
 
     private func handleStop() {
-        let transcript = model.speech.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
-        model.speech.stopAndReset()
-        model.syncWatchState()
-        WarmthHaptics.success()
-        if !transcript.isEmpty {
-            Task { await model.capturePerson(from: transcript) }
+        Task {
+            await model.stopManualCapture()
+            WarmthHaptics.success()
         }
     }
-
-    // MARK: - Formatting
 
     private var formattedElapsed: String {
         let total = Int(model.speech.elapsed)
@@ -296,7 +254,6 @@ struct CaptureView: View {
 
 // MARK: - Attendee connected overlay
 
-/// Glass modal shown when a live "hi {name}" matches someone on the event roster.
 struct AttendeeConnectedOverlay: View {
     let match: AttendeeMatchResult
     let onDismiss: () -> Void
@@ -380,7 +337,6 @@ struct AttendeeConnectedOverlay: View {
     }
 }
 
-/// Radial interest graph — person at center, topics/interests on the ring.
 struct KnowledgeGraphMiniView: View {
     let personName: String
     var interests: [String] = []

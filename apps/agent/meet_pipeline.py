@@ -76,7 +76,7 @@ class MeetStageAgent:
             lead = Lead(
                 company_name=signal.company or "Unknown Company",
                 contact_name=signal.name,
-                signal_source="conference_audio",
+                signal_source="event_audio",
             )
 
         decision = await self.meet_pipeline.process(

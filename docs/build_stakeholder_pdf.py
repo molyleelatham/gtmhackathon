@@ -77,13 +77,13 @@ def build_body() -> str:
     return f"""
 <div class="cover">
   <h1>Warmth</h1>
-  <p class="tagline">Turn conference chaos into meaningful relationships — before, during, and after every event.</p>
+  <p class="tagline">Turn event chaos into meaningful relationships — before, during, and after every event.</p>
   <p class="meta">Product overview for users &amp; stakeholders · June 2026</p>
 </div>
 
 <h2>The problem</h2>
-<p class="lead">At a single conference you might meet dozens of people. Names blur together. Notes never get typed up. Follow-ups slip for weeks — or never happen.</p>
-<p>Most tools only help <em>after</em> you're back at your desk, when half the context is already gone. Warmth is built for the full arc of conference networking: preparing while there's still time, capturing while you're still in the room, and following up while the conversation is fresh.</p>
+<p class="lead">At a single event you might meet dozens of people. Names blur together. Notes never get typed up. Follow-ups slip for weeks — or never happen.</p>
+<p>Most tools only help <em>after</em> you're back at your desk, when half the context is already gone. Warmth is built for the full arc of event networking: preparing while there's still time, capturing while you're still in the room, and following up while the conversation is fresh.</p>
 
 <h2>What Warmth does</h2>
 <div class="pillars">
@@ -94,13 +94,13 @@ def build_body() -> str:
 </div>
 
 <div class="callout">
-  <strong>In one sentence:</strong> Warmth is your conference copilot — a personal CRM that listens, remembers, and helps you act on every connection.
+  <strong>In one sentence:</strong> Warmth is your event copilot — a personal CRM that listens, remembers, and helps you act on every connection.
 </div>
 
 <h2>Who it's for</h2>
 <ul>
   <li><strong>Founders</strong> building relationships at industry events</li>
-  <li><strong>Sales &amp; GTM teams</strong> working a crowded conference floor</li>
+  <li><strong>Sales &amp; GTM teams</strong> working a crowded event floor</li>
   <li><strong>Anyone</strong> who meets too many people and loses track of who mattered most</li>
 </ul>
 
@@ -112,18 +112,18 @@ def build_body() -> str:
 <table>
   <thead><tr><th>Where</th><th>What you do</th><th>When</th></tr></thead>
   <tbody>
-    <tr><td><strong>iPhone &amp; Apple Watch</strong></td><td>Start capture with a phrase or a tap; see who you've met today</td><td>On the conference floor</td></tr>
+    <tr><td><strong>iPhone &amp; Apple Watch</strong></td><td>Start capture with a phrase or a tap; see who you've met today</td><td>On the event floor</td></tr>
     <tr><td><strong>Web dashboard</strong></td><td>Review events, ranked connections, warmth scores, and follow-up drafts</td><td>Before the event and back at your desk</td></tr>
   </tbody>
 </table>
 
 <h2>The Warmth journey</h2>
-<p>Every conference connection moves through four natural stages:</p>
+<p>Every event connection moves through four natural stages:</p>
 
 {figure("stakeholder-lifecycle", "From setup to follow-up — Warmth supports the full lifecycle of every connection.")}
 
 <h3>1 · Get set up</h3>
-<p>Connect your calendar and email. Warmth detects upcoming conferences and gets everything ready before you travel.</p>
+<p>Connect your calendar and email. Warmth detects upcoming events and gets everything ready before you travel.</p>
 
 <h3>2 · Before the event</h3>
 <p>Review a prioritized list of people worth meeting. Draft personalized outreach so you're not starting from zero on day one.</p>
@@ -134,9 +134,9 @@ def build_body() -> str:
 <h3>4 · After you meet</h3>
 <p>Warmth prepares follow-up email drafts grounded in what you discussed. You review, tweak if needed, and send — always in your voice, always your decision.</p>
 
-<h2>A day at the conference</h2>
+<h2>A day at the event</h2>
 
-{figure("stakeholder-journey", "What a typical conference day looks like with Warmth.")}
+{figure("stakeholder-journey", "What a typical event day looks like with Warmth.")}
 
 <h2>What makes Warmth different</h2>
 <p>Most CRMs ask: <em>Does this person fit our ideal customer?</em> Warmth asks that too — but also: <em>How warm was the actual conversation?</em></p>
@@ -173,10 +173,10 @@ def build_body() -> str:
 </ul>
 
 <div class="callout-blue callout">
-  <strong>Warmth = conference capture + relationship scoring + intelligent routing + human-approved follow-up.</strong>
+  <strong>Warmth = event capture + relationship scoring + intelligent routing + human-approved follow-up.</strong>
 </div>
 
-<p class="footer">Warmth · Conference Intelligence Platform · GTM Hackathon 2026</p>
+<p class="footer">Warmth · Event Intelligence Platform · GTM Hackathon 2026</p>
 """
 
 

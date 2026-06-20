@@ -1,6 +1,12 @@
-node_modules
-dist
+node_modules/
+dist/
+
+# Env (keep *.example templates)
 .env
+.env.*
+!.env.example
+!.env.*.example
+
 *.local
 *.tsbuildinfo
 vite.config.js

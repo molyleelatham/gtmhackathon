@@ -1,6 +1,6 @@
 """HubSpot CRM client for Warmth's hot-leads list sync.
 
-Pushes ranked conference leads to HubSpot as Contacts and creates/updates a
+Pushes ranked event leads to HubSpot as Contacts and creates/updates a
 HubSpot Contact List so sales reps can pick them up immediately.
 
 Auth: private-app token via HUBSPOT_API_KEY env var.
@@ -81,7 +81,7 @@ class HubSpotClient:
         linkedin_bio: Optional[str] = None,
         icp_score: Optional[float] = None,
         warmth_score: Optional[float] = None,
-        conference_name: Optional[str] = None,
+        event_name: Optional[str] = None,
         custom_properties: Optional[dict[str, Any]] = None,
     ) -> Optional[str]:
         """Create a HubSpot contact; return the HubSpot object ID.
@@ -107,8 +107,8 @@ class HubSpotClient:
             props["linkedin_bio"] = linkedin_bio
         # Store scores in standard HubSpot notes/description field
         notes_parts: list[str] = []
-        if conference_name:
-            notes_parts.append(f"Conference: {conference_name}")
+        if event_name:
+            notes_parts.append(f"Event: {event_name}")
         if icp_score is not None:
             notes_parts.append(f"ICP Score: {icp_score:.0f}/100")
         if warmth_score is not None:
@@ -243,7 +243,7 @@ class HubSpotClient:
     async def sync_hot_leads(
         self,
         leads: list[dict[str, Any]],
-        conference_name: str,
+        event_name: str,
         list_name: Optional[str] = None,
     ) -> dict[str, Any]:
         """Upsert all leads as HubSpot contacts and add to a dedicated list.
@@ -253,7 +253,7 @@ class HubSpotClient:
 
         Returns a summary dict with created/updated counts and the list ID.
         """
-        list_name = list_name or f"{conference_name} — Hot Leads"
+        list_name = list_name or f"{event_name} — Hot Leads"
         list_id = await self.get_or_create_list(list_name)
 
         created = 0
@@ -264,8 +264,8 @@ class HubSpotClient:
         for lead in leads:
             # Merged schema: same field set HubSpot ↔ Zero CRM (see schema.py).
             props = HubSpotMapper.lead_dict_to_contact_properties(lead)
-            if conference_name and "warmth_notes" not in props:
-                props["warmth_notes"] = f"Conference: {conference_name}"
+            if event_name and "warmth_notes" not in props:
+                props["warmth_notes"] = f"Event: {event_name}"
             if lead.get("company_domain"):
                 props["website"] = f"https://{lead['company_domain']}"
 

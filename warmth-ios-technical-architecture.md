@@ -1,6 +1,6 @@
 # Warmth — Technical Architecture
 
-> Two-tier, name-triggered conference intelligence. The **phone is intentionally
+> Two-tier, name-triggered event intelligence. The **phone is intentionally
 > "dumb"**: it detects names on-device, captures the conversation locally, does a
 > fast rule-based extraction + pre-score, and fires the signal at the backend.
 > The **compute host is "smart"**: persistent graph ML, enrichment, and the CRM /
@@ -49,7 +49,7 @@
 Tier 1 (this codebase: `iOS/`) is detailed below. Tier 2 (the compute host) is
 owned by the backend agent; §10–11 define the contract between them.
 
-Orchestration on the phone lives in `ConferenceListeningEngine`.
+Orchestration on the phone lives in `EventListeningEngine`.
 
 ## 2. Components
 
@@ -62,14 +62,14 @@ Orchestration on the phone lives in `ConferenceListeningEngine`.
 | `SocialGraphEngine` | `Warmth/Services/SocialGraphEngine.swift` | `NLTagger` NER (people/orgs), relationship-cue detection, proximity-based ICP scoring, `PersonNode` graph accumulation. |
 | `Signal` / `PersonNode` | `Warmth/Models/Signal.swift` | Output model; `CodingKeys` map to the backend signal schema (snake_case). |
 | `SignalAPIClient` | `Warmth/Services/SignalAPIClient.swift` | `POST /api/signals` (snake_case keys, ISO-8601 dates). Base URL from `WARMTH_API_BASE_URL`. |
-| `ConferenceListeningEngine` | `Warmth/Services/ConferenceListeningEngine.swift` | State machine wiring all of the above; publishes `state`, `liveTranscript`, `lastSignal`. |
+| `EventListeningEngine` | `Warmth/Services/EventListeningEngine.swift` | State machine wiring all of the above; publishes `state`, `liveTranscript`, `lastSignal`. |
 | `WatchConnectivityService` | `Warmth/Services/…` + `WarmthWatch/Services/…` | Sends `wakeWord` / `leadDetected` messages; watch plays haptic + shows lead. |
 | `AudioSessionManager` | `Warmth/Services/AudioSessionManager.swift` | `AVAudioSession` config (`.playAndRecord`, `.measurement`). |
 | `WatchlistProvider` | `Warmth/Services/WatchlistProvider.swift` | Names the wake word listens for; seeded sample, hydrate from CRM contacts. |
 
 ## 3. State machine
 
-`ConferenceListeningEngine.State`:
+`EventListeningEngine.State`:
 
 - `.idle` — engine stopped.
 - `.listening` — mic running; every 16 kHz frame is pushed to the wake-word
@@ -97,7 +97,7 @@ device contention between wake-word and capture phases.
 
 - Sum of `ICPVocabulary` weights for keywords attached to the `PersonNode`.
 - + 50% weight for ICP keywords found in proximity (~60 chars) to the company.
-- + 5 conference-audio source bonus.
+- + 5 event-audio source bonus.
 - Capped at 100. `Signal.isLead` when `score >= 50`.
 
 ## 6. Backend contract
@@ -112,7 +112,7 @@ device contention between wake-word and capture phases.
   "relationships": [ { "subject": "Anna Lee", "kind": "works_at", "object": "Acme" } ],
   "icp_pre_score": 65,
   "raw_text": "…transcript…",
-  "source": "conference_audio",
+  "source": "event_audio",
   "detected_at": "2026-06-20T17:00:00Z"
 }
 ```
@@ -137,7 +137,7 @@ Field names align with `packages/core/models/signal.py` via `Signal.CodingKeys`.
 
 ## 9. Known assumptions / follow-ups
 
-- `ConferenceListeningEngine.matchedName(from:)` reads
+- `EventListeningEngine.matchedName(from:)` reads
   `WakeWordDetection.keyword`. Confirm the property name against the installed
   SDK version; adjust if it's `phrase`/`label`.
 - `WatchlistProvider` is seeded with sample names — wire to Zero CRM contacts.
@@ -196,7 +196,7 @@ gating). Backend must be idempotent on `id` (UUID) and tolerant of partial data
   ],
   "icp_pre_score": 65,                 // 0–100, ADVISORY pre-score
   "raw_text": "…full transcript…",
-  "source": "conference_audio",
+  "source": "event_audio",
   "detected_at": "2026-06-20T17:00:30Z"
 }
 ```

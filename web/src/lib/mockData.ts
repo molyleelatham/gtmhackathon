@@ -75,7 +75,7 @@ export const LEADS: Lead[] = [
     company: "Ledgerly",
     band: "warm",
     score: 71,
-    insight: "Interested in conference intel sharing with her co-founder network.",
+    insight: "Interested in event intel sharing with her co-founder network.",
     topics: ["Fintech", "Community"],
     metAt: "9:50 AM · Pavilion booth",
   },
@@ -150,7 +150,7 @@ export const INTEGRATIONS: Integration[] = [
 export const COMMUNITY_GROUPS: CommunityGroup[] = [
   { id: "g1", name: "Founders Circle", members: 8, permission: "admin", sharedLeads: 12 },
   { id: "g2", name: "Core Team", members: 5, permission: "edit", sharedLeads: 6 },
-  { id: "g3", name: "Conference Friends", members: 14, permission: "read", sharedLeads: 3 },
+  { id: "g3", name: "Event Friends", members: 14, permission: "read", sharedLeads: 3 },
 ];
 
 export const ICP_PROFILE: { label: string; value: string }[] = [
@@ -167,7 +167,7 @@ export function bandFor(score: number): ICPBand {
   return "cold";
 }
 
-// ---- Attending tab: everyone at the conference, ranked by ICP -------------
+// ---- Attending tab: everyone at the event, ranked by ICP -------------
 
 export interface Attendee {
   id: string;
@@ -188,7 +188,7 @@ export const ATTENDEES: Attendee[] = [
   { id: "a4", name: "Marcus Webb", title: "Co-founder", company: "Northstar SaaS", industry: "B2B SaaS", icpScore: 86, interests: ["Founder-led sales", "Events"], signal: "Published a post on event ROI today." },
   { id: "a5", name: "Lena Fischer", title: "CRO", company: "Bright Funnel", industry: "MarTech", icpScore: 84, interests: ["Pipeline", "Forecasting", "RevOps"], signal: "Quoted on a SaaStr panel about pipeline gaps." },
   { id: "a6", name: "Diego Alvarez", title: "VP Marketing", company: "Cohorted", industry: "B2B SaaS", icpScore: 81, interests: ["Demand gen", "ABM", "Pipeline"], signal: "Running an ABM revamp this quarter." },
-  { id: "a7", name: "Priya Sharma", title: "Co-founder", company: "Ledgerly", industry: "Fintech", icpScore: 74, interests: ["Fintech", "Community"], signal: "Wants to share conference intel with her network." },
+  { id: "a7", name: "Priya Sharma", title: "Co-founder", company: "Ledgerly", industry: "Fintech", icpScore: 74, interests: ["Fintech", "Community"], signal: "Wants to share event intel with her network." },
   { id: "a8", name: "Elena Vasquez", title: "Head of Growth", company: "Cloudmint", industry: "B2B SaaS", icpScore: 69, interests: ["HubSpot", "Email automation", "Sales enablement"], signal: "HubSpot user — asked about auto-drafting follow-ups." },
   { id: "a9", name: "Tom Berger", title: "Founder", company: "Dataweave", industry: "Analytics", icpScore: 64, interests: ["Analytics"], signal: "Early-stage; open to an intro call." },
   { id: "a10", name: "Hannah Lee", title: "Sales Director", company: "Quotient", industry: "B2B SaaS", icpScore: 62, interests: ["Outbound", "Sequences"], signal: "Rebuilding outbound motion." },
@@ -239,22 +239,22 @@ export const MET_PEOPLE: MetPerson[] = [
     whatYouLearned: [
       "Just closed an $18M Series B, hiring 4 on GTM.",
       "Biggest pain is multi-touch pipeline attribution.",
-      "Wants a demo the week after the conference.",
+      "Wants a demo the week after the event.",
     ],
     mostInteresting: "They're consolidating 3 tools into one and have budget approved for Q3.",
     topics: ["pipeline", "attribution", "team scaling"],
     painPoints: ["Fragmented attribution across 3 tools", "Manual follow-up after events"],
     goals: ["Unify GTM stack by Q3", "Cut time-to-follow-up from days to hours"],
     conversationExcerpt:
-      "We're drowning in spreadsheets after every conference — I need something that just tells me who to email first.",
+      "We're drowning in spreadsheets after every event — I need something that just tells me who to email first.",
     conversationTranscript: `Sarah: Thanks for stopping by — we're scaling fast post-Series B.
 You: Congrats! What's the biggest GTM headache right now?
-Sarah: Honestly, attribution. We have three tools and none of them agree after a conference.
+Sarah: Honestly, attribution. We have three tools and none of them agree after a event.
 You: How do you prioritize who to follow up with?
 Sarah: Spreadsheets. Someone exports badges, someone else ranks in Notion — it's a mess.
 You: We built something that scores conversations in real time and drafts follow-ups.
 Sarah: That's exactly what I need. Can we do a demo the week after SaaStr?
-Sarah: We're drowning in spreadsheets after every conference — I need something that just tells me who to email first.`,
+Sarah: We're drowning in spreadsheets after every event — I need something that just tells me who to email first.`,
     metAt: "11:42 AM · Hall B",
   },
   {
@@ -275,10 +275,10 @@ Sarah: We're drowning in spreadsheets after every conference — I need somethin
     topics: ["enrichment", "data quality", "board prep"],
     painPoints: ["Stale CRM data", "No signal layer on top of calendar"],
     goals: ["Pick enrichment vendor by August"],
-    conversationExcerpt: "Our CRM is only as good as what we put in at conferences — and we put in nothing.",
+    conversationExcerpt: "Our CRM is only as good as what we put in at events — and we put in nothing.",
     conversationTranscript: `James: Good to meet — I'm James, founder at Stackframe.
 You: Alex — we help teams turn booth conversations into prioritized follow-ups.
-James: Our CRM is only as good as what we put in at conferences — and we put in nothing.
+James: Our CRM is only as good as what we put in at events — and we put in nothing.
 You: What does your enrichment stack look like today?
 James: Clearbit plus manual research. Board wants a decision by August.
 You: Happy to send a comparison doc — we're strong on signal from live conversations.
@@ -296,7 +296,7 @@ James: That'd help. I'm shortlisting vendors this month.`,
     genuineInterests: ["Biotech", "Founder communities", "South Asian startup ecosystem"],
     background: "Ex-Stripe. Runs a 200-person fintech founder Slack.",
     whatYouLearned: [
-      "Keen to share conference intelligence with her co-founder network.",
+      "Keen to share event intelligence with her co-founder network.",
       "Less interested in buying, more in community.",
     ],
     mostInteresting: "Could be a great community channel rather than a direct lead.",
@@ -340,9 +340,9 @@ function leadToConnection(lead: Lead): PreMeetConnection {
     predicted_warmth: lead.score,
     intent_score: Math.max(20, lead.score - 10),
     draft_subject: `Following up from SaaStr — ${lead.company}`,
-    draft_body: `Hi ${lead.name.split(" ")[0]},\n\nGreat chatting at the conference. ${lead.insight}\n\nWould love to continue the conversation.\n\nBest,\nAlex`,
+    draft_body: `Hi ${lead.name.split(" ")[0]},\n\nGreat chatting at the event. ${lead.insight}\n\nWould love to continue the conversation.\n\nBest,\nAlex`,
     status: "enriched",
-    source: "conference",
+    source: "event",
   };
 }
 
@@ -353,7 +353,7 @@ export const EVENTS: DetectedEvent[] = [
     id: "evt-saastr",
     user_id: "demo",
     name: "SaaStr Annual",
-    event_type: "conference",
+    event_type: "event",
     location: "San Francisco, CA",
     start_date: "2026-06-19",
     end_date: "2026-06-21",
@@ -366,7 +366,7 @@ export const EVENTS: DetectedEvent[] = [
     id: "evt-pavilion",
     user_id: "demo",
     name: "Pavilion CRO Summit",
-    event_type: "conference",
+    event_type: "event",
     location: "Austin, TX",
     start_date: "2026-07-12",
     end_date: "2026-07-13",

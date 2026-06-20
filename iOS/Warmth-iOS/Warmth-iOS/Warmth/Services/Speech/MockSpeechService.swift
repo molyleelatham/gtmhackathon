@@ -11,7 +11,6 @@ final class MockSpeechService: SpeechServicing {
     var permissionError: String?
     var permissionsDenied = false
     var hasMicrophoneAccess = true
-    var onWakeWordDetected: (() -> Void)?
 
     private var ticker: Task<Void, Never>?
 
@@ -24,11 +23,9 @@ final class MockSpeechService: SpeechServicing {
 
     func requestPermissions() async -> Bool { true }
 
-    func startListening() async { phase = .listening; animate() }
-
     func startRecording() async {
         phase = .recording
-        transcript = "Hey, it's nice to meet you — I'm Maya, I lead RevOps at NorthWind Labs."
+        transcript = "Hey, I'm Maya, I lead RevOps at NorthWind Labs."
         animate()
     }
 
@@ -52,6 +49,6 @@ final class MockSpeechService: SpeechServicing {
     }
 
     static var recordingPreview: MockSpeechService {
-        MockSpeechService(phase: .recording, transcript: "Hey, it's nice to meet you — I'm Maya from NorthWind Labs, we work on attribution and RevOps.")
+        MockSpeechService(phase: .recording, transcript: "Hey, I'm Maya from NorthWind Labs, we work on attribution and RevOps.")
     }
 }

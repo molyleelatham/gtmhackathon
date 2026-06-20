@@ -100,7 +100,7 @@ def build_roster_graph(
     connections: list[PreMeetConnection],
     knowledge_by_connection: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
-    """Conference roster graph — every person linked to ALL their interests; peer edges on overlap."""
+    """Event roster graph — every person linked to ALL their interests; peer edges on overlap."""
     people: list[dict[str, Any]] = []
     interest_nodes: dict[str, dict[str, Any]] = {}
     edges: list[dict[str, Any]] = []

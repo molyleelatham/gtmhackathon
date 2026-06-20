@@ -73,7 +73,7 @@ async def tavily_enrich(tavily: TavilyClient, att: dict[str, Any]) -> dict[str, 
     queries = [
         f'"{name}" site:linkedin.com/in',
         f'"{name}" {email.split("@")[0]} GTM hackathon London',
-        f'"{name}" Google GTM conference intelligence',
+        f'"{name}" Google GTM event intelligence',
     ]
 
     linkedin: Optional[str] = None
@@ -89,7 +89,7 @@ async def tavily_enrich(tavily: TavilyClient, att: dict[str, Any]) -> dict[str, 
                 text = f"{row.get('title', '')} {row.get('content', '')}".strip()
                 if text and text not in snippets:
                     snippets.append(text[:280])
-                for kw in ("gtm", "revops", "saas", "conference", "crm", "ai"):
+                for kw in ("gtm", "revops", "saas", "event", "crm", "ai"):
                     if kw in text.lower() and kw not in interests:
                         interests.append(kw)
         except Exception as exc:
@@ -158,7 +158,7 @@ async def run() -> dict[str, Any]:
         user_id="demo-user",
         calendar_event_id=cal_ev.external_id,
         name=cal_ev.title,
-        event_type=EventType.CONFERENCE,
+        event_type=EventType.EVENT,
         location=cal_ev.location,
         start_date=cal_ev.start_time,
         end_date=cal_ev.end_time,
@@ -176,7 +176,7 @@ async def run() -> dict[str, Any]:
     sync_result = await contact_sync.process_batch(
         attendees=enriched,
         event_id=event.id,
-        conference_name=event.name,
+        event_name=event.name,
     )
     synced_connections = sync_result["connections"]
     hubspot_result = sync_result.get("hubspot", {})

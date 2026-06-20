@@ -21,6 +21,9 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
 
 # Virtual environments
 venv/
@@ -28,10 +31,11 @@ env/
 ENV/
 .venv
 
-# Environment variables
+# Environment variables (keep *.example templates)
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.*.example
 
 # IDE
 .vscode/
@@ -49,11 +53,16 @@ Thumbs.db
 .coverage
 htmlcov/
 *.cover
+coverage.xml
 
 # Firebase
 firebase-*.json
 service-account-key.json
 infra/secrets/
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
 
 # GCP
 gcp-credentials.json
@@ -68,10 +77,25 @@ google-gmail-oauth.json
 *.mp3
 *.m4a
 
-# Temporary files
+# Temporary / runtime artifacts
 tmp/
 temp/
 *.tmp
+drafts/
+
+# Local ML model weights (HF_MODEL_PATH=models/icp-classifier-v1)
+/models/
+
+# Local CRM / MCP config (PII or OAuth client ids)
+scripts/hubspot_contacts.json
+.mcp.json
+
+# Node
+node_modules/
+web/dist/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
 
 # Xcode (user-specific state; generated project keeps shared data only)
 *.xcuserstate
@@ -79,3 +103,10 @@ xcuserdata/
 *.xcscmblueprint
 *.xccheckout
 DerivedData/
+.derivedData/
+.swiftpm/xcode/
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# GoogleService-Info.plist is intentionally committed for iOS setup (see iOS/Warmth-iOS/README.md)

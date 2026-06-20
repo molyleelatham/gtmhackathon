@@ -3,7 +3,7 @@ import SwiftUI
 /// Root view: shows the passive-listening state, the live capture transcript,
 /// and the most recent qualified lead.
 struct ListeningView: View {
-    @EnvironmentObject private var engine: ConferenceListeningEngine
+    @EnvironmentObject private var engine: EventListeningEngine
 
     var body: some View {
         VStack(spacing: 24) {
