@@ -8,7 +8,7 @@
 ## System Overview
 
 Warmth now consists of two main components:
-1. **Native iOS/watchOS App** - Mobile recording with manual start/stop controls
+1. **Native iOS/watchOS App** - Mobile recording with phrase trigger, manual controls, Apple Watch, and Siri shortcuts
 2. **Python Backend** - Server-side processing, CRM integration, and intelligence analysis
 
 ---
@@ -22,10 +22,12 @@ Warmth now consists of two main components:
 │  ┌──────────────────────┐    ┌──────────────────────┐             │
 │  │   iPhone App         │    │   Apple Watch        │             │
 │  │                      │◄──►│                      │             │
-│  │ - Manual Recording    │    │ - Widget Complications│             │
-│  │ - Audio Recording     │    │ - Remote Control      │             │
-│  │ - Real-time UI        │    │ - Status Display      │             │
-│  │ - Local Storage       │    │ - WatchConnectivity   │             │
+│  │ - Phrase Trigger      │    │ - Widget Complications│             │
+│  │ - Manual Recording    │    │ - Remote Control      │             │
+│  │ - Audio Recording     │    │ - Status Display      │             │
+│  │ - Real-time UI        │    │ - WatchConnectivity   │             │
+│  │ - Local Storage       │    │ - Quick Actions       │             │
+│  │ - Siri Shortcuts      │    │                       │             │
 │  └──────────────────────┘    └──────────────────────┘             │
 │              │                                                   │
 │              │ REST API + WebSocket                               │

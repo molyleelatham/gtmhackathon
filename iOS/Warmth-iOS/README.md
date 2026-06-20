@@ -6,6 +6,7 @@ Native iOS/watchOS personal CRM recording app with phrase-triggered recording, m
 
 - **Phrase Trigger**: Say **"Hi, I'm Zack"** or **"I'm Zack"** while the app is in the foreground to start recording (Apple Speech framework, on-device)
 - **Manual Recording**: Tap on iPhone or use Apple Watch controls to start and stop recording
+- **Siri Shortcuts**: Optional voice shortcuts for hands-free start/stop
 - **Background Recording**: Continuous recording with proper AVAudioSession management
 - **Apple Watch Control**: WidgetKit complications for remote recording control
 - **WatchConnectivity**: Seamless iPhone-Watch communication

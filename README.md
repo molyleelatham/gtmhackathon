@@ -6,14 +6,14 @@
 ## Overview
 
 Warmth is an integrated conference intelligence platform combining:
-- **Native iOS/watchOS App** - Mobile recording with phrase trigger ("Hi, I'm Zack") and manual start/stop controls
+- **Native iOS/watchOS App** - Mobile recording with phrase trigger ("Hi, I'm Zack"), manual controls, Apple Watch, and Siri shortcuts
 - **Python Backend** - Server-side processing, CRM integration, and AI analysis
 
-When you attend conferences, start recording from the iPhone app or Apple Watch; the backend processes transcriptions, extracts intelligence, and manages CRM integrations.
+When you attend conferences, start recording from the iPhone app (phrase or manual), Apple Watch, or Siri; the backend processes transcriptions, extracts intelligence, and manages CRM integrations.
 
 ## Key Features
 
-- **🎤 Phrase + Manual Recording**: Say **"Hi, I'm Zack"** on iPhone (foreground) or tap / use Apple Watch to start and stop recording
+- **🎤 Phrase + Manual Recording**: Say **"Hi, I'm Zack"** on iPhone (foreground), or use manual controls, Apple Watch complications, and Siri shortcuts
 - **👥 Lead Classification**: Automatically route leads to me/team/founders/community
 - **📋 Directory Scraping**: Scrape conference directories for attendees by interests
 - **🤝 First Connections**: Auto-enrich and draft emails via Google MCP
