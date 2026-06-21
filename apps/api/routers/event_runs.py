@@ -20,10 +20,10 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Optional, Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, BackgroundTasks
-from pydantic import BaseModel, Field, AliasChoices
+from pydantic import AliasChoices, BaseModel, Field
 
 from ....packages.core.errors import client_safe_message
 from ....packages.core.url_safety import UnsafeUrlError, validate_scrape_url
@@ -85,12 +85,12 @@ class EventRunResponse(BaseModel):
 
 def _build_pipeline(req: EventRunRequest) -> EventPipeline:
     """Instantiate a EventPipeline wiring only available integrations."""
-    from ....packages.integrations.tavily.client import TavilyClient
-    from ....packages.integrations.unify_gtm.client import UnifyGTMClient
-    from ....packages.integrations.google_mcp.client import GoogleMCPClient
     from ....packages.integrations.google_calendar.client import GoogleCalendarClient
+    from ....packages.integrations.google_mcp.client import GoogleMCPClient
     from ....packages.integrations.hubspot.client import HubSpotClient
     from ....packages.integrations.lightfern.workflow import LightfernClient
+    from ....packages.integrations.tavily.client import TavilyClient
+    from ....packages.integrations.unify_gtm.client import UnifyGTMClient
     from ....packages.integrations.zero_crm.client import ZeroCRMClient
 
     tavily = None

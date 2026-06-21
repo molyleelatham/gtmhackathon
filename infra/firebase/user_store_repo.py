@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 
 from google.cloud import firestore as gc_firestore
 
@@ -17,12 +17,47 @@ if TYPE_CHECKING:
 
 COMMUNITY_DOC = "config/community_members"
 MEET_DOC_ID = "latest"
+_BATCH_LIMIT = 450
 
 
 def _dump(model: Any) -> dict[str, Any]:
     if hasattr(model, "model_dump"):
         return model.model_dump(mode="json")
     return dict(model)
+
+
+class _BatchWriter:
+    """Accumulates Firestore batch writes and commits before the 500-op limit."""
+
+    def __init__(self, db: gc_firestore.Client) -> None:
+        self._db = db
+        self._batch = db.batch()
+        self._ops = 0
+        self.commit_count = 0
+
+    def set(self, ref: gc_firestore.DocumentReference, data: dict[str, Any], *, merge: bool = False) -> None:
+        if merge:
+            self._batch.set(ref, data, merge=True)
+        else:
+            self._batch.set(ref, data)
+        self._flush_if_needed()
+
+    def delete(self, ref: gc_firestore.DocumentReference) -> None:
+        self._batch.delete(ref)
+        self._flush_if_needed()
+
+    def _flush_if_needed(self) -> None:
+        self._ops += 1
+        if self._ops >= _BATCH_LIMIT:
+            self.commit()
+
+    def commit(self) -> None:
+        if self._ops == 0:
+            return
+        self._batch.commit()
+        self.commit_count += 1
+        self._batch = self._db.batch()
+        self._ops = 0
 
 
 class UserStoreRepository:
@@ -138,15 +173,15 @@ class UserStoreRepository:
 
     def persist_snapshot(self, uid: str, store: "DemoStore") -> None:
         """Write the full in-memory user slice (used after GTM roster refresh)."""
-        batch = self.db.batch()
+        writer = _BatchWriter(self.db)
         user_ref = self._user(uid)
 
         existing_events = {d.id for d in user_ref.collection("events").stream()}
         for event in store.list_events(uid):
-            batch.set(user_ref.collection("events").document(event.id), _dump(event))
+            writer.set(user_ref.collection("events").document(event.id), _dump(event))
             existing_events.discard(event.id)
         for event_id in existing_events:
-            batch.delete(user_ref.collection("events").document(event_id))
+            writer.delete(user_ref.collection("events").document(event_id))
 
         existing_conns = {d.id for d in user_ref.collection("connections").stream()}
         for conn in store.list_connections(uid):
@@ -154,11 +189,14 @@ class UserStoreRepository:
             warmth = store.warmth_for_connection(conn.id)
             if warmth is not None:
                 payload["_warmth"] = _dump(warmth)
-            batch.set(user_ref.collection("connections").document(conn.id), payload)
+            writer.set(user_ref.collection("connections").document(conn.id), payload)
             existing_conns.discard(conn.id)
-            meet = store.meet_result_for(conn.id)
+            meet = dict(store.meet_result_for(conn.id) or {})
+            kg = store.knowledge_graph_for(conn.id) if hasattr(store, "knowledge_graph_for") else None
+            if kg and not meet.get("knowledge_graph"):
+                meet["knowledge_graph"] = kg.get("people") or []
             if meet:
-                batch.set(
+                writer.set(
                     user_ref.collection("connections")
                     .document(conn.id)
                     .collection("meet")
@@ -166,10 +204,27 @@ class UserStoreRepository:
                     meet,
                 )
         for conn_id in existing_conns:
-            batch.delete(user_ref.collection("connections").document(conn_id))
+            writer.delete(user_ref.collection("connections").document(conn_id))
+
+        existing_leads = {d.id for d in user_ref.collection("leads").stream()}
+        for lead in store.list_leads():
+            writer.set(user_ref.collection("leads").document(lead.id), _dump(lead))
+            existing_leads.discard(lead.id)
+        for lead_id in existing_leads:
+            writer.delete(user_ref.collection("leads").document(lead_id))
+
+        existing_signals = {d.id for d in user_ref.collection("signal_index").stream()}
+        for signal_id, connection_id in store.signal_index.items():
+            writer.set(
+                user_ref.collection("signal_index").document(signal_id),
+                {"connection_id": connection_id},
+            )
+            existing_signals.discard(signal_id)
+        for signal_id in existing_signals:
+            writer.delete(user_ref.collection("signal_index").document(signal_id))
 
         if store.gtm_sync_results:
-            batch.set(
+            writer.set(
                 user_ref.collection("meta").document("dashboard"),
                 {
                     "gtm_sync_results": store.gtm_sync_results,
@@ -178,7 +233,7 @@ class UserStoreRepository:
                 merge=True,
             )
 
-        batch.commit()
+        writer.commit()
         if store.community_members:
             self.save_community_members(store.community_members)
 

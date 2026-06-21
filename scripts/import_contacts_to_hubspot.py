@@ -27,6 +27,8 @@ if _REPO_ROOT not in sys.path:
     sys.path.insert(0, _REPO_ROOT)
 from warmth.packages.integrations.hubspot.schema import (  # noqa: E402
     CSV_COLUMN_MAP as ENRICHMENT_MAP,
+)
+from warmth.packages.integrations.hubspot.schema import (
     CUSTOM_PROPERTIES,
     PROPERTY_GROUP,
     PROPERTY_GROUP_LABEL,

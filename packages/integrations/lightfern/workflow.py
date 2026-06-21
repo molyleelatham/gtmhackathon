@@ -1,12 +1,13 @@
-import httpx
 import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any, Optional
 from urllib.parse import urlencode
-from ...core.models.lead import Lead
 
+import httpx
+
+from ...core.models.lead import Lead
 
 _CONTEXT_MARKER = "--- CONTEXT FOR LIGHTFERN (remove before sending) ---"
 
@@ -65,7 +66,7 @@ class LightfernClient:
     ):
         self.webhook_url = webhook_url or os.getenv("LIGHTFERN_WEBHOOK_URL")
         self.drafts_dir = Path(drafts_dir or os.getenv("WARMTH_DRAFTS_DIR", "drafts"))
-    
+
     async def trigger_workflow(
         self,
         lead: Lead,
@@ -73,18 +74,18 @@ class LightfernClient:
     ) -> dict[str, Any]:
         """
         Trigger a Lightfern GTM workflow for a lead
-        
+
         Args:
             lead: Lead to trigger workflow for
             workflow_type: Type of workflow to trigger
-        
+
         Returns:
             Workflow trigger response
         """
         if not self.webhook_url:
             print("Lightfern webhook URL not configured, skipping workflow trigger")
             return {"status": "skipped", "reason": "no_webhook_url"}
-        
+
         payload = {
             "workflow_type": workflow_type,
             "lead": {
@@ -109,7 +110,7 @@ class LightfernClient:
                 for signal in lead.signals
             ]
         }
-        
+
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
@@ -124,7 +125,7 @@ class LightfernClient:
                 "status": "error",
                 "reason": str(e)
             }
-    
+
     async def personalize_outreach(
         self,
         recipient: dict[str, Any],
@@ -330,23 +331,23 @@ class LightfernClient:
     ) -> dict[str, Any]:
         """
         Trigger enrichment workflow in Lightfern
-        
+
         Args:
             lead_id: Internal lead ID
             enrichment_data: Enrichment data to process
-        
+
         Returns:
             Workflow trigger response
         """
         if not self.webhook_url:
             return {"status": "skipped", "reason": "no_webhook_url"}
-        
+
         payload = {
             "workflow_type": "enrichment",
             "lead_id": lead_id,
             "enrichment_data": enrichment_data
         }
-        
+
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(

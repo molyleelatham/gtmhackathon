@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -35,8 +34,8 @@ from infra.firebase.admin import ensure_firebase_initialized  # noqa: E402
 from infra.firebase.user_store_repo import UserStoreRepository  # noqa: E402
 from packages.core.models.event import DetectedEvent, EventType, LifecycleStage  # noqa: E402
 from packages.core.models.pre_connection import PreMeetConnection, PreMeetStatus  # noqa: E402
-from packages.core.models.warmth import WarmthScore, WarmthBand  # noqa: E402
 from packages.core.models.user_profile import UserProfile  # noqa: E402
+from packages.core.models.warmth import WarmthBand, WarmthScore  # noqa: E402
 
 OWNER_DEMO_EMAIL = "dzakwan1844@gmail.com"
 GTM_EVENT_ID = "event_gtm_hackathon_london"

@@ -4,9 +4,9 @@ from typing import Any
 from fastapi import APIRouter, Request, Response
 from pydantic import ValidationError
 
-from ...lifecycle.signal_ingest import ingest_captured_signal, ingest_ios_signal
 from ....packages.core.schemas.captured_signal import CapturedSignalPayload
 from ....packages.core.schemas.event_audio_signal import EventAudioSignal
+from ...lifecycle.signal_ingest import ingest_captured_signal, ingest_ios_signal
 
 router = APIRouter(tags=["signals"])
 

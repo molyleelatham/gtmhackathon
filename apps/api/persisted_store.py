@@ -13,7 +13,6 @@ from ...packages.core.models.event import DetectedEvent
 from ...packages.core.models.lead import Lead
 from ...packages.core.models.pre_connection import PreMeetConnection
 from ...packages.core.models.warmth import WarmthScore
-
 from .store import DemoStore
 
 logger = logging.getLogger(__name__)

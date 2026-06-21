@@ -171,6 +171,52 @@ final class AppModelTests: XCTestCase {
         model.applyLaunchTabIfNeeded()
         XCTAssertEqual(model.selectedTab, .home)
     }
+
+    func testRefreshHomeLoadsDashboardAndRoster() async {
+        await model.refreshHome()
+        XCTAssertNotNil(model.dashboard)
+        XCTAssertNotNil(model.roster)
+        XCTAssertFalse(model.communityMembers.isEmpty)
+        XCTAssertNil(model.homeError)
+    }
+
+    func testRefreshHomeRecordsErrorFromCRMClient() async {
+        let failing = FailingCRMClient()
+        let localModel = AppModel(
+            auth: auth,
+            speech: speech,
+            signalClient: signalClient,
+            crmClient: failing,
+            socialGraph: MockSocialGraph(),
+            sessionLog: sessionLog,
+            settings: settings
+        )
+        await localModel.refreshHome()
+        XCTAssertNotNil(localModel.homeError)
+    }
+
+    func testRefreshICPProfileLoadsRows() async {
+        await model.refreshICPProfile()
+        XCTAssertFalse(model.icpProfile.isEmpty)
+    }
+}
+
+@MainActor
+private final class FailingCRMClient: CRMProviding {
+    var baseURL: URL = URL(string: "http://localhost:8000")!
+    var connections: [CRMConnection] = []
+    var fetchState: CRMFetchState = .idle
+
+    func updateBaseURL(_ url: URL) { baseURL = url }
+    func refreshConnections() async { fetchState = .failed("offline") }
+    func connectionDetail(id: String) async throws -> CRMConnectionDetail { throw CRMClientError.httpStatus(500) }
+    func fetchDashboard() async throws -> CRMDashboardSummary { throw CRMClientError.httpStatus(500) }
+    func fetchRoster() async throws -> CRMRoster { throw CRMClientError.httpStatus(500) }
+    func fetchCommunityMembers() async throws -> [CRMCommunityMember] { throw CRMClientError.httpStatus(500) }
+    func fetchEvents() async throws -> [CRMDetectedEvent] { throw CRMClientError.httpStatus(500) }
+    func fetchICPProfile() async throws -> [CRMICPRow] { throw CRMClientError.httpStatus(500) }
+    func sendFollowup(connectionId: String) async throws -> CRMFollowUpDraft { throw CRMClientError.httpStatus(500) }
+    func bootstrapUserProfileIfNeeded() async throws {}
 }
 
 private struct EmptySocialGraph: SocialGraphProcessing {

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, status
 
+from ...lifecycle.user_bootstrap import UserBootstrapService
 from ..deps import get_firestore_client
 from ..user_context import get_user_id
-from ...lifecycle.user_bootstrap import UserBootstrapService
 
 router = APIRouter(prefix="/api/v1/users", tags=["users"])
 

@@ -7,8 +7,8 @@ Warmth lifecycle on (e.g. the demo tech event).
 from datetime import datetime, timedelta
 from typing import Optional
 
-from ...packages.integrations.google_calendar.client import GoogleCalendarClient
 from ...packages.core.models.event import CalendarEvent, DetectedEvent
+from ...packages.integrations.google_calendar.client import GoogleCalendarClient
 
 
 class OnboardingService:

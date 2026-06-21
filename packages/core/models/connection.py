@@ -1,7 +1,8 @@
 from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class ConnectionStatus(str, Enum):
@@ -31,7 +32,7 @@ class FirstConnection(BaseModel):
     responded_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
     class Config:
         json_encoders = {
             datetime: lambda v: v.isoformat()

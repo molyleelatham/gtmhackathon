@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-
 from warmth.apps.api.main import app
 
 

@@ -64,6 +64,17 @@
                ReferencedContainer = "container:Warmth.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "4EA2FF15A325635CB2628FEF"
+               BuildableName = "WarmthUITests.xctest"
+               BlueprintName = "WarmthUITests"
+               ReferencedContainer = "container:Warmth.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>

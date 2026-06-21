@@ -41,6 +41,7 @@ struct RecordOrb: View {
         .onAppear { breathing = true }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
+        .accessibilityIdentifier("capture_record_orb")
         .accessibilityAddTraits(.isButton)
     }
 

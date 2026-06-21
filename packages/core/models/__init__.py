@@ -1,12 +1,8 @@
-from .signal import Signal, SignalType
-from .lead import Lead
-from .icp import ICPConfig
-from .enrichment import EnrichedLead
-from .conversation import ConversationIntelligence
-from .connection import FirstConnection, ConnectionStatus
-from .event_directory import EventDirectory, EventAttendee
+from .agent import AgentStatus, AgentType, AutoAgent
 from .community import CommunityGroup, CommunityShare, PermissionLevel
-from .agent import AutoAgent, AgentStatus, AgentType
+from .connection import ConnectionStatus, FirstConnection
+from .conversation import ConversationIntelligence
+from .enrichment import EnrichedLead
 from .event import (
     CalendarEvent,
     DetectedEvent,
@@ -14,15 +10,19 @@ from .event import (
     EventType,
     LifecycleStage,
 )
-from .warmth import WarmthScore, WarmthBand
+from .event_directory import EventAttendee, EventDirectory
+from .icp import ICPConfig
+from .lead import Lead
 from .meeting_signal import MeetingSignal, TopicTime
-from .pre_connection import PreMeetConnection, PreMeetStatus
 from .person import (
     PainPoint,
     PersonalContext,
-    PersonNode,
     PersonKnowledgeGraph,
+    PersonNode,
 )
+from .pre_connection import PreMeetConnection, PreMeetStatus
+from .signal import Signal, SignalType
+from .warmth import WarmthBand, WarmthScore
 
 __all__ = [
     "Signal",
@@ -35,6 +35,7 @@ __all__ = [
     "ConnectionStatus",
     "Event",
     "EventAttendee",
+    "EventDirectory",
     "CommunityGroup",
     "CommunityShare",
     "PermissionLevel",

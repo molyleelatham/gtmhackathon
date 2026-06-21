@@ -46,7 +46,35 @@ DEFAULT_SKIP = {
     "COMPANY_STAGE",
     "HF_MODEL_PATH",
     "GCP_PROJECT_ID",
+    "REQUIRE_FIREBASE_AUTH",
+    "USE_FIRESTORE_STORE",
+    "WEB_ALLOWED_ORIGINS",
+    "DISABLE_OPENAPI",
+    "DISABLE_SECRET_MANAGER",
+    "SIGNAL_RATE_LIMIT_ENABLED",
+    "SIGNAL_RATE_LIMIT_IP_PER_MINUTE",
+    "SIGNAL_RATE_LIMIT_TOKEN_PER_MINUTE",
+    "SEED_DEMO_DATA",
+    "FIREBASE_PROJECT_ID",
 }
+
+
+def _reject_invalid_service_account_value(key: str, value: str) -> bool:
+    """Return True if value should be skipped when pushing to Secret Manager."""
+    if key != "FIREBASE_SERVICE_ACCOUNT_KEY":
+        return False
+    trimmed = value.strip()
+    if trimmed.startswith("{"):
+        return False
+    if trimmed.endswith(".json") or "/" in trimmed:
+        if not os.path.exists(trimmed):
+            print(
+                f"  skip {key}: local file path not found ({trimmed[:60]}) — "
+                "push the JSON body instead",
+                file=sys.stderr,
+            )
+            return True
+    return False
 
 
 def parse_env_file(path: str) -> dict[str, str]:
@@ -73,6 +101,9 @@ def cmd_push(args: argparse.Namespace) -> int:
     pushed, skipped = [], []
     for key, value in values.items():
         if key in skip or not value:
+            skipped.append(key)
+            continue
+        if _reject_invalid_service_account_value(key, value):
             skipped.append(key)
             continue
         if args.dry_run:

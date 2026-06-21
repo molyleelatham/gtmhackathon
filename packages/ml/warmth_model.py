@@ -1,9 +1,10 @@
 from typing import Optional
+
 from pydantic import BaseModel, Field
 
-from ..core.models.warmth import WarmthScore, WarmthBand
 from ..core.models.meeting_signal import MeetingSignal
 from ..core.models.pre_connection import PreMeetConnection
+from ..core.models.warmth import WarmthBand, WarmthScore
 
 
 class WarmthFeatures(BaseModel):

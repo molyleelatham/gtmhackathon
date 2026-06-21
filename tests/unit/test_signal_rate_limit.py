@@ -6,7 +6,6 @@ from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
-
 from warmth.apps.api.middleware.signal_rate_limit import (
     SignalRateLimitMiddleware,
     SlidingWindowRateLimiter,

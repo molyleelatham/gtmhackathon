@@ -103,6 +103,7 @@ struct SignInStepView: View {
                     errorMessage = message ?? "Something went wrong signing in. Try again."
                 }
             )
+            .accessibilityIdentifier("onboarding_google_sign_in")
         }
         .animation(WarmthMotion.gentle, value: errorMessage)
         .onChange(of: model.authState.isSignedIn) { _, isSignedIn in

@@ -9,15 +9,14 @@ import re
 from datetime import datetime
 from typing import Optional
 
-from .topic_extractor import TopicExtractor
-from .interest_analyzer import InterestAnalyzer
 from ....packages.core.models.person import (
-    PersonalContext,
-    PersonNode,
-    PersonKnowledgeGraph,
     PainPoint,
+    PersonalContext,
+    PersonKnowledgeGraph,
+    PersonNode,
 )
-
+from .interest_analyzer import InterestAnalyzer
+from .topic_extractor import TopicExtractor
 
 # Lexical cues for communication style. Kept simple/heuristic for the hackathon;
 # swap for an LLM classifier behind the same interface later.

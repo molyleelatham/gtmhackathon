@@ -153,15 +153,40 @@ uv run python scripts/test_tavily_pipeline.py
 
 ## Deployment
 
-Warmth is designed for deployment on Google Cloud Platform:
+Warmth deploys to Google Cloud Platform and Firebase via Makefile targets (no Terraform module in this repo):
+
+| Target | What it deploys |
+|--------|-----------------|
+| `make deploy-api` | FastAPI → Cloud Run (`warmth-api`) |
+| `make deploy-web` | Web build → Firebase Hosting + Firestore rules |
+| `make deploy-rules` | Firestore security rules only |
+| `make secrets-push` / `pull` / `list` | Google Secret Manager sync |
+| `make smoke-docker` | Local Docker build + `/health` check |
+
+Infrastructure components:
 
 - **API**: GCP Cloud Run
-- **Workers**: GCP Cloud Functions
-- **Database**: Firebase Firestore
-- **Messaging**: GCP Pub/Sub
-- **Scheduling**: GCP Cloud Scheduler
+- **Web**: Firebase Hosting
+- **Database**: Firebase Firestore (Admin SDK only; client rules deny all)
+- **Demo video**: GCS bucket `warmth-gtm-hackathon-landing` (separate from Firebase Storage)
+- **Messaging / scheduling**: GCP Pub/Sub, Cloud Scheduler (optional)
 
-See `infra/terraform/` for infrastructure-as-code deployment configurations.
+### Cloud Run IAM
+
+The Cloud Run service account needs:
+
+- `roles/secretmanager.secretAccessor` — startup secret loading via `API_SECRET_ALLOWLIST` in [`packages/core/secrets.py`](packages/core/secrets.py)
+- Firebase Admin / Firestore access (default compute SA often sufficient with ADC)
+
+Ensure `FIREBASE_SERVICE_ACCOUNT_KEY` in Secret Manager is the **JSON body** of the
+service account, not a local file path.
+
+### Firebase Storage rules
+
+Firebase Storage is not enabled by default on the project. Enable it in the
+[Firebase console](https://console.firebase.google.com/project/warmth-gtm-hackathon/storage)
+before deploying `storage.rules`. Until then, `make deploy-web` deploys hosting
+and Firestore rules only.
 
 ### Deploy API to Cloud Run
 

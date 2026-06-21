@@ -42,7 +42,7 @@ class IOSRelationship(BaseModel):
 
 
 class EventAudioSignal(BaseModel):
-    """Payload from iOS SignalAPIClient (POST /api/signals)."""
+    """Payload from iOS SignalClient (POST /api/signals)."""
     id: UUID
     person: IOSPersonNode
     company: Optional[IOSCompanyMention] = None
@@ -51,6 +51,7 @@ class EventAudioSignal(BaseModel):
     raw_text: str
     source: str = "event_audio"
     detected_at: datetime = Field(default_factory=datetime.utcnow)
+    user_uid: Optional[str] = Field(default=None, alias="user_uid")
 
     @field_validator("source", mode="before")
     @classmethod

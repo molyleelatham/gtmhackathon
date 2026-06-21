@@ -26,25 +26,29 @@ Start the backend separately so the dashboard has data:
 
 ```bash
 # from repo root
-uv run uvicorn apps.api.main:app --reload --port 8000
+make run-api
 ```
 
-The backend ships with an in-memory demo store (`apps/api/store.py`) seeded with
-a sample event and connections, so the dashboard renders without Firebase or
-external API keys.
+Production builds require `web/.env.production` (copy from `.env.production.example`).
 
 ## Pages
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Dashboard — stats, upcoming events, top leads |
-| `/events` | Detected events |
-| `/events/:id` | Before-meet pipeline + ranked leads |
-| `/connections` | All connections by warmth |
-| `/connections/:id` | Detail, scores, routing + follow-up actions |
+| `/` | Landing page |
+| `/signin` | Google sign-in |
+| `/app` | Dashboard — stats, upcoming events, top leads (auth required) |
+| `/app/events` | Detected events |
+| `/app/connections` | All connections by warmth |
+| `/app/connections/:id` | Detail, scores, routing + follow-up actions |
 
-## Build
+## Build & quality
 
 ```bash
-npm run build      # outputs to dist/ (deployable to Firebase Hosting, Vercel, etc.)
+npm run lint       # ESLint
+npm run typecheck  # TypeScript (src/)
+npm run build      # Production bundle → dist/
+npm run test       # Vitest
 ```
+
+Deploy via `make deploy-web` from the repo root.

@@ -1,12 +1,12 @@
-from .signal_schema import SignalCreate, SignalResponse
 from .lead_schema import LeadCreate, LeadResponse
+from .signal_schema import SignalCreate, SignalResponse
+from .transcript_schema import SpeakerContext, TranscriptEvent
 from .zero_crm_schema import ZeroCRMPayload
-from .transcript_schema import TranscriptEvent, SpeakerContext
 
 __all__ = [
     "SignalCreate",
     "SignalResponse",
-    "LeadCreate", 
+    "LeadCreate",
     "LeadResponse",
     "ZeroCRMPayload",
     "TranscriptEvent",

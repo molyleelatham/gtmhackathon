@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
+
 from pydantic import BaseModel, Field
-from .models.signal import Signal
 
 
 class DomainEvent(BaseModel):

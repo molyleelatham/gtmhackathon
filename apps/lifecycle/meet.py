@@ -9,14 +9,14 @@ ML pipeline, and routed:
 """
 from typing import Optional
 
+from ...packages.core.models.lead import Lead
 from ...packages.core.models.meeting_signal import MeetingSignal
 from ...packages.core.models.warmth import WarmthScore
-from ...packages.core.models.lead import Lead
-from ...packages.ml.pipeline import MeetIntelligencePipeline, RoutingDecision, RoutingTarget
+from ...packages.integrations.faxxing.client import FaxxingClient
+from ...packages.integrations.lightfern.workflow import LightfernClient
 from ...packages.integrations.zero_crm.client import ZeroCRMClient
 from ...packages.integrations.zero_crm.mapper import ZeroCRMMapper
-from ...packages.integrations.lightfern.workflow import LightfernClient
-from ...packages.integrations.faxxing.client import FaxxingClient
+from ...packages.ml.pipeline import MeetIntelligencePipeline, RoutingDecision, RoutingTarget
 from .community_matcher import CommunityMatcher
 
 

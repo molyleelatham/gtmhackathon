@@ -14,7 +14,6 @@ import tempfile
 from pathlib import Path
 from typing import Any, Optional
 
-
 # Prompt template lives in the agent directory; fall back to an inline copy so
 # the extractor still works if the file is missing.
 _TEMPLATE_PATH = (

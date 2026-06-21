@@ -14,7 +14,6 @@ import httpx
 
 from ...core.models.person import PersonNode
 
-
 # How a communication style should shape the copy.
 _STYLE_PLAYBOOK: dict[str, dict[str, str]] = {
     "analytical": {"tone": "precise, evidence-led", "hook": "a concrete metric / benchmark"},

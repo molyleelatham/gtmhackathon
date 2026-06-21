@@ -21,17 +21,16 @@ This module is intentionally a thin orchestrator over stubbed integrations.
 from datetime import datetime
 from typing import Optional
 
-from ...packages.core.url_safety import UnsafeUrlError, validate_scrape_url
-
 from ...packages.core.models.event import DetectedEvent
-from ...packages.core.models.pre_connection import PreMeetConnection, PreMeetStatus
 from ...packages.core.models.icp import ICPConfig
-from ...packages.ml.lead_scorer import LeadScorer
-from ...packages.ml.warmth_model import WarmthModel
-from ...packages.integrations.unify_gtm.client import UnifyGTMClient
-from ...packages.integrations.zero_crm.client import ZeroCRMClient
+from ...packages.core.models.pre_connection import PreMeetConnection, PreMeetStatus
+from ...packages.core.url_safety import UnsafeUrlError, validate_scrape_url
 from ...packages.integrations.google_mcp.client import GoogleMCPClient
 from ...packages.integrations.lightfern.workflow import LightfernClient
+from ...packages.integrations.unify_gtm.client import UnifyGTMClient
+from ...packages.integrations.zero_crm.client import ZeroCRMClient
+from ...packages.ml.lead_scorer import LeadScorer
+from ...packages.ml.warmth_model import WarmthModel
 
 
 class PreMeetPipeline:

@@ -1,22 +1,20 @@
 """Ingest iOS signals into the meet pipeline + get_store()."""
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any, Optional
 
-from ..agent.meet_pipeline import MeetStageAgent
-from ..api.integration_helpers import use_agent_extraction, zero_client_optional
-from ..api.interest_helpers import interests_from_meet_summary
-from ..api.store import get_store, DEMO_USER_ID
-from ..api.user_context import get_user_id
 from ...packages.core.auth import auth_required
 from ...packages.core.models.event import DetectedEvent, EventType, LifecycleStage
 from ...packages.core.models.lead import Lead
 from ...packages.core.models.pre_connection import PreMeetConnection, PreMeetStatus
-from ...packages.core.models.warmth import WarmthScore, WarmthBand
+from ...packages.core.models.warmth import WarmthBand, WarmthScore
 from ...packages.core.schemas.captured_signal import CapturedSignalPayload
 from ...packages.core.schemas.event_audio_signal import EventAudioSignal
-
+from ..agent.meet_pipeline import MeetStageAgent
+from ..api.integration_helpers import use_agent_extraction, zero_client_optional
+from ..api.interest_helpers import interests_from_meet_summary
+from ..api.store import DEMO_USER_ID, get_store
+from ..api.user_context import get_user_id
 
 # Idempotency cache: client signal key -> connection id (process-local fallback)
 _ingested: dict[str, str] = {}
@@ -28,7 +26,7 @@ def _existing_connection_for_signal(signal_key: str, user_id: str) -> Optional[s
         return store.signal_index[signal_key]
     if signal_key in _ingested:
         return _ingested[signal_key]
-    from ..api.store import _use_firestore_store, _get_repo
+    from ..api.store import _get_repo, _use_firestore_store
 
     if _use_firestore_store():
         conn_id = _get_repo().signal_index_lookup(user_id, signal_key)
@@ -246,6 +244,13 @@ async def ingest_captured_signal(payload: CapturedSignalPayload) -> dict[str, An
 async def ingest_ios_signal(payload: EventAudioSignal) -> dict[str, Any]:
     """Run legacy wake-word pipeline Signal through MeetStageAgent."""
     user_id = get_user_id()
+    claimed_uid = payload.user_uid or user_id
+    if auth_required() and claimed_uid != user_id:
+        return {
+            "status": "error",
+            "reason": "user_mismatch",
+            "detail": "Signal user uid does not match authenticated user",
+        }
     turns, attrs, self_speaker = _legacy_signal_to_turns(payload)
     return await _run_meet_pipeline(
         signal_key=str(payload.id),

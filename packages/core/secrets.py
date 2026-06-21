@@ -32,6 +32,19 @@ logger = logging.getLogger(__name__)
 # Env vars that hold the GCP project id, in priority order.
 _PROJECT_ENV_VARS = ("GCP_PROJECT_ID", "GOOGLE_CLOUD_PROJECT", "GCLOUD_PROJECT")
 
+# Secrets loaded at API startup (allowlist — never load the full project).
+API_SECRET_ALLOWLIST: tuple[str, ...] = (
+    "FIREBASE_SERVICE_ACCOUNT_KEY",
+    "TAVILY_API_KEY",
+    "DEEPGRAM_API_KEY",
+    "ZERO_CRM_API_KEY",
+    "UNIFY_GTM_API_KEY",
+    "CURSOR_SDK_API_KEY",
+    "GOOGLE_MCP_CREDENTIALS",
+    "LIGHTFERN_WEBHOOK_URL",
+    "GCP_SERVICE_ACCOUNT_KEY",
+)
+
 
 def resolve_project_id(project_id: Optional[str] = None) -> Optional[str]:
     """Return the GCP project id from the argument or known env vars."""

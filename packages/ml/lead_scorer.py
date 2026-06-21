@@ -1,7 +1,8 @@
 from typing import Optional
+
+from ..core.models.icp import ICPConfig
 from ..core.models.meeting_signal import MeetingSignal
 from ..core.models.pre_connection import PreMeetConnection
-from ..core.models.icp import ICPConfig
 
 
 class LeadScorer:

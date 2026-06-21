@@ -1,4 +1,5 @@
 from typing import Any, Optional
+
 from ...core.models.lead import Lead
 from ...core.models.person import PersonNode
 from ...core.schemas.zero_crm_schema import ZeroCRMPayload
@@ -6,15 +7,15 @@ from ...core.schemas.zero_crm_schema import ZeroCRMPayload
 
 class ZeroCRMMapper:
     """Map internal Lead model to Zero CRM format"""
-    
+
     @staticmethod
     def lead_to_zero_payload(lead: Lead) -> ZeroCRMPayload:
         """
         Convert internal Lead to Zero CRM payload format
-        
+
         Args:
             lead: Internal lead model
-        
+
         Returns:
             Zero CRM formatted payload
         """
@@ -56,25 +57,25 @@ class ZeroCRMMapper:
         if person.name and not payload.contact_name:
             payload.contact_name = person.name
         return payload
-    
+
     @staticmethod
     def enrich_lead_to_contact(enrichment_data: dict[str, Any]) -> dict[str, Any]:
         """
         Convert enrichment data to Zero CRM contact format
-        
+
         Args:
             enrichment_data: Enriched lead data from UnifyGTM
-        
+
         Returns:
             Zero CRM contact format
         """
         contacts = enrichment_data.get("contacts", [])
         if not contacts:
             return {}
-        
+
         # Take the first contact as primary
         primary_contact = contacts[0]
-        
+
         return {
             "name": primary_contact.get("name", ""),
             "email": primary_contact.get("email", ""),
@@ -84,16 +85,16 @@ class ZeroCRMMapper:
             "company": enrichment_data.get("company_name", ""),
             "company_domain": enrichment_data.get("company_domain", "")
         }
-    
+
     @staticmethod
     def lead_to_deal(lead: Lead, enrichment_data: dict[str, Any]) -> dict[str, Any]:
         """
         Convert lead to Zero CRM deal format
-        
+
         Args:
             lead: Internal lead model
             enrichment_data: Enriched company data
-        
+
         Returns:
             Zero CRM deal format
         """

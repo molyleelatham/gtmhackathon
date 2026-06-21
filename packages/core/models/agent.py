@@ -1,7 +1,8 @@
 from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class AgentStatus(str, Enum):
@@ -36,7 +37,7 @@ class AutoAgent(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     next_action_at: Optional[datetime] = None
-    
+
     class Config:
         json_encoders = {
             datetime: lambda v: v.isoformat()

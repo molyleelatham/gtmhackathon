@@ -7,17 +7,30 @@ struct WarmthApp: App {
     @State private var model: AppModel
 
     init() {
-        FirebaseApp.configure()
-        let auth = FirebaseAuthService()
+        let isUITesting = ProcessInfo.processInfo.arguments.contains("--uitesting")
+
+        if !isUITesting {
+            FirebaseApp.configure()
+        }
+
+        let auth: any AuthProviding = isUITesting
+            ? MockAuthService.signedInPreview
+            : FirebaseAuthService()
         let settings = SettingsStore()
+        if isUITesting {
+            settings.didCompleteOnboarding = true
+        }
+
+        let speech: any SpeechServicing = isUITesting ? MockSpeechService() : SpeechService()
         let signalClient = SignalClient(baseURL: settings.baseURL, auth: auth)
-        let crmClient = WarmthAPIClient(baseURL: settings.baseURL, auth: auth)
+        let crmClient: any CRMProviding = isUITesting ? MockCRMClient() : WarmthAPIClient(baseURL: settings.baseURL, auth: auth)
+
         let appModel = AppModel(
             auth: auth,
-            speech: SpeechService(),
+            speech: speech,
             signalClient: signalClient,
             crmClient: crmClient,
-            socialGraph: SocialGraphEngine(),
+            socialGraph: isUITesting ? MockSocialGraph() : SocialGraphEngine(),
             settings: settings
         )
         _model = State(initialValue: appModel)

@@ -6,17 +6,16 @@ dashboard and API are demoable without Firebase or external credentials.
 GTM Hackathon roster is loaded from ``warmth/data/gtm_hackathon_attendees.json``
 when present (written by ``scripts/run_gtm_hackathon_pull.py``).
 """
+import json
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
-import json
-import re
 
 from ...packages.core.models.event import DetectedEvent, EventType, LifecycleStage
-from ...packages.core.models.pre_connection import PreMeetConnection, PreMeetStatus
 from ...packages.core.models.lead import Lead
-from ...packages.core.models.warmth import WarmthScore, WarmthBand
-
+from ...packages.core.models.pre_connection import PreMeetConnection, PreMeetStatus
+from ...packages.core.models.warmth import WarmthBand, WarmthScore
 
 DEMO_USER_ID = "demo-user"
 GTM_EVENT_ID = "event_gtm_hackathon_london"
@@ -113,7 +112,7 @@ class DemoStore:
         if attendees is None and GTM_DATA_FILE.exists():
             attendees = json.loads(GTM_DATA_FILE.read_text())
 
-        now = datetime.utcnow()
+        datetime.utcnow()
         event = DetectedEvent(
             id=GTM_EVENT_ID,
             user_id=user_id,
@@ -330,8 +329,12 @@ class DemoStore:
 
 
 import os  # noqa: E402
+from typing import TYPE_CHECKING  # noqa: E402
 
 from .user_context import current_user_id  # noqa: E402
+
+if TYPE_CHECKING:
+    from ...infra.firebase.user_store_repo import UserStoreRepository
 
 _user_stores: dict[str, DemoStore] = {}
 _repo: "UserStoreRepository | None" = None
@@ -345,9 +348,10 @@ def _get_repo():
     global _repo
     if _repo is not None:
         return _repo
+    from firebase_admin import firestore as firebase_firestore
+
     from ...infra.firebase.admin import ensure_firebase_initialized
     from ...infra.firebase.user_store_repo import UserStoreRepository
-    from firebase_admin import firestore as firebase_firestore
 
     ensure_firebase_initialized()
     _repo = UserStoreRepository(firebase_firestore.client())

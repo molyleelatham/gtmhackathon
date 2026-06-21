@@ -5,19 +5,18 @@ from typing import Optional
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from ..store import get_store
+from ....packages.core.models.meeting_signal import MeetingSignal, TopicTime
+from ....packages.core.models.person import PersonNode
+from ....packages.core.models.warmth import WarmthBand, WarmthScore
+from ...agent.meet_pipeline import MeetStageAgent
 from ..integration_helpers import (
-    gmail_client_optional,
     lead_from_connection,
     lead_from_signal,
     use_agent_extraction,
     zero_client_optional,
 )
 from ..interest_helpers import interests_from_meet_summary
-from ...agent.meet_pipeline import MeetStageAgent
-from ....packages.core.models.meeting_signal import MeetingSignal, TopicTime
-from ....packages.core.models.person import PersonNode
-from ....packages.core.models.warmth import WarmthScore, WarmthBand
+from ..store import get_store
 
 router = APIRouter(prefix="/api/v1", tags=["meet"])
 

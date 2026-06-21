@@ -31,8 +31,7 @@ The ``mcp_caller`` is any async callable with signature::
 
 from __future__ import annotations
 
-from typing import Any, Callable, Awaitable, Optional
-
+from typing import Any, Awaitable, Callable, Optional
 
 MCPCaller = Callable[[str, dict], Awaitable[dict]]
 
