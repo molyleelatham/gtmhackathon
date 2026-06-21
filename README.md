@@ -59,8 +59,11 @@ sudo apt install portaudio19-dev && pip install pyaudio rnnoise-python
 cp .env.example .env
 # Edit .env with your API keys
 
-# Run development server
-uv run uvicorn apps.api.main:app --reload --port 8000
+# Run development server (same entrypoint as Cloud Run)
+make run-api
+
+# Or via Docker Compose (matches production layout)
+docker compose up api
 
 # Run listener service
 uv run python apps/listener/main.py

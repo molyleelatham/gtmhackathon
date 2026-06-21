@@ -20,7 +20,46 @@ export const landingContent = {
     cursorTrack: "3rd Overall — Cursor Top 3",
     cursorDetail: "3 months Cursor Ultra per teammate",
     zeroCRM: "2nd Place — Best Use of Zero CRM",
-    zeroDetail: "Zero tech partner challenge",
+    zeroDetail: "Zero CRM tech partner challenge — 2nd place",
+  },
+  zeroCRMSpotlight: {
+    tagline:
+      "Zero CRM is the backbone of Warmth — ICP fit, lead storage, and every qualified push flows through Zero.",
+    title: "Built on Zero CRM",
+    body: "Warmth doesn't replace your CRM — it feeds it. ICP profiles and fit scores come from Zero. Every conversation that clears our warmth uplift threshold pushes a rich lead record back with person context, topic weights, and routing decisions.",
+    banner: {
+      eyebrow: "2nd Place — Best Use of Zero CRM · GTM Hackathon London 2026",
+      headline: "Warmth feeds Zero.",
+      headlineAccent: "Zero powers the GTM loop.",
+      subheadline:
+        "More than a side integration — Zero owns ICP fit and lead storage. Warmth captures event-floor signal, scores relationship warmth on top, and pushes qualified leads back with full person context.",
+      features: [
+        {
+          label: "ICP fit from Zero",
+          detail: "Profiles and fit scores sourced from Zero — Warmth never duplicates your ICP model.",
+        },
+        {
+          label: "Auto lead push",
+          detail: "Every conversation that clears warmth uplift syncs contacts, scores, and narratives to Zero.",
+        },
+        {
+          label: "Rich CRM context",
+          detail: "Topic weights, communication style, pain points — not just a name and email.",
+        },
+      ],
+      cta: "Explore zero.inc",
+      ctaUrl: "https://zero.inc/",
+    },
+  },
+  cursorSpotlight: {
+    banner: {
+      eyebrow: "3rd Overall — Cursor Top 3 · GTM Hackathon London 2026",
+      headline: "Built in one day with Cursor.",
+      subheadline:
+        "The AI-native IDE we used to ship Warmth — iOS, Python backend, and web dashboard — in a couple hours.",
+      cta: "cursor.com",
+      ctaUrl: "https://cursor.com/",
+    },
   },
   hero: {
     headline: "Never forget a conversation.",
@@ -104,15 +143,17 @@ export const landingContent = {
   ],
   differentiator: {
     title: "Warmth ≠ ICP",
+    icpLead:
+      "ICP stands for Ideal Customer Profile — how well a person or company matches who you sell to.",
     body: "Two independent scores: ICP fit from Zero CRM, and relationship warmth from our ML. A perfect ICP can be cold; a warm non-ICP routes to your founder community. Uplift drives the decision.",
   },
   integrations: [
-    { name: "Zero CRM", logo: null },
+    { name: "Zero CRM", logo: "/logos/zero.png" },
     { name: "Lightfern", logo: "/logos/lightfern.png" },
     { name: "Gmail", logo: "/logos/gmail.png" },
     { name: "UnifyGTM", logo: null },
     { name: "Google MCP", logo: null },
-    { name: "Cursor", logo: null },
+    { name: "Cursor", logo: "/logos/cursor-icon.png" },
   ],
   moments: [
     {

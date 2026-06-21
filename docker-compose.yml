@@ -19,9 +19,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    working_dir: /app/warmth
     ports:
       - "8000:8000"
     environment:
+      - PYTHONPATH=/app
       - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
       - TAVILY_API_KEY=${TAVILY_API_KEY}
       - ZERO_CRM_API_KEY=${ZERO_CRM_API_KEY}
@@ -36,8 +38,8 @@ services:
       - GCP_PROJECT_ID=${GCP_PROJECT_ID}
       - GCP_SERVICE_ACCOUNT_KEY=${GCP_SERVICE_ACCOUNT_KEY}
     volumes:
-      - .:/app
-    command: uv run uvicorn apps.api.main:app --host 0.0.0.0 --port 8000 --reload
+      - .:/app/warmth
+    command: uvicorn warmth.apps.api.main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
       - listener
 
@@ -46,12 +48,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    working_dir: /app/warmth
     environment:
+      - PYTHONPATH=/app
       - TAVILY_API_KEY=${TAVILY_API_KEY}
       - FIREBASE_SERVICE_ACCOUNT_KEY=${FIREBASE_SERVICE_ACCOUNT_KEY}
     volumes:
-      - .:/app
-    command: uv run python apps/listener/main.py
+      - .:/app/warmth
+    command: python apps/listener/main.py
     restart: unless-stopped
 
 volumes:

@@ -14,7 +14,7 @@ struct RootView: View {
                     ProgressView()
                         .tint(WarmthColor.emberRed)
                 }
-            } else if model.isOnboarded && model.auth.state.isSignedIn {
+            } else if model.isOnboarded && model.authState.isSignedIn {
                 MainTabView()
             } else if model.isOnboarded {
                 ReturningSignInView()
@@ -23,10 +23,13 @@ struct RootView: View {
             }
         }
         .animation(WarmthMotion.gentle, value: model.isOnboarded)
-        .animation(WarmthMotion.gentle, value: model.auth.state)
+        .animation(WarmthMotion.gentle, value: model.authState)
         .task {
-            await model.auth.restore()
+            await model.restoreAuth()
             authReady = true
+            if model.authState.isSignedIn {
+                await model.refreshHome()
+            }
         }
     }
 }

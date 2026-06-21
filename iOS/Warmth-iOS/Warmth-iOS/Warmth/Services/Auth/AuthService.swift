@@ -45,8 +45,6 @@ protocol AuthProviding: AnyObject {
     var state: AuthState { get }
     func restore() async
     func signInWithGoogle() async throws
-    /// A bypass used in onboarding so the demo flow never dead-ends on console config.
-    func continueAsGuest()
     func signOut()
     /// Fetch a fresh ID token for the signal payload (empty string if unavailable).
     func idToken() async -> String

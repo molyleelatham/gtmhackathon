@@ -57,8 +57,6 @@ struct EmberButton: View {
     var fill: Bool = true
     let action: () -> Void
 
-    @State private var pressed = false
-
     var body: some View {
         Button(action: {
             WarmthHaptics.impact(.light)
@@ -81,15 +79,16 @@ struct EmberButton: View {
             }
             .clipShape(Capsule())
             .warmthGlass(WarmthGlassStyle.interactive, in: Capsule(), fillSurface: fill)
-            .scaleEffect(pressed ? 0.97 : 1)
         }
-        .buttonStyle(.plain)
-        .animation(WarmthMotion.snappy, value: pressed)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in pressed = true }
-                .onEnded { _ in pressed = false }
-        )
+        .buttonStyle(EmberButtonStyle())
+    }
+}
+
+private struct EmberButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(WarmthMotion.snappy, value: configuration.isPressed)
     }
 }
 

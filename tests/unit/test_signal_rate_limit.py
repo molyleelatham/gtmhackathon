@@ -7,7 +7,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
-from apps.api.middleware.signal_rate_limit import (
+from warmth.apps.api.middleware.signal_rate_limit import (
     SignalRateLimitMiddleware,
     SlidingWindowRateLimiter,
     reset_signal_rate_limiters,
@@ -30,7 +30,7 @@ def _reset_limiters(monkeypatch):
     monkeypatch.setenv("SIGNAL_RATE_LIMIT_ENABLED", "true")
     monkeypatch.setenv("SIGNAL_RATE_LIMIT_IP_PER_MINUTE", "3")
     monkeypatch.setenv("SIGNAL_RATE_LIMIT_TOKEN_PER_MINUTE", "5")
-    import apps.api.middleware.signal_rate_limit as rl
+    import warmth.apps.api.middleware.signal_rate_limit as rl
 
     rl._ip_limiter = SlidingWindowRateLimiter(3, 60)
     rl._token_limiter = SlidingWindowRateLimiter(5, 60)

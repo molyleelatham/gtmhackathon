@@ -3,6 +3,7 @@ import { GlassCard } from "../components/Glass";
 import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
 import { ErrorBox, Loading } from "./Dashboard";
+import { Acronym } from "../components/Acronym";
 
 export function Community() {
   const members = useAsync(() => api.communityMembers(), []);
@@ -27,7 +28,8 @@ export function Community() {
           <GlassCard className="p-5">
             <h3 className="text-base font-semibold text-ink-900">Founder Community</h3>
             <p className="mt-1 text-sm text-ink-muted">
-              {members.data.length} members · {dashboard.data?.leads_in_crm ?? 0} leads in CRM
+              {members.data.length} members · {dashboard.data?.leads_in_crm ?? 0} leads in{" "}
+              <Acronym term="CRM">CRM</Acronym>
             </p>
           </GlassCard>
 

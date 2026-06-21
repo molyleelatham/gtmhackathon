@@ -5,7 +5,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-from infra.firebase.user_store_repo import UserStoreRepository
+from warmth.infra.firebase.user_store_repo import UserStoreRepository
 from packages.core.models.event import DetectedEvent, EventType, LifecycleStage
 from packages.core.models.pre_connection import PreMeetConnection, PreMeetStatus
 from packages.core.models.warmth import WarmthScore, WarmthBand

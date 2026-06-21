@@ -345,8 +345,8 @@ def _get_repo():
     global _repo
     if _repo is not None:
         return _repo
-    from infra.firebase.admin import ensure_firebase_initialized
-    from infra.firebase.user_store_repo import UserStoreRepository
+    from ...infra.firebase.admin import ensure_firebase_initialized
+    from ...infra.firebase.user_store_repo import UserStoreRepository
     from firebase_admin import firestore as firebase_firestore
 
     ensure_firebase_initialized()

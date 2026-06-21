@@ -3,15 +3,6 @@ import XCTest
 
 @MainActor
 final class MockAuthServiceTests: XCTestCase {
-    func testContinueAsGuestSignsInGuestUser() {
-        let auth = MockAuthService()
-        auth.continueAsGuest()
-
-        XCTAssertTrue(auth.state.isSignedIn)
-        XCTAssertEqual(auth.state.user?.id, "guest")
-        XCTAssertEqual(auth.state.user?.displayName, "Guest")
-    }
-
     func testSignOutClearsSession() {
         let auth = MockAuthService.signedInPreview
         auth.signOut()

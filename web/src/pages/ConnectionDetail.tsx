@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { safeGmailComposeUrl } from "../lib/safeUrl";
@@ -8,6 +9,7 @@ import { WarmthBadge } from "../components/WarmthBadge";
 import { KnowledgeGraphView } from "../components/KnowledgeGraphView";
 import { GlassCard } from "../components/Glass";
 import type { MeetProcessResponse, RoutingDecision } from "../types";
+import { Acronym } from "../components/Acronym";
 
 function sampleTurns(conn: { name?: string | null; company_name?: string | null; title?: string | null }) {
   return [
@@ -176,7 +178,7 @@ export function ConnectionDetail() {
             </Card>
 
             <Card title="Scores">
-              <Row label="ICP fit" value={Math.round(conn.icp_score).toString()} />
+              <Row label={<Acronym term="ICP">ICP fit</Acronym>} value={Math.round(conn.icp_score).toString()} />
               <Row label="Intent" value={Math.round(conn.intent_score).toString()} />
               <Row label="Predicted warmth" value={Math.round(conn.predicted_warmth).toString()} />
               {warmth?.actual_score != null && (
@@ -299,7 +301,15 @@ export function ConnectionDetail() {
             <Card title="Routing decision">
               <Row
                 label="Target"
-                value={routing.target === "crm_and_outreach" ? "CRM + outreach" : "Founder community"}
+                value={
+                  routing.target === "crm_and_outreach" ? (
+                    <>
+                      <Acronym term="CRM">CRM</Acronym> + outreach
+                    </>
+                  ) : (
+                    "Founder community"
+                  )
+                }
               />
               <Row label="Reason" value={routing.reason} />
               {routing.uplift != null && (
@@ -385,7 +395,7 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: { label: ReactNode; value: ReactNode }) {
   return (
     <div className="flex justify-between border-b border-subtle py-2 text-sm last:border-0">
       <span className="text-ink-faint">{label}</span>

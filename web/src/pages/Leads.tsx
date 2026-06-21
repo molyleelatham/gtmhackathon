@@ -4,6 +4,7 @@ import { WarmthBadge } from "../components/WarmthBadge";
 import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
 import { ErrorBox, Loading } from "./Dashboard";
+import { Acronym, AcronymText } from "../components/Acronym";
 
 export function Leads() {
   const { data, error, loading, reload } = useAsync(() => api.listLeads(), []);
@@ -12,9 +13,13 @@ export function Leads() {
     <div className="space-y-5">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink-900">CRM Leads</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-ink-900">
+            <Acronym term="CRM">CRM</Acronym> Leads
+          </h1>
           <p className="mt-1 text-sm text-ink-muted">
-            Leads pushed to Zero CRM after meet routing and iOS capture signals.
+            <AcronymText>
+              Leads pushed to Zero CRM after meet routing and iOS capture signals.
+            </AcronymText>
           </p>
         </div>
         <button type="button" onClick={reload} className="btn-secondary">

@@ -42,7 +42,7 @@ struct FinishStepView: View {
     }
 
     private var greeting: String {
-        if let name = model.auth.state.user?.displayName, !name.isEmpty {
+        if let name = model.authState.user?.displayName, !name.isEmpty {
             return "You're all set, \(name)."
         }
         return "You're all set."

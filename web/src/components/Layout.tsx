@@ -1,14 +1,30 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
 import { Avatar } from "./Avatar";
+import { Acronym } from "./Acronym";
 
-const nav = [
+const nav: Array<{
+  to: string;
+  label: string;
+  icon: string;
+  end?: boolean;
+  content?: ReactNode;
+}> = [
   { to: "/app", label: "Dashboard", icon: "◫", end: true },
   { to: "/app/connections", label: "Connections", icon: "👥" },
-  { to: "/app/leads", label: "CRM Leads", icon: "◆" },
+  {
+    to: "/app/leads",
+    label: "CRM Leads",
+    content: (
+      <>
+        <Acronym term="CRM">CRM</Acronym> Leads
+      </>
+    ),
+    icon: "◆",
+  },
   { to: "/app/events", label: "Events", icon: "📅" },
   { to: "/app/pipeline", label: "Pipeline", icon: "⚡" },
   { to: "/app/community", label: "Community", icon: "◎" },
@@ -85,7 +101,7 @@ export function Layout() {
               }
             >
               <span className="w-5 shrink-0 text-center">{item.icon}</span>
-              {!collapsed && item.label}
+              {!collapsed && (item.content ?? item.label)}
             </NavLink>
           ))}
         </nav>

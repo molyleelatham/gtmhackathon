@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
 import { Loading, ErrorBox } from "./Dashboard";
 import { WarmthBadge } from "../components/WarmthBadge";
+import { Acronym } from "../components/Acronym";
 
 export function PreMeet() {
   const { eventId = "" } = useParams();
@@ -65,7 +66,9 @@ export function PreMeet() {
             <tr className="border-b border-subtle">
               <th className="px-4 py-3 font-medium">Name</th>
               <th className="px-4 py-3 font-medium">Company</th>
-              <th className="px-4 py-3 font-medium">ICP</th>
+              <th className="px-4 py-3 font-medium">
+                <Acronym term="ICP">ICP</Acronym>
+              </th>
               <th className="px-4 py-3 font-medium">Warmth</th>
               <th className="px-4 py-3 font-medium">Status</th>
             </tr>

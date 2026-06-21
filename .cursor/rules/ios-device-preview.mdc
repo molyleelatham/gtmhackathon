@@ -1,0 +1,40 @@
+---
+description: Deploy iOS builds to Amir's iPhone for live preview during development
+globs: iOS/**/*.swift,iOS/**/project.yml
+alwaysApply: false
+---
+
+# iOS device preview — who dat (2)
+
+When changing the Warmth iOS app, **build and install on the connected iPhone** so Amir can preview on device — not only the simulator.
+
+## Target device
+
+- **Name:** `who dat (2)`
+- **Model:** iPhone 17
+- If it is **available (paired)** in `xcrun devicectl list devices`, deploy there.
+- If offline/unavailable, build simulator as fallback and note that the phone was not connected.
+
+## After iOS changes
+
+From `iOS/Warmth-iOS/`:
+
+```bash
+# Build
+xcodebuild build -scheme Warmth \
+  -destination 'platform=iOS,name=who dat (2)' \
+  -allowProvisioningUpdates \
+  -derivedDataPath /tmp/warmth-ios-dd
+
+# Install + launch
+APP="/tmp/warmth-ios-dd/Build/Products/Debug-iphoneos/Warmth.app"
+xcrun devicectl device install app --device "who dat (2)" "$APP"
+xcrun devicectl device process launch --device "who dat (2)" com.warmth.gtmhackathon
+```
+
+Run `xcodegen generate` first if `project.yml` changed.
+
+## Do not
+
+- Skip device deploy when the phone is connected and the task touched iOS UI or behavior Amir would preview.
+- Force-push or change signing team without asking.

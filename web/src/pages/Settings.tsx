@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Avatar } from "../components/Avatar";
 import { GlassCard } from "../components/Glass";
 import { Toggle } from "../components/Toggle";
@@ -7,6 +7,7 @@ import { api } from "../lib/api";
 import type { Integration } from "../lib/uiTypes";
 import { useAsync } from "../lib/useAsync";
 import { ErrorBox, Loading } from "./Dashboard";
+import { Acronym, AcronymText } from "../components/Acronym";
 
 const DOT: Record<Integration["status"], string> = {
   connected: "bg-warmth-warm",
@@ -37,7 +38,7 @@ function SettingsRow({
   );
 }
 
-function SectionHeader({ title, description }: { title: string; description?: string }) {
+function SectionHeader({ title, description }: { title: ReactNode; description?: string }) {
   return (
     <div className="mb-3">
       <h3 className="text-base font-semibold text-ink-900">{title}</h3>
@@ -107,7 +108,11 @@ export function Settings() {
       <div className="grid gap-4 lg:grid-cols-2">
         <GlassCard className="p-5">
           <SectionHeader
-            title="Ideal Customer Profile"
+            title={
+              <>
+                <Acronym term="ICP">ICP</Acronym> · Ideal Customer Profile
+              </>
+            }
             description="How Warmth scores attendee fit (from backend config)."
           />
           {icp.loading && <Loading />}
@@ -120,7 +125,7 @@ export function Settings() {
                 ))}
               </dl>
               <button type="button" className="btn-secondary mt-4">
-                Edit ICP
+                Edit <Acronym term="ICP">ICP</Acronym>
               </button>
             </>
           )}
@@ -189,8 +194,10 @@ export function Settings() {
       <GlassCard className="p-5">
         <SectionHeader title="About Warmth" />
         <p className="text-sm leading-relaxed text-ink-muted">
-          Warmth is your personal CRM for event connections — capture on iPhone &amp; Apple
-          Watch, score by ICP fit, and follow up with AI-drafted outreach.
+          <AcronymText>
+            Warmth is your personal CRM for event connections — capture on iPhone & Apple Watch,
+            score by ICP fit, and follow up with AI-drafted outreach.
+          </AcronymText>
         </p>
         <dl className="mt-4">
           <SettingsRow label="Version" value="0.1.0 (hackathon)" />

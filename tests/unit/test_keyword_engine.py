@@ -8,7 +8,7 @@ class TestKeywordEngine:
     
     def test_icp_keyword_detection(self, icp_config):
         """Test that ICP keywords are properly detected"""
-        test_text = "We are looking for a RevOps specialist and use HubSpot for our pipeline"
+        test_text = "We are looking for a RevOps specialist and use HubSpot for pipeline visibility"
         
         found_keywords = []
         for keyword in icp_config.keywords:
@@ -17,7 +17,7 @@ class TestKeywordEngine:
         
         assert "RevOps" in found_keywords
         assert "HubSpot" in found_keywords
-        assert "pipeline" in found_keywords
+        assert "pipeline visibility" in found_keywords
     
     def test_signal_type_classification(self):
         """Test signal type classification based on keywords"""

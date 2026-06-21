@@ -126,7 +126,6 @@ final class WarmthAPIClient: CRMProviding {
     }
 
     func bootstrapUserProfileIfNeeded() async {
-        guard auth?.state.user?.id != "guest" else { return }
         var request = URLRequest(url: baseURL.appendingPathComponent("api/v1/users/bootstrap"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

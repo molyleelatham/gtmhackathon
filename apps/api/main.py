@@ -106,6 +106,9 @@ elif _is_deployed:
 else:
     _cors_origins = ["*"]
 
+app.add_middleware(FirebaseAuthMiddleware)
+app.add_middleware(SignalRateLimitMiddleware)
+# CORS must be outermost so OPTIONS preflight gets headers before auth rejects.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
@@ -113,8 +116,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
-app.add_middleware(FirebaseAuthMiddleware)
-app.add_middleware(SignalRateLimitMiddleware)
 
 
 # Health check endpoint

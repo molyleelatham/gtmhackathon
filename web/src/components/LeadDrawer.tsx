@@ -1,4 +1,5 @@
 import { ICPBadge } from "./ICPBadge";
+import { Acronym } from "./Acronym";
 
 export interface DrawerPerson {
   name: string;
@@ -53,7 +54,7 @@ export function LeadDrawer({
         </div>
 
         <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
-          <Section title="ICP Match">
+          <Section title={<Acronym term="ICP">ICP Match</Acronym>}>
             <ICPBadge score={person.score} />
           </Section>
 
@@ -107,7 +108,7 @@ export function LeadDrawer({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
   return (
     <div>
       <h4 className="mb-2 text-[0.7rem] font-semibold uppercase tracking-wider text-ink-faint">

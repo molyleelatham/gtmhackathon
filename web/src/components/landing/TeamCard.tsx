@@ -66,13 +66,15 @@ export function TeamCard({ member, showCrown = false, winner = false }: TeamCard
         )}
 
         {hasBio && (
-          <button
-            type="button"
-            onClick={() => setExpanded((e) => !e)}
-            className={`text-xs font-semibold text-flame hover:text-ember ${expanded ? "mt-2" : "mt-4"}`}
-          >
-            {expanded ? "Show less" : "Read more"}
-          </button>
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setExpanded((e) => !e)}
+              className="text-xs font-semibold text-flame hover:text-ember"
+            >
+              {expanded ? "Show less" : "Read more"}
+            </button>
+          </div>
         )}
 
         <div className="mt-4 flex flex-wrap justify-center gap-2">

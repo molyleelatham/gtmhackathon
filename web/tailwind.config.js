@@ -13,6 +13,19 @@ export default {
         orange: { DEFAULT: "#f97316", light: "#fb923c" },
         red: { brand: "#dc2626", warm: "#ef4444" },
         amber: "#f59e0b",
+        cursor: {
+          bg: "#ececef",
+          surface: "#ffffff",
+          ink: "#18181b",
+          muted: "#52525b",
+          border: "rgba(24, 24, 27, 0.12)",
+        },
+        zero: {
+          black: "#000000",
+          yellow: "#f0ff70",
+          muted: "#c4c4c4",
+          border: "rgba(255,255,255,0.12)",
+        },
         warmth: {
           hot: "#dc2626",
           warm: "#ea580c",

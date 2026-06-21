@@ -1,4 +1,4 @@
-.PHONY: help install test run-api run-listener test-tavily test-mic lint format secrets-push secrets-pull secrets-list
+.PHONY: help install test run-api run-listener test-tavily test-mic lint format secrets-push secrets-pull secrets-list smoke-docker deploy-rules
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -42,7 +42,7 @@ test-mic: ## Test microphone pipeline
 
 run-api: ## Run the FastAPI server
 	@echo "🚀 Starting FastAPI server..."
-	cd .. && (uv run --directory warmth uvicorn warmth.apps.api.main:app --reload --port 8000 || PYTHONPATH=. warmth/.venv/bin/uvicorn warmth.apps.api.main:app --reload --host 0.0.0.0 --port 8000)
+	uv run python scripts/run_dev_api.py
 
 run-meet-local: ## Run the lightweight MEET test server
 	@echo "🚀 Starting MEET local server..."
@@ -125,6 +125,13 @@ deploy-api: ## Deploy FastAPI to GCP Cloud Run
 		--memory 1Gi \
 		--env-vars-file infra/cloudrun-env.yaml
 
+smoke-docker: ## Build Docker image and verify /health
+	bash scripts/docker_smoke_test.sh
+
+deploy-rules: ## Deploy Firestore and Storage security rules
+	npx -y firebase-tools deploy --only firestore:rules,storage --project $(GCP_PROJECT)
+
 deploy-web: ## Build and deploy web to Firebase Hosting
+	test -f web/.env.production || cp web/.env.production.example web/.env.production
 	cd web && npm run build
-	npx -y firebase-tools deploy --only hosting --project $(GCP_PROJECT)
+	npx -y firebase-tools deploy --only hosting,firestore:rules,storage --project $(GCP_PROJECT)

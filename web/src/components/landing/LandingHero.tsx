@@ -4,6 +4,7 @@ import { useScrollParallax } from "../../lib/useScrollReveal";
 import { ScrollReveal } from "./ScrollReveal";
 import { AwardBadge } from "./AwardBadge";
 import { PlatformAvailabilityCards } from "./PlatformAvailabilityCards";
+import { AcronymText } from "../Acronym";
 
 export function LandingHero() {
   const { ref: parallaxRef, offset } = useScrollParallax(0.06);
@@ -12,10 +13,13 @@ export function LandingHero() {
     <section ref={parallaxRef} className="landing-section relative py-16 sm:py-24">
       <div className="relative text-center">
         <ScrollReveal delay={0} variant="fade" eager>
-          <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
-            <AwardBadge label={landingContent.awards.cursorTrack} />
-            <AwardBadge label={landingContent.awards.zeroCRM} />
+          <div className="mb-4 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+            <AwardBadge label={landingContent.awards.zeroCRM} size="lg" featured />
+            <AwardBadge label={landingContent.awards.cursorTrack} size="md" />
           </div>
+          <p className="mx-auto mb-6 max-w-xl text-sm font-medium text-ink-muted sm:text-base">
+            <AcronymText>{landingContent.zeroCRMSpotlight.tagline}</AcronymText>
+          </p>
         </ScrollReveal>
 
         <ScrollReveal delay={80} variant="up" eager>
@@ -41,7 +45,7 @@ export function LandingHero() {
 
         <ScrollReveal delay={400} variant="up" eager>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-ink-muted sm:text-xl">
-            {landingContent.hero.subheadline}
+            <AcronymText>{landingContent.hero.subheadline}</AcronymText>
           </p>
         </ScrollReveal>
 

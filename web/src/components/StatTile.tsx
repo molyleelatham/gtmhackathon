@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export function StatTile({
   label,
   value,
@@ -5,7 +7,7 @@ export function StatTile({
   accent = false,
   onClick,
 }: {
-  label: string;
+  label: ReactNode;
   value: string | number;
   active?: boolean;
   accent?: boolean;

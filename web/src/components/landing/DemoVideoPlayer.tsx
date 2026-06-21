@@ -17,7 +17,9 @@ export function DemoVideoPlayer() {
         </div>
         <p className="text-sm font-semibold text-ink-900">Demo video coming soon</p>
         <p className="mt-1 text-xs text-ink-faint">
-          {failed ? "Upload demo.mp4 to the landing bucket — it will appear here automatically." : "Watch Warmth capture, score, and route live."}
+          {failed
+            ? "The demo video could not load. Try again on Wi‑Fi or refresh the page."
+            : "Watch Warmth capture, score, and route live."}
         </p>
       </div>
     );
@@ -30,7 +32,7 @@ export function DemoVideoPlayer() {
           src={demoVideo}
           title="Warmth demo video"
           className="aspect-video w-full rounded-xl"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
         />
       </div>
@@ -43,12 +45,12 @@ export function DemoVideoPlayer() {
         key={demoVideo}
         src={demoVideo}
         controls
+        controlsList="nodownload"
+        preload="metadata"
         className="aspect-video w-full rounded-xl bg-ink-900"
         playsInline
         onError={() => setFailed(true)}
-      >
-        <track kind="captions" />
-      </video>
+      />
     </div>
   );
 }

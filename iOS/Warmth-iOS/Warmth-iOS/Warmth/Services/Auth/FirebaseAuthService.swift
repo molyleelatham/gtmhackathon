@@ -5,14 +5,11 @@ import FirebaseAuth
 import GoogleSignIn
 
 /// Production auth: Google sign-in via GoogleSignIn → Firebase Auth credential.
-/// Degrades gracefully when the Google provider / client ID isn't configured yet
-/// (the bundled GoogleService-Info.plist currently lacks CLIENT_ID) by surfacing
-/// `AuthError.missingClientID`; onboarding then offers "continue as guest".
 @MainActor
 @Observable
 final class FirebaseAuthService: AuthProviding {
     private enum Keys {
-        static let guestSession = "warmth.guestSessionActive"
+        static let legacyGuestSession = "warmth.guestSessionActive"
     }
 
     private let defaults: UserDefaults
@@ -23,11 +20,9 @@ final class FirebaseAuthService: AuthProviding {
     }
 
     func restore() async {
+        defaults.removeObject(forKey: Keys.legacyGuestSession)
         if let user = Auth.auth().currentUser {
-            defaults.set(false, forKey: Keys.guestSession)
             state = .signedIn(map(user))
-        } else if defaults.bool(forKey: Keys.guestSession) {
-            state = .signedIn(WarmthUser(id: "guest", displayName: "Guest", email: nil, photoURL: nil))
         } else {
             state = .signedOut
         }
@@ -53,7 +48,7 @@ final class FirebaseAuthService: AuthProviding {
                 accessToken: result.user.accessToken.tokenString
             )
             let authResult = try await Auth.auth().signIn(with: credential)
-            defaults.set(false, forKey: Keys.guestSession)
+            defaults.removeObject(forKey: Keys.legacyGuestSession)
             state = .signedIn(map(authResult.user))
         } catch let error as NSError {
             if error.code == GIDSignInError.canceled.rawValue { throw AuthError.cancelled }
@@ -61,13 +56,8 @@ final class FirebaseAuthService: AuthProviding {
         }
     }
 
-    func continueAsGuest() {
-        defaults.set(true, forKey: Keys.guestSession)
-        state = .signedIn(WarmthUser(id: "guest", displayName: "Guest", email: nil, photoURL: nil))
-    }
-
     func signOut() {
-        defaults.set(false, forKey: Keys.guestSession)
+        defaults.removeObject(forKey: Keys.legacyGuestSession)
         try? Auth.auth().signOut()
         GIDSignIn.sharedInstance.signOut()
         state = .signedOut
@@ -84,14 +74,28 @@ final class FirebaseAuthService: AuthProviding {
         WarmthUser(id: user.uid, displayName: user.displayName, email: user.email, photoURL: user.photoURL)
     }
 
-    /// Find a reasonable presenter for the Google sign-in sheet.
-    static func topViewController() -> UIViewController? {
-        let scene = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first(where: { $0.activationState == .foregroundActive }) ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
-        var top = scene?.windows.first(where: { $0.isKeyWindow })?.rootViewController
-            ?? scene?.windows.first?.rootViewController
-        while let presented = top?.presentedViewController { top = presented }
-        return top
+    /// Walks tab bars, navigation stacks, and presented controllers to find the
+    /// topmost presenter — required for Google Sign-In from nested SwiftUI tabs.
+    static func topViewController(base: UIViewController? = nil) -> UIViewController? {
+        let root = base ?? {
+            let scene = UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .first(where: { $0.activationState == .foregroundActive })
+                ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+            return scene?.windows.first(where: { $0.isKeyWindow })?.rootViewController
+                ?? scene?.windows.first?.rootViewController
+        }()
+
+        guard let root else { return nil }
+        if let navigation = root as? UINavigationController {
+            return topViewController(base: navigation.visibleViewController)
+        }
+        if let tabBar = root as? UITabBarController {
+            return topViewController(base: tabBar.selectedViewController)
+        }
+        if let presented = root.presentedViewController {
+            return topViewController(base: presented)
+        }
+        return root
     }
 }

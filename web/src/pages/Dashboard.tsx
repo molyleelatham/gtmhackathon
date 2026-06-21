@@ -13,6 +13,7 @@ import { StatTile } from "../components/StatTile";
 import { WarmthBadge } from "../components/WarmthBadge";
 import { Toggle } from "../components/Toggle";
 import { Toast } from "../components/Toast";
+import { Acronym } from "../components/Acronym";
 import { api } from "../lib/api";
 import { safeGmailComposeUrl } from "../lib/safeUrl";
 import {
@@ -313,9 +314,13 @@ export function Dashboard() {
               ? "Web mic on — say “Hi {name}” or the wake phrase"
               : passiveAudio
                 ? "Passive listening on — simulated match"
-                : eventLocation
-                  ? `${eventLocation} · ranked by ICP fit`
-                  : "Your event roster, ranked by fit."}
+                : eventLocation ? (
+                    <>
+                      {eventLocation} · ranked by <Acronym term="ICP">ICP fit</Acronym>
+                    </>
+                  ) : (
+                    "Your event roster, ranked by fit."
+                  )}
           </p>
         </div>
         <div className="flex max-w-full flex-wrap items-center gap-2 sm:justify-end">
@@ -374,7 +379,7 @@ export function Dashboard() {
           <StatTile label="Events" value={summary.data.events} />
           <StatTile label="Connections" value={summary.data.connections} accent />
           <StatTile label="Hot leads" value={summary.data.hot_leads} accent />
-          <StatTile label="In CRM" value={summary.data.leads_in_crm} />
+          <StatTile label={<>In <Acronym term="CRM">CRM</Acronym></>} value={summary.data.leads_in_crm} />
         </div>
       )}
 
@@ -383,7 +388,7 @@ export function Dashboard() {
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-ink-900">Top leads</h2>
             <Link to="/app/leads" className="text-xs font-semibold text-flame hover:text-ember">
-              View CRM →
+              View <Acronym term="CRM">CRM</Acronym> →
             </Link>
           </div>
           <div className="flex flex-wrap gap-2">

@@ -1,6 +1,7 @@
 import { landingContent } from "../../content/landingContent";
 import { GlassCard } from "../Glass";
 import { ScrollReveal } from "./ScrollReveal";
+import { AcronymText } from "../Acronym";
 
 export function LifecycleSteps() {
   return (
@@ -18,7 +19,9 @@ export function LifecycleSteps() {
                 {String(i + 1).padStart(2, "0")}
               </span>
               <h3 className="mt-2 text-lg font-semibold text-ink-900">{item.step}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-muted">{item.description}</p>
+              <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+                <AcronymText>{item.description}</AcronymText>
+              </p>
             </GlassCard>
           </ScrollReveal>
         ))}

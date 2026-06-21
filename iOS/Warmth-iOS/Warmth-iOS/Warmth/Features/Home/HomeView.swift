@@ -43,7 +43,7 @@ struct HomeView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    EventModeCompactButton()
+                    EventModeToolbarToggle()
                 }
             }
             .task { await model.refreshHome() }
@@ -203,39 +203,23 @@ struct HomeView: View {
     }
 }
 
-private struct EventModeCompactButton: View {
+private struct EventModeToolbarToggle: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
         @Bindable var settings = model.settings
 
-        Button {
-            settings.eventModeEnabled.toggle()
-            if settings.eventModeEnabled {
-                WarmthHaptics.success()
-                model.selectedTab = .capture
-            }
-        } label: {
-            HStack(spacing: 5) {
-                Image(systemName: settings.eventModeEnabled ? "calendar.badge.clock.fill" : "calendar.badge.clock")
-                    .font(.system(size: 11, weight: .semibold))
-                Text("Event")
-                    .font(.Warmth.caption.weight(.semibold))
-            }
-            .foregroundStyle(settings.eventModeEnabled ? WarmthColor.warmWhite : WarmthColor.ink)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background {
-                if settings.eventModeEnabled {
-                    Capsule().fill(WarmthColor.emberGradient)
-                }
-            }
-            .warmthGlass(WarmthGlassStyle.interactive, in: Capsule(), fillSurface: !settings.eventModeEnabled)
+        Toggle(isOn: $settings.eventModeEnabled) {
+            Text("Event")
+                .font(.Warmth.caption.weight(.semibold))
+                .foregroundStyle(WarmthColor.ink)
         }
-        .buttonStyle(.plain)
+        .tint(WarmthColor.emberRed)
+        .onChange(of: settings.eventModeEnabled) { _, enabled in
+            if enabled { WarmthHaptics.success() }
+        }
         .accessibilityLabel("Event mode")
-        .accessibilityValue(settings.eventModeEnabled ? "On" : "Off")
-        .accessibilityHint("Prioritize the Capture tab while at an event.")
+        .accessibilityHint("Opens Capture when you relaunch the app.")
     }
 }
 

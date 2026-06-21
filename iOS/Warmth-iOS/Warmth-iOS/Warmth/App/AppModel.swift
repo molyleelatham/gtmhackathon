@@ -36,6 +36,10 @@ final class AppModel {
     var isPassiveFloorListeningActive = false
     var passiveFloorTranscript = ""
 
+    /// Mirrored auth state so SwiftUI observes sign-in/out through `AppModel`
+    /// (the concrete auth service is stored behind `any AuthProviding`).
+    private(set) var authState: AuthState = .unknown
+
     private var matchAttemptedThisCapture = false
     private var didApplyLaunchTab = false
     var captureRefreshAttempts = 4
@@ -88,9 +92,9 @@ final class AppModel {
             Task { @MainActor in await self?.stopCapture(source: .watch) }
         }
         syncWatchState()
+        authState = auth.state
         Task {
             await refreshRosterWatchlist()
-            await refreshHome()
         }
     }
 
@@ -98,6 +102,26 @@ final class AppModel {
         guard !didApplyLaunchTab else { return }
         didApplyLaunchTab = true
         selectedTab = isAtEventToday ? .capture : .home
+    }
+
+    func restoreAuth() async {
+        await auth.restore()
+        syncAuthState()
+    }
+
+    func signInWithGoogle() async throws {
+        try await auth.signInWithGoogle()
+        syncAuthState()
+        await refreshHome()
+    }
+
+    func signOut() {
+        auth.signOut()
+        syncAuthState()
+    }
+
+    private func syncAuthState() {
+        authState = auth.state
     }
 
     func dismissAttendeeMatch() {
@@ -167,7 +191,7 @@ final class AppModel {
     func refreshHome() async {
         homeError = nil
         do {
-            if auth.state.isSignedIn, auth.state.user?.id != "guest" {
+            if authState.isSignedIn {
                 await crmClient.bootstrapUserProfileIfNeeded()
             }
             dashboard = try await crmClient.fetchDashboard()

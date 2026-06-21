@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import type { WarmthBand } from "../types";
+import { Acronym } from "./Acronym";
 
 export interface KnowledgeGraphNode {
   id: string;
@@ -229,7 +230,10 @@ export function KnowledgeGraphView({
             </span>
           )}
           {icpScore != null && (
-            <span className="text-ink-muted">ICP <span className="font-semibold text-ink-900">{Math.round(icpScore)}</span></span>
+            <span className="text-ink-muted">
+              <Acronym term="ICP">ICP</Acronym>{" "}
+              <span className="font-semibold text-ink-900">{Math.round(icpScore)}</span>
+            </span>
           )}
         </div>
       )}

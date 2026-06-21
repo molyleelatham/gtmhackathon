@@ -9,7 +9,7 @@ from typing import Optional
 import firebase_admin
 from firebase_admin import credentials
 
-from packages.core.secrets import resolve_project_id
+from ...packages.core.secrets import resolve_project_id
 
 
 def _certificate_from_key(key: str):

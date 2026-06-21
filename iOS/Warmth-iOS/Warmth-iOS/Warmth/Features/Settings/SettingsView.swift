@@ -67,7 +67,7 @@ private struct AccountSection: View {
             VStack(alignment: .leading, spacing: 16) {
                 SectionHeader(title: "Account", systemImage: "person.fill")
 
-                if let user = model.auth.state.user {
+                if let user = model.authState.user {
                     HStack(spacing: 14) {
                         AvatarView(user: user)
                         VStack(alignment: .leading, spacing: 3) {
@@ -83,11 +83,15 @@ private struct AccountSection: View {
 
                     EmberButton(title: "Sign out", systemImage: "rectangle.portrait.and.arrow.right", fill: false) {
                         WarmthHaptics.selection()
-                        model.auth.signOut()
+                        model.signOut()
                     }
                 } else {
                     Text("You're not signed in.")
                         .warmthText(.Warmth.body, color: WarmthColor.inkSecondary)
+                    Text("Sign in to sync your connections securely.")
+                        .warmthText(.Warmth.footnote, color: WarmthColor.inkSecondary)
+
+                    GoogleSignInButton(fill: false)
                 }
             }
         }
@@ -160,10 +164,7 @@ private struct EventModeSection: View {
                 }
                 .tint(WarmthColor.emberRed)
                 .onChange(of: settings.eventModeEnabled) { _, enabled in
-                    if enabled {
-                        WarmthHaptics.success()
-                        model.selectedTab = .capture
-                    }
+                    if enabled { WarmthHaptics.success() }
                 }
 
                 Toggle(isOn: $settings.eventModeDisabledOverride) {

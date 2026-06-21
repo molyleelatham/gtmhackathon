@@ -2,6 +2,7 @@ import { landingContent } from "../../content/landingContent";
 import { AwardBadge } from "./AwardBadge";
 import { ScrollReveal } from "./ScrollReveal";
 import { TeamCard } from "./TeamCard";
+import { AcronymText } from "../Acronym";
 
 export function WinningTeamSection() {
   return (
@@ -21,12 +22,15 @@ export function WinningTeamSection() {
             <p className="mx-auto mt-3 max-w-xl text-ink-muted">
               Two podium finishes in one day — built Warmth from scratch and took it live on stage.
             </p>
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-              <AwardBadge label={landingContent.awards.cursorTrack} />
-              <AwardBadge label={landingContent.awards.zeroCRM} />
+            <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+              <AwardBadge label={landingContent.awards.zeroCRM} size="lg" featured />
+              <AwardBadge label={landingContent.awards.cursorTrack} size="md" />
             </div>
-            <p className="mx-auto mt-3 max-w-lg text-xs text-ink-faint">
-              {landingContent.awards.cursorDetail} · {landingContent.awards.zeroDetail}
+            <p className="mx-auto mt-4 max-w-xl text-sm font-medium text-ink-muted">
+              <AcronymText>{landingContent.zeroCRMSpotlight.tagline}</AcronymText>
+            </p>
+            <p className="mx-auto mt-2 max-w-lg text-xs text-ink-faint sm:text-sm">
+              {landingContent.awards.zeroDetail} · {landingContent.awards.cursorDetail}
             </p>
           </ScrollReveal>
 

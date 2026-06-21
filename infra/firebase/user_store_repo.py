@@ -7,13 +7,13 @@ from typing import Any, Optional, TYPE_CHECKING
 
 from google.cloud import firestore as gc_firestore
 
-from packages.core.models.event import DetectedEvent
-from packages.core.models.lead import Lead
-from packages.core.models.pre_connection import PreMeetConnection
-from packages.core.models.warmth import WarmthScore
+from ...packages.core.models.event import DetectedEvent
+from ...packages.core.models.lead import Lead
+from ...packages.core.models.pre_connection import PreMeetConnection
+from ...packages.core.models.warmth import WarmthScore
 
 if TYPE_CHECKING:
-    from apps.api.store import DemoStore
+    from ...apps.api.store import DemoStore
 
 COMMUNITY_DOC = "config/community_members"
 MEET_DOC_ID = "latest"

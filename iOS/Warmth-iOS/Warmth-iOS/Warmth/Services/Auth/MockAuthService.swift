@@ -1,6 +1,6 @@
 import Foundation
 
-/// In-memory auth for previews, tests, and the "continue as guest" demo path.
+/// In-memory auth for previews and tests.
 @MainActor
 @Observable
 final class MockAuthService: AuthProviding {
@@ -20,10 +20,6 @@ final class MockAuthService: AuthProviding {
             email: "demo@warmth.app",
             photoURL: nil
         ))
-    }
-
-    func continueAsGuest() {
-        state = .signedIn(WarmthUser(id: "guest", displayName: "Guest", email: nil, photoURL: nil))
     }
 
     func signOut() { state = .signedOut }

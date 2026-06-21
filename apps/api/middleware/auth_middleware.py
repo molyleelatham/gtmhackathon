@@ -18,9 +18,10 @@ class FirebaseAuthMiddleware(BaseHTTPMiddleware):
     _PUBLIC_PATHS = frozenset({"/health"})
 
     async def dispatch(self, request: Request, call_next):
-        if request.url.path in self._PUBLIC_PATHS:
-            current_user_id.set(DEMO_USER_ID)
-            request.state.firebase_user = None
+        if request.method == "OPTIONS" or request.url.path in self._PUBLIC_PATHS:
+            if request.url.path in self._PUBLIC_PATHS:
+                current_user_id.set(DEMO_USER_ID)
+                request.state.firebase_user = None
             return await call_next(request)
 
         token = bearer_token_from_request(request)

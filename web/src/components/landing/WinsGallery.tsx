@@ -44,9 +44,9 @@ export function WinsGallery() {
     <section id="wins" className="landing-section py-16">
       <ScrollReveal className="mb-10 text-center" variant="up">
         <h2 className="text-3xl font-bold text-ink-900">We won.</h2>
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-          <AwardBadge label={landingContent.awards.cursorTrack} />
-          <AwardBadge label={landingContent.awards.zeroCRM} />
+        <div className="mt-4 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+          <AwardBadge label={landingContent.awards.zeroCRM} size="lg" featured />
+          <AwardBadge label={landingContent.awards.cursorTrack} size="md" />
         </div>
       </ScrollReveal>
 

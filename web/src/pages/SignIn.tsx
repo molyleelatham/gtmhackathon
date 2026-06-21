@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { WarmthLogo } from "../components/WarmthLogo";
+import { AcronymText } from "../components/Acronym";
 import { useAuth } from "../lib/auth";
 
 export function SignIn() {
@@ -31,7 +32,7 @@ export function SignIn() {
         <WarmthLogo size="md" className="mx-auto mb-4" />
         <h1 className="text-xl font-semibold text-white">Warmth</h1>
         <p className="mt-1 text-sm text-ink-muted">
-          Your personal CRM for event connections.
+          <AcronymText>Your personal CRM for event connections.</AcronymText>
         </p>
 
         <button

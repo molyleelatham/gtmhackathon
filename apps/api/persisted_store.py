@@ -2,15 +2,21 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+import logging
 from typing import Any, Optional
 
-from infra.firebase.user_store_repo import UserStoreRepository
-from apps.api.store import DemoStore
-from packages.core.models.event import DetectedEvent
-from packages.core.models.lead import Lead
-from packages.core.models.pre_connection import PreMeetConnection
-from packages.core.models.warmth import WarmthScore
+from google.api_core import exceptions as gcp_exceptions
+from google.auth import exceptions as auth_exceptions
+
+from ...infra.firebase.user_store_repo import UserStoreRepository
+from ...packages.core.models.event import DetectedEvent
+from ...packages.core.models.lead import Lead
+from ...packages.core.models.pre_connection import PreMeetConnection
+from ...packages.core.models.warmth import WarmthScore
+
+from .store import DemoStore
+
+logger = logging.getLogger(__name__)
 
 
 class FirestoreBackedStore(DemoStore):
@@ -22,8 +28,15 @@ class FirestoreBackedStore(DemoStore):
         self._repo = repo
         try:
             self._repo.load_into(self, user_id)
+        except (gcp_exceptions.PermissionDenied, auth_exceptions.DefaultCredentialsError):
+            raise
         except Exception:
-            pass
+            logger.exception(
+                "Firestore hydration failed for user %s",
+                user_id[:8] if user_id else "unknown",
+            )
+            if self.list_events(user_id):
+                raise
         if seed and not self.list_events(user_id):
             self._seed()
 
