@@ -20,17 +20,35 @@ install-audio-ubuntu: ## Install audio dependencies on Ubuntu
 	sudo apt install portaudio19-dev
 	uv pip install pyaudio rnnoise-python
 
-test: ## Run all tests
+test: ## Run all tests (excluding external APIs)
 	@echo "🧪 Running tests..."
-	uv run pytest
+	uv run pytest -m "not external"
 
 test-unit: ## Run unit tests only
 	@echo "🧪 Running unit tests..."
-	uv run pytest tests/unit
+	uv run pytest tests/unit -m unit
 
 test-integration: ## Run integration tests only
 	@echo "🧪 Running integration tests..."
-	uv run pytest tests/integration
+	uv run pytest tests/integration -m integration
+
+test-cov: ## Run tests with coverage report
+	@echo "🧪 Running tests with coverage..."
+	uv run pytest -m "not external" --cov=apps --cov=packages --cov=infra --cov-report=term-missing
+
+test-external: ## Run external API integration tests (requires secrets)
+	@echo "🧪 Running external integration tests..."
+	uv run pytest -m external
+
+test-web: ## Run web Vitest + Playwright E2E
+	@echo "🧪 Running web tests..."
+	cd web && npm run test && npm run test:e2e
+
+test-ios: ## Run iOS unit + UI tests
+	@echo "🧪 Running iOS tests..."
+	cd iOS/Warmth-iOS && xcodegen generate && xcodebuild test -scheme Warmth -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -quiet
+
+test-all: test test-web test-ios ## Run Python, web, and iOS test suites
 
 test-tavily: ## Test Tavily integration
 	@echo "🧪 Testing Tavily integration..."
@@ -128,10 +146,10 @@ deploy-api: ## Deploy FastAPI to GCP Cloud Run
 smoke-docker: ## Build Docker image and verify /health
 	bash scripts/docker_smoke_test.sh
 
-deploy-rules: ## Deploy Firestore and Storage security rules
-	npx -y firebase-tools deploy --only firestore:rules,storage --project $(GCP_PROJECT)
+deploy-rules: ## Deploy Firestore security rules (and Storage rules when Storage is enabled)
+	npx -y firebase-tools deploy --only firestore:rules --project $(GCP_PROJECT)
 
 deploy-web: ## Build and deploy web to Firebase Hosting
 	test -f web/.env.production || cp web/.env.production.example web/.env.production
 	cd web && npm run build
-	npx -y firebase-tools deploy --only hosting,firestore:rules,storage --project $(GCP_PROJECT)
+	npx -y firebase-tools deploy --only hosting,firestore:rules --project $(GCP_PROJECT)

@@ -1,22 +1,24 @@
-from contextlib import asynccontextmanager
 import os
+from contextlib import asynccontextmanager
+
 from dotenv import load_dotenv
 
 # Load env: local .env first (developer overrides), then fill gaps from the
 # shared Google Secret Manager project. Must run before clients read os.getenv.
 load_dotenv()
-from ...packages.core.secrets import load_secrets_into_env  # noqa: E402
-load_secrets_into_env()
+from ...packages.core.secrets import API_SECRET_ALLOWLIST, load_secrets_into_env  # noqa: E402
+
+load_secrets_into_env(names=API_SECRET_ALLOWLIST)
 
 from fastapi import FastAPI  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
-from .middleware.auth_middleware import FirebaseAuthMiddleware  # noqa: E402
-from .middleware.signal_rate_limit import SignalRateLimitMiddleware  # noqa: E402
-from .deps import set_firestore_client  # noqa: E402
-from ..listener.engine import PassiveListener  # noqa: E402
+
 from ...infra.firebase.firestore import FirestoreClient  # noqa: E402
 from ...packages.core.models.icp import ICPConfig  # noqa: E402
-
+from ..listener.engine import PassiveListener  # noqa: E402
+from .deps import set_firestore_client  # noqa: E402
+from .middleware.auth_middleware import FirebaseAuthMiddleware  # noqa: E402
+from .middleware.signal_rate_limit import SignalRateLimitMiddleware  # noqa: E402
 
 # Global state
 listener_instance = None
@@ -28,10 +30,10 @@ icp_config = None
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events"""
     global listener_instance, firestore_client, icp_config
-    
+
     # Startup
     print("🚀 Starting Warmth API...")
-    
+
     # Firebase Admin (Auth token verification + optional Firestore)
     from ...infra.firebase.admin import ensure_firebase_initialized
 
@@ -47,19 +49,19 @@ async def lifespan(app: FastAPI):
         print("✅ Firebase Firestore initialized")
     except Exception as e:
         print(f"⚠️  Firebase Firestore initialization failed: {e}")
-    
+
     # Load ICP configuration
     icp_config = ICPConfig()
     print("✅ ICP configuration loaded")
-    
+
     # Initialize passive listener
     try:
         from ...packages.integrations.tavily.client import TavilyClient
         from ...packages.integrations.tavily.signal_extractor import TavilySignalExtractor
-        
+
         tavily_client = TavilyClient()
         signal_extractor = TavilySignalExtractor(tavily_client, icp_config)
-        
+
         listener_instance = PassiveListener(
             icp_config=icp_config,
             signal_extractor=signal_extractor,
@@ -68,9 +70,9 @@ async def lifespan(app: FastAPI):
         print("✅ Passive listener initialized")
     except Exception as e:
         print(f"⚠️  Listener initialization failed: {e}")
-    
+
     yield
-    
+
     # Shutdown
     print("🛑 Shutting down Warmth API...")
     if listener_instance:
@@ -132,7 +134,17 @@ async def health_check():
 
 
 # Lifecycle routers: onboarding -> before-meet -> meet -> post-meet + dashboard data
-from .routers import onboarding, premeet, meet, postmeet, data, event_runs, signals, users, conferences
+from .routers import (
+    conferences,
+    data,
+    event_runs,
+    meet,
+    onboarding,
+    postmeet,
+    premeet,
+    signals,
+    users,
+)
 
 app.include_router(onboarding.router)
 app.include_router(users.router)

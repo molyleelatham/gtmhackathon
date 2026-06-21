@@ -20,12 +20,11 @@ if _REPO_ROOT not in sys.path:
     sys.path.insert(0, _REPO_ROOT)
 
 from warmth.apps.listener.intelligence.person_context_builder import PersonContextBuilder
-from warmth.packages.core.models.person import PersonKnowledgeGraph
-from warmth.packages.core.models.meeting_signal import MeetingSignal
 from warmth.packages.core.models.lead import Lead
-from warmth.packages.integrations.zero_crm.mapper import ZeroCRMMapper
+from warmth.packages.core.models.meeting_signal import MeetingSignal
+from warmth.packages.core.models.person import PersonKnowledgeGraph
 from warmth.packages.integrations.faxxing.client import FaxxingClient
-
+from warmth.packages.integrations.zero_crm.mapper import ZeroCRMMapper
 
 # Diarized transcript: speaker 0 is you (self), speaker 1 is Anna. Each entry is
 # one ~30s window the listener would emit.

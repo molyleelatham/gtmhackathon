@@ -1,4 +1,3 @@
-from typing import Optional
 from ..core.models.meeting_signal import MeetingSignal
 
 

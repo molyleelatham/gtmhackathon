@@ -192,7 +192,11 @@ final class AppModel {
         homeError = nil
         do {
             if authState.isSignedIn {
-                await crmClient.bootstrapUserProfileIfNeeded()
+                do {
+                    try await crmClient.bootstrapUserProfileIfNeeded()
+                } catch {
+                    homeError = "Could not sync your profile: \(error.localizedDescription)"
+                }
             }
             dashboard = try await crmClient.fetchDashboard()
             roster = try await crmClient.fetchRoster()

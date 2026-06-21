@@ -15,11 +15,11 @@ models) exactly as `POST /api/v1/meet/signals` expects.
 from datetime import datetime, timedelta
 from typing import Optional
 
-from .person_context_builder import PersonContextBuilder
-from .interest_analyzer import InterestAnalyzer
-from .topic_extractor import TopicExtractor
 from ....packages.core.models.meeting_signal import MeetingSignal, TopicTime
 from ....packages.core.models.person import PersonKnowledgeGraph, PersonNode
+from .interest_analyzer import InterestAnalyzer
+from .person_context_builder import PersonContextBuilder
+from .topic_extractor import TopicExtractor
 
 
 class MeetEncoder:

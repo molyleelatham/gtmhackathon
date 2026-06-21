@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from typing import Optional
 
@@ -11,19 +12,33 @@ from firebase_admin import credentials
 
 from ...packages.core.secrets import resolve_project_id
 
+logger = logging.getLogger(__name__)
+
 
 def _certificate_from_key(key: str):
     """Parse a service account from a file path or JSON string; None if unusable."""
     trimmed = key.strip()
     if not trimmed:
         return None
-    if os.path.exists(trimmed):
-        return credentials.Certificate(trimmed)
     if trimmed.startswith("{"):
         try:
             return credentials.Certificate(json.loads(trimmed))
         except json.JSONDecodeError:
+            logger.error("FIREBASE_SERVICE_ACCOUNT_KEY looks like JSON but failed to parse")
             return None
+    if trimmed.endswith(".json") or "/" in trimmed:
+        if os.path.exists(trimmed):
+            return credentials.Certificate(trimmed)
+        logger.error(
+            "FIREBASE_SERVICE_ACCOUNT_KEY is a file path (%s) but the file does not exist",
+            trimmed[:80],
+        )
+        return None
+    if os.path.exists(trimmed):
+        return credentials.Certificate(trimmed)
+    logger.warning(
+        "FIREBASE_SERVICE_ACCOUNT_KEY is not valid JSON and not an existing file path"
+    )
     return None
 
 

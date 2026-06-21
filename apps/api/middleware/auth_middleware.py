@@ -7,7 +7,11 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from ....packages.core.auth import auth_required, bearer_token_from_request, verify_firebase_id_token
+from ....packages.core.auth import (
+    auth_required,
+    bearer_token_from_request,
+    verify_firebase_id_token,
+)
 from ..store import DEMO_USER_ID
 from ..user_context import current_user_id
 

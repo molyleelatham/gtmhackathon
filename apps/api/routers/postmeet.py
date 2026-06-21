@@ -1,13 +1,19 @@
 """Post-meet follow-up endpoints."""
 from typing import Optional
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from ..store import get_store
-from ..integration_helpers import gmail_client_optional, lead_from_connection, warmth_client_email, warmth_client_name
-from ...lifecycle.postmeet import PostMeetPipeline
 from ....packages.core.models.lead import Lead
 from ....packages.core.models.meeting_signal import MeetingSignal
+from ...lifecycle.postmeet import PostMeetPipeline
+from ..integration_helpers import (
+    gmail_client_optional,
+    lead_from_connection,
+    warmth_client_email,
+    warmth_client_name,
+)
+from ..store import get_store
 
 router = APIRouter(prefix="/api/v1", tags=["postmeet"])
 

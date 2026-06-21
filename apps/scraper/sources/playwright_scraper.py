@@ -24,18 +24,18 @@ Dependencies: playwright (``pip install playwright && playwright install chromiu
 
 from __future__ import annotations
 
-import re
 import asyncio
-from typing import Optional, Any
+import re
+from typing import Any, Optional
 from urllib.parse import urlparse
 
-from ....packages.core.url_safety import UnsafeUrlError, validate_scrape_url
+from ....packages.core.url_safety import validate_scrape_url
 
 # ---------------------------------------------------------------------------
 # Playwright import guard — Playwright is an optional dep.
 # ---------------------------------------------------------------------------
 try:
-    from playwright.async_api import async_playwright, Page, Browser
+    from playwright.async_api import Browser, Page, async_playwright
     _PLAYWRIGHT_AVAILABLE = True
 except ImportError:  # pragma: no cover
     _PLAYWRIGHT_AVAILABLE = False
@@ -99,7 +99,7 @@ class _LumaScraper:
 
         for card in cards:
             text = await card.inner_text()
-            lines = [l.strip() for l in text.splitlines() if l.strip()]
+            lines = [line.strip() for line in text.splitlines() if line.strip()]
 
             name = lines[0] if lines else None
             headline = lines[1] if len(lines) > 1 else None
@@ -156,7 +156,7 @@ class _GenericScraper:
                 "|| el.parentElement"
             )
             text = await parent.evaluate("(el) => el ? el.innerText : ''")
-            lines = [l.strip() for l in text.splitlines() if l.strip()]
+            lines = [line.strip() for line in text.splitlines() if line.strip()]
 
             name = lines[0] if lines else None
             if not name or name in seen_names:
@@ -189,7 +189,7 @@ class _GenericScraper:
             cards = await page.query_selector_all(card_sel)
             for card in cards:
                 text = await card.inner_text()
-                lines = [l.strip() for l in text.splitlines() if l.strip()]
+                lines = [line.strip() for line in text.splitlines() if line.strip()]
                 name = lines[0] if lines else None
                 if not name or name in seen_names or len(name) > 60:
                     continue

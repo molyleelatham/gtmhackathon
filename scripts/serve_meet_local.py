@@ -37,9 +37,8 @@ except Exception:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
-from warmth.apps.listener.intelligence.meet_encoder import MeetEncoder
 from warmth.apps.lifecycle.meet import MeetPipeline
+from warmth.apps.listener.intelligence.meet_encoder import MeetEncoder
 from warmth.packages.core.models.meeting_signal import MeetingSignal, TopicTime
 
 app = FastAPI(title="Warmth MEET (local)", version="0.1.0")

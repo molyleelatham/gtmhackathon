@@ -38,8 +38,8 @@ Xcode project: **`iOS/Warmth-iOS/Warmth.xcodeproj`** (XcodeGen, PR #3 on `main`)
 | Upload + retry queue | `Warmth/Services/Signal/SignalClient.swift` |
 | Social graph | `Warmth/Services/SocialGraph/SocialGraphEngine.swift` |
 | Speech + wake phrase | `Warmth/Services/Speech/SpeechService.swift` |
-| Watch bridge (sources on disk; watch target temporarily out of build) | `WarmthWatch/`, `WATCH_INTEGRATION.md` |
-| Backend URL (Settings) | default `http://127.0.0.1:8000`; on device use Mac LAN IP |
+| Watch bridge (embedded companion) | `WarmthWatch/`, `WATCH_INTEGRATION.md` |
+| Backend URL (Settings) | default production `https://warmth-api-30164818817.us-central1.run.app`; local dev `http://127.0.0.1:8000` |
 
 Legacy wake-word pipeline sources still exist under
 `Warmth-iOS/Warmth-iOS/Warmth/Services/` (`EventListeningEngine`, etc.) but

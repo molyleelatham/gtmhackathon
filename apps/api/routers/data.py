@@ -8,6 +8,11 @@ from typing import Any, Optional
 from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel
 
+from ....packages.core.models.icp import ICPConfig
+from ....packages.core.models.lead import Lead
+from ....packages.core.models.pre_connection import PreMeetConnection
+from ...lifecycle.contact_sync import ContactSyncPipeline
+from ...lifecycle.user_bootstrap import maybe_seed_owner_demo
 from ..integration_helpers import (
     gmail_client_optional,
     hubspot_client_optional,
@@ -16,11 +21,6 @@ from ..integration_helpers import (
 )
 from ..store import get_store
 from ..user_context import get_user_id
-from ...lifecycle.contact_sync import ContactSyncPipeline
-from ...lifecycle.user_bootstrap import maybe_seed_owner_demo
-from ....packages.core.models.icp import ICPConfig
-from ....packages.core.models.lead import Lead
-from ....packages.core.models.pre_connection import PreMeetConnection
 
 router = APIRouter(prefix="/api/v1", tags=["data"])
 
@@ -127,7 +127,7 @@ async def dashboard(request: Request):
 
 @router.get("/leads")
 async def list_leads():
-    return [l.model_dump() for l in get_store().list_leads()]
+    return [lead.model_dump() for lead in get_store().list_leads()]
 
 
 @router.get("/connections")
@@ -298,8 +298,8 @@ class MatchAttendeeRequest(BaseModel):
 @router.post("/match/attendee")
 async def match_attendee(req: MatchAttendeeRequest):
     """Match a live 'hi {name}' detection to a known event attendee."""
-    from ...listener.intelligence.attendee_matcher import AttendeeMatcher
     from ....packages.core.models.meeting_signal import MeetingSignal
+    from ...listener.intelligence.attendee_matcher import AttendeeMatcher
 
     pipeline_leads = [c.model_dump() for c in get_store().pre_connections.values()]
     signal = MeetingSignal(name=req.name, company=req.company)

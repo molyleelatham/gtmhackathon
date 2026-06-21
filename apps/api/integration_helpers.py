@@ -2,15 +2,15 @@
 import os
 from typing import Optional
 
-from ...packages.integrations.zero_crm.client import ZeroCRMClient
-from ...packages.integrations.unify_gtm.client import UnifyGTMClient
-from ...packages.integrations.hubspot.client import HubSpotClient
-from ...packages.integrations.google_mcp.client import GoogleMCPClient
-from ...packages.integrations.lightfern.workflow import LightfernClient
-from ...packages.integrations.faxxing.client import FaxxingClient
 from ...packages.core.models.lead import Lead
-from ...packages.core.models.pre_connection import PreMeetConnection
 from ...packages.core.models.meeting_signal import MeetingSignal
+from ...packages.core.models.pre_connection import PreMeetConnection
+from ...packages.integrations.faxxing.client import FaxxingClient
+from ...packages.integrations.google_mcp.client import GoogleMCPClient
+from ...packages.integrations.hubspot.client import HubSpotClient
+from ...packages.integrations.lightfern.workflow import LightfernClient
+from ...packages.integrations.unify_gtm.client import UnifyGTMClient
+from ...packages.integrations.zero_crm.client import ZeroCRMClient
 
 
 def zero_client_optional() -> Optional[ZeroCRMClient]:

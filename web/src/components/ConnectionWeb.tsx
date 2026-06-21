@@ -128,8 +128,8 @@ function applyRepulsion(nodes: SimNode[], cooling: number, minDist: number) {
     for (let j = i + 1; j < nodes.length; j++) {
       const a = nodes[i];
       const b = nodes[j];
-      let dx = a.x - b.x;
-      let dy = a.y - b.y;
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
 
       const repulse = (42000 * cooling) / (dist * dist);

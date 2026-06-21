@@ -1,12 +1,13 @@
 from enum import Enum
 from typing import Optional
+
 from pydantic import BaseModel, Field
 
 from ..core.models.meeting_signal import MeetingSignal
 from ..core.models.warmth import WarmthScore
-from .warmth_model import WarmthModel
 from .clustering import LeadClusterer
 from .lead_scorer import LeadScorer
+from .warmth_model import WarmthModel
 
 
 class RoutingTarget(str, Enum):

@@ -34,6 +34,17 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const E2E_BYPASS_AUTH =
+  import.meta.env.VITE_E2E_BYPASS_AUTH === "true" ||
+  (typeof window !== "undefined" && localStorage.getItem("warmth_e2e_auth") === "1");
+
+const E2E_USER: AuthUser = {
+  uid: "e2e-test-user",
+  displayName: "E2E Test User",
+  email: "e2e@warmth.test",
+  photoURL: null,
+};
+
 function mapFirebaseUser(user: User): AuthUser {
   return {
     uid: user.uid,
@@ -44,8 +55,8 @@ function mapFirebaseUser(user: User): AuthUser {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(E2E_BYPASS_AUTH ? E2E_USER : null);
+  const [loading, setLoading] = useState(!E2E_BYPASS_AUTH);
   const bootstrapStarted = useRef<string | null>(null);
 
   const getIdToken = useCallback(async (): Promise<string | null> => {
@@ -59,11 +70,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (E2E_BYPASS_AUTH) {
+      setAuthTokenGetter(async () => "e2e-test-token");
+      return () => setAuthTokenGetter(null);
+    }
     setAuthTokenGetter(getIdToken);
     return () => setAuthTokenGetter(null);
   }, [getIdToken]);
 
   useEffect(() => {
+    if (E2E_BYPASS_AUTH) return;
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (!firebaseUser) {
         bootstrapStarted.current = null;

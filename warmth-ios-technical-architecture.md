@@ -61,7 +61,7 @@ Orchestration on the phone lives in `EventListeningEngine`.
 | `ICPVocabulary` | `Warmth/Models/ICPVocabulary.swift` | Weighted ICP keywords; mirrors backend `packages/core/models/icp.py`. Used for LM bias and scoring. |
 | `SocialGraphEngine` | `Warmth/Services/SocialGraphEngine.swift` | `NLTagger` NER (people/orgs), relationship-cue detection, proximity-based ICP scoring, `PersonNode` graph accumulation. |
 | `Signal` / `PersonNode` | `Warmth/Models/Signal.swift` | Output model; `CodingKeys` map to the backend signal schema (snake_case). |
-| `SignalAPIClient` | `Warmth/Services/SignalAPIClient.swift` | `POST /api/signals` (snake_case keys, ISO-8601 dates). Base URL from `WARMTH_API_BASE_URL`. |
+| `SignalClient` | `Warmth/Services/Signal/SignalClient.swift` | `POST /api/signals` (CapturedSignal JSON). Base URL from `BackendConfiguration`. |
 | `EventListeningEngine` | `Warmth/Services/EventListeningEngine.swift` | State machine wiring all of the above; publishes `state`, `liveTranscript`, `lastSignal`. |
 | `WatchConnectivityService` | `Warmth/Services/…` + `WarmthWatch/Services/…` | Sends `wakeWord` / `leadDetected` messages; watch plays haptic + shows lead. |
 | `AudioSessionManager` | `Warmth/Services/AudioSessionManager.swift` | `AVAudioSession` config (`.playAndRecord`, `.measurement`). |

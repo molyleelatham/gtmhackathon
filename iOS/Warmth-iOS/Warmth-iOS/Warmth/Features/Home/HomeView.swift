@@ -40,6 +40,7 @@ struct HomeView: View {
                 .refreshable { await model.refreshHome() }
             }
             .navigationTitle("Home")
+            .accessibilityIdentifier("home_screen")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

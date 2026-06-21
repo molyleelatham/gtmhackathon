@@ -1,9 +1,11 @@
 from typing import Any
 
+import json
+
 
 class CursorEnrichmentPrompts:
     """Prompt templates for Cursor SDK operations"""
-    
+
     @staticmethod
     def get_scoring_prompt(
         company_name: str,
@@ -29,7 +31,7 @@ Analyze the lead and provide:
 
 Return as JSON with keys: icp_score, signal_score, overall_score, insights, recommendations
 """
-    
+
     @staticmethod
     def get_crm_payload_prompt(
         lead_data: dict[str, Any],
@@ -52,7 +54,7 @@ Generate a CRM payload that includes:
 
 Return as JSON matching the {target_system} CRM API format.
 """
-    
+
     @staticmethod
     def get_signal_analysis_prompt(
         signals: list[dict[str, Any]],
@@ -74,5 +76,3 @@ Provide:
 
 Return as JSON with keys: categories, urgency, readiness, timing, talking_points
 """
-
-import json

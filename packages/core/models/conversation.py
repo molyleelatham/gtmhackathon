@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -20,7 +21,7 @@ class ConversationIntelligence(BaseModel):
     recording_started_at: datetime
     recording_ended_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
     class Config:
         json_encoders = {
             datetime: lambda v: v.isoformat()

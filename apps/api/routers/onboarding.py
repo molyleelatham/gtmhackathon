@@ -2,10 +2,9 @@
 from fastapi import APIRouter, HTTPException, status
 
 from ....packages.core.errors import client_safe_message
-
+from ...lifecycle.onboarding import OnboardingService
 from ..store import get_store
 from ..user_context import get_user_id
-from ...lifecycle.onboarding import OnboardingService
 
 router = APIRouter(prefix="/api/v1", tags=["onboarding"])
 

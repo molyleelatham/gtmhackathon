@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
 import re
 import sys
 from datetime import datetime, timedelta, timezone
@@ -30,14 +29,16 @@ from warmth.apps.api.integration_helpers import (  # noqa: E402
     gmail_client_optional,
     hubspot_client_optional,
     unify_client_optional,
-    zero_client_optional,
     warmth_client_email,
     warmth_client_name,
+    zero_client_optional,
 )
 from warmth.apps.lifecycle.contact_sync import ContactSyncPipeline  # noqa: E402
 from warmth.apps.lifecycle.premeet import PreMeetPipeline  # noqa: E402
 from warmth.packages.core.models.event import DetectedEvent, EventType, LifecycleStage  # noqa: E402
-from warmth.packages.integrations.google_calendar.attendees import calendar_attendees_from_raw  # noqa: E402
+from warmth.packages.integrations.google_calendar.attendees import (
+    calendar_attendees_from_raw,  # noqa: E402
+)
 from warmth.packages.integrations.google_calendar.client import GoogleCalendarClient  # noqa: E402
 from warmth.packages.integrations.tavily.client import TavilyClient  # noqa: E402
 

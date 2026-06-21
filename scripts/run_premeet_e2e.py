@@ -30,21 +30,20 @@ WARMTH_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 load_dotenv(WARMTH_ROOT / ".env")
 
-from warmth.apps.lifecycle.onboarding import OnboardingService
-from warmth.apps.lifecycle.premeet import PreMeetPipeline
-from warmth.apps.scraper.sources.csv_loader import load_csv_attendees
 from warmth.apps.api.integration_helpers import (
     gmail_client_optional,
     unify_client_optional,
-    zero_client_optional,
     warmth_client_email,
     warmth_client_name,
+    zero_client_optional,
 )
+from warmth.apps.lifecycle.onboarding import OnboardingService
+from warmth.apps.lifecycle.premeet import PreMeetPipeline
+from warmth.apps.scraper.sources.csv_loader import load_csv_attendees
 from warmth.packages.core.models.event import DetectedEvent, EventType, LifecycleStage
 from warmth.packages.core.models.pre_connection import PreMeetConnection
-from warmth.packages.integrations.google_calendar.client import GoogleCalendarClient
 from warmth.packages.integrations.google_calendar.attendees import calendar_attendees_from_raw
-
+from warmth.packages.integrations.google_calendar.client import GoogleCalendarClient
 
 DEFAULT_CSV = os.path.expanduser("~/Downloads/data.csv")
 DEMO_USER = "demo-user"

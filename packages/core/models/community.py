@@ -1,7 +1,8 @@
 from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class PermissionLevel(str, Enum):
@@ -19,7 +20,7 @@ class CommunityGroup(BaseModel):
     type: str = "friends"  # friends, founders, team, custom
     created_by: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
     class Config:
         json_encoders = {
             datetime: lambda v: v.isoformat()
@@ -36,7 +37,7 @@ class CommunityShare(BaseModel):
     shared_by: str
     message: Optional[str] = None
     shared_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
     class Config:
         json_encoders = {
             datetime: lambda v: v.isoformat()

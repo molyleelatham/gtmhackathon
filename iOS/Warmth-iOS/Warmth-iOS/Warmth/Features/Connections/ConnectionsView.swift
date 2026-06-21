@@ -26,6 +26,7 @@ struct ConnectionsView: View {
                 }
             }
             .navigationTitle("Connections")
+            .accessibilityIdentifier("connections_screen")
             .navigationDestination(for: CRMConnection.self) { connection in
                 ConnectionDetailView(connection: connection)
             }

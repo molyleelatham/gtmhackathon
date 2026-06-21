@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Optional
+
 from pydantic import BaseModel, Field
-from .signal import Signal, SignalType
+
+from .signal import Signal
 
 
 class Lead(BaseModel):

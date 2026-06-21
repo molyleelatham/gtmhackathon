@@ -9,11 +9,11 @@ auto-send).
 """
 from typing import Optional
 
+from ...packages.core.models.conversation import ConversationIntelligence
 from ...packages.core.models.lead import Lead
 from ...packages.core.models.meeting_signal import MeetingSignal
-from ...packages.core.models.conversation import ConversationIntelligence
-from ...packages.integrations.lightfern.workflow import LightfernClient
 from ...packages.integrations.google_mcp.client import GoogleMCPClient
+from ...packages.integrations.lightfern.workflow import LightfernClient
 
 
 class PostMeetPipeline:

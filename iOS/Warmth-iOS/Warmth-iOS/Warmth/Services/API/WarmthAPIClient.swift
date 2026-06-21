@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 enum CRMFetchState: Equatable, Sendable {
     case idle
@@ -23,12 +24,13 @@ protocol CRMProviding: AnyObject {
     func fetchEvents() async throws -> [CRMDetectedEvent]
     func fetchICPProfile() async throws -> [CRMICPRow]
     func sendFollowup(connectionId: String) async throws -> CRMFollowUpDraft
-    func bootstrapUserProfileIfNeeded() async
+    func bootstrapUserProfileIfNeeded() async throws
 }
 
 @MainActor
 @Observable
 final class WarmthAPIClient: CRMProviding {
+    private static let logger = Logger(subsystem: "com.warmth.gtmhackathon", category: "WarmthAPIClient")
     private(set) var baseURL: URL
     private(set) var connections: [CRMConnection] = []
     private(set) var fetchState: CRMFetchState = .idle
@@ -125,13 +127,19 @@ final class WarmthAPIClient: CRMProviding {
         return CRMFollowUpDraft(subject: subject, body: body)
     }
 
-    func bootstrapUserProfileIfNeeded() async {
+    func bootstrapUserProfileIfNeeded() async throws {
         var request = URLRequest(url: baseURL.appendingPathComponent("api/v1/users/bootstrap"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = Data("{}".utf8)
         await auth?.applyAuthorization(to: &request)
-        _ = try? await session.data(for: request)
+        let (data, response) = try await session.data(for: request)
+        do {
+            try validate(response, data: data)
+        } catch {
+            Self.logger.error("Bootstrap failed: \(error.localizedDescription, privacy: .public)")
+            throw error
+        }
     }
 
     // MARK: - Internals
@@ -295,5 +303,5 @@ final class MockCRMClient: CRMProviding {
         CRMFollowUpDraft(subject: "Great meeting you", body: "Thanks for the conversation at the event.")
     }
 
-    func bootstrapUserProfileIfNeeded() async {}
+    func bootstrapUserProfileIfNeeded() async throws {}
 }

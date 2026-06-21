@@ -51,23 +51,22 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timedelta
-from typing import Any, Callable, Awaitable, Optional
+from typing import Any, Awaitable, Callable, Optional
 
 from ...packages.core.models.event import DetectedEvent, EventType, LifecycleStage
 from ...packages.core.models.icp import ICPConfig
-from ...packages.ml.lead_scorer import LeadScorer
-from ...packages.ml.warmth_model import WarmthModel
+from ...packages.integrations.google_calendar.client import GoogleCalendarClient
+from ...packages.integrations.google_mcp.client import GoogleMCPClient
+from ...packages.integrations.hubspot.client import HubSpotClient
+from ...packages.integrations.lightfern.workflow import LightfernClient
+from ...packages.integrations.tavily.client import TavilyClient
+from ...packages.integrations.unify_gtm.client import UnifyGTMClient
 from ...packages.integrations.zero_crm.client import ZeroCRMClient
 from ...packages.integrations.zero_crm.mcp_bridge import ZeroMCPBridge
-from ...packages.integrations.unify_gtm.client import UnifyGTMClient
-from ...packages.integrations.google_mcp.client import GoogleMCPClient
-from ...packages.integrations.google_calendar.client import GoogleCalendarClient
-from ...packages.integrations.hubspot.client import HubSpotClient
-from ...packages.integrations.tavily.client import TavilyClient
-from ...packages.integrations.lightfern.workflow import LightfernClient
+from ...packages.ml.lead_scorer import LeadScorer
+from ...packages.ml.warmth_model import WarmthModel
 from ..lifecycle.premeet import PreMeetPipeline
 from ..scraper.sources.playwright_scraper import EventDirectoryScraper
-
 
 MCPCaller = Callable[[str, dict], Awaitable[dict]]
 
@@ -247,7 +246,7 @@ class EventPipeline:
         # ---------------------------------------------------------------
         if self.tavily_researcher:
             raw_attendees = await self._research(raw_attendees)
-            print(f"[2/7] Tavily research complete")
+            print("[2/7] Tavily research complete")
         else:
             print("[2/7] Tavily not configured — skipping research")
 
@@ -419,6 +418,7 @@ class EventPipeline:
 async def _demo() -> None:
     """Run the pipeline with the first 10 rows of the event CSV mock data."""
     import sys
+
     from ..scraper.sources.csv_loader import load_csv_attendees
 
     csv_path = (

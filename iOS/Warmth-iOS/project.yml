@@ -28,9 +28,7 @@ packages:
     url: https://github.com/soniqo/speech-swift
     branch: main
 
-# NOTE: WarmthWatch / WarmthWatchWidget targets are included for standalone watch
-# builds. The iOS app does not embed them until watchOS simulators/runtimes are
-# installed — see WATCH_INTEGRATION.md to re-enable the embed dependency.
+# WarmthWatch is embedded in the iOS app bundle for companion install.
 targets:
   Warmth:
     type: application
@@ -43,10 +41,11 @@ targets:
           - "**/.DS_Store"
           # Legacy duplicate of Services/SocialGraph/SocialGraphEngine.swift
           - "Services/SocialGraphEngine.swift"
-          - "Services/SignalAPIClient.swift"
           - "Models/Signal.swift"
           - "Views/ListeningView.swift"
     dependencies:
+      - target: WarmthWatch
+        embed: true
       - package: Firebase
         product: FirebaseAuth
       - package: Firebase
@@ -103,6 +102,18 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.warmth.gtmhackathon.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+  WarmthUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Warmth-iOS/WarmthUITests
+    dependencies:
+      - target: Warmth
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.warmth.gtmhackathon.uitests
         GENERATE_INFOPLIST_FILE: YES
 
   WarmthWatch:
@@ -177,6 +188,7 @@ schemes:
     test:
       targets:
         - WarmthTests
+        - WarmthUITests
 
   WarmthWatch:
     build:

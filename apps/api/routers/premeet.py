@@ -1,11 +1,12 @@
 """Before-meet pipeline endpoints."""
 from typing import Optional
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from ..store import get_store
-from ..integration_helpers import gmail_client_optional, unify_client_optional, zero_client_optional
 from ...lifecycle.premeet import PreMeetPipeline
+from ..integration_helpers import gmail_client_optional, unify_client_optional, zero_client_optional
+from ..store import get_store
 
 router = APIRouter(prefix="/api/v1", tags=["premeet"])
 

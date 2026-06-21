@@ -47,6 +47,12 @@ final class WatchSessionService: NSObject {
     private var lastElapsed: TimeInterval = 0
     private var lastPersonName: String?
     private var lastPersonOrg: String?
+    /// Mirror of `payload()` for synchronous WC reply handlers (nonisolated delegate).
+    private nonisolated(unsafe) var latestReplyPayload: [String: Any] = [
+        "action": "recordingStateChanged",
+        "isRecording": false,
+        "elapsed": 0.0,
+    ]
 
     init(session: WCSession = .default) {
         self.session = session
@@ -79,6 +85,7 @@ final class WatchSessionService: NSObject {
         ]
         if let lastPersonName { p["lastPersonName"] = lastPersonName }
         if let lastPersonOrg { p["lastPersonOrg"] = lastPersonOrg }
+        latestReplyPayload = p
         return p
     }
 
@@ -140,11 +147,9 @@ extension WatchSessionService: WCSessionDelegate {
     nonisolated func session(_ session: WCSession,
                              didReceiveMessage message: [String: Any],
                              replyHandler: @escaping ([String: Any]) -> Void) {
-        // Ack synchronously (the closure is non-Sendable, so we don't carry it onto
-        // the main actor). Authoritative state follows via `updateApplicationContext`
-        // once the app reacts and calls `updateState(...)`.
-        replyHandler(["ack": true])
-        guard let action = message["action"] as? String else { return }
+        let action = message["action"] as? String
+        replyHandler(latestReplyPayload)
+        guard let action else { return }
         Task { @MainActor in self.handle(action: action) }
     }
 

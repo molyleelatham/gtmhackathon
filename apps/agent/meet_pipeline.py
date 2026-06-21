@@ -11,15 +11,13 @@ from typing import Any, Optional
 
 from ...packages.core.models.lead import Lead
 from ...packages.core.models.warmth import WarmthScore
-from ...packages.integrations.zero_crm.client import ZeroCRMClient
-from ...packages.integrations.zero_crm.mapper import ZeroCRMMapper
 from ...packages.integrations.faxxing.client import FaxxingClient
-from ...packages.integrations.lightfern.workflow import LightfernClient
 from ...packages.integrations.google_mcp.client import GoogleMCPClient
 from ...packages.integrations.hubspot.client import HubSpotClient
+from ...packages.integrations.lightfern.workflow import LightfernClient
+from ...packages.integrations.zero_crm.client import ZeroCRMClient
+from ...packages.integrations.zero_crm.mapper import ZeroCRMMapper
 from ...packages.ml.pipeline import RoutingTarget
-from ..lifecycle.meet import MeetPipeline
-from ..listener.intelligence.meet_encoder import MeetEncoder
 from ..api.integration_helpers import (
     gmail_client_optional,
     hubspot_client_optional,
@@ -27,6 +25,8 @@ from ..api.integration_helpers import (
     warmth_client_name,
     wrap_self_draft,
 )
+from ..lifecycle.meet import MeetPipeline
+from ..listener.intelligence.meet_encoder import MeetEncoder
 
 
 class MeetStageAgent:
