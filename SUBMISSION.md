@@ -103,7 +103,7 @@ diarized transcript ([{speaker, text}], self_speaker_id)
     → MeetEncoder             per-person context + MeetingSignal
     → MeetIntelligencePipeline  warmth/lead/cluster → RoutingDecision
     → warmth uplift?  yes → Zero CRM + Faxxing + Gmail draft
-                      no  → founder community
+                      no  → founder community 
 ```
 
 **`MeetEncoder`** turns a raw diarized transcript into a structured `MeetingSignal`: name, company, interests, per-topic time allocation, what you learned, most interesting moment, and the evolved `PersonNode` for the primary speaker.
@@ -184,10 +184,10 @@ The interest knowledge graph (`graph_builder.py`) builds a per-person node graph
 
 ### Infrastructure
 
-- **Firebase Firestore** — signal storage + dedup
+- **Firebase Firestore** — signal storage + dedup 
 - **Google Secret Manager** — secrets loaded at startup via `load_secrets_into_env()`; local `.env` overrides for dev
-- **Google MCP** — calendar read + Gmail draft creation
-- **GCP credentials** — service account for Firestore + Secret Manager
+- **Google MCP** — calendar read + Gmail draft creation 
+- **GCP credentials** — service account for Firestore + Secret Manager  
 - **Docker + Makefile** — one-command local stack (`make run-api`)
 
 ---

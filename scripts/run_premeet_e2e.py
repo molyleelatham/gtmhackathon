@@ -201,7 +201,10 @@ def _render_briefing(
                 f"   Firmographics: {c.industry or '—'} | {c.funding_stage or '—'}"
             )
         if c.research_notes:
-            note = c.research_notes[:180] + ("…" if len(c.research_notes) > 180 else "")
+            raw_notes = c.research_notes
+            if isinstance(raw_notes, list):
+                raw_notes = " | ".join(str(n) for n in raw_notes if n)
+            note = str(raw_notes)[:180] + ("…" if len(str(raw_notes)) > 180 else "")
             lines.append(f"   Notes: {note}")
         if c.gmail_draft_id:
             lines.append(f"   Outreach draft: created (id {c.gmail_draft_id})")

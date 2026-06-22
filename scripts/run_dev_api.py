@@ -26,13 +26,16 @@ def _ensure_warmth_namespace() -> None:
 
 
 def main() -> None:
+    import os
+
     _ensure_warmth_namespace()
     import uvicorn
 
+    port = int(os.environ.get("API_PORT", "8010"))
     uvicorn.run(
         "warmth.apps.api.main:app",
         host="0.0.0.0",
-        port=8000,
+        port=port,
         reload=True,
     )
 

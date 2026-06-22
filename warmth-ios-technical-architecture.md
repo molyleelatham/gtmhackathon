@@ -1,10 +1,12 @@
 # Warmth — Technical Architecture
 
+> _Last updated: 2026-06-22_
+>
 > Two-tier, name-triggered event intelligence. The **phone is intentionally
 > "dumb"**: it detects names on-device, captures the conversation locally, does a
 > fast rule-based extraction + pre-score, and fires the signal at the backend.
-> The **compute host is "smart"**: persistent graph ML, enrichment, and the CRM /
-> follow-up thresholds.
+> The **compute host is "smart"**: meet pipeline, enrichment, CRM routing, and
+> Gmail draft handoff (Cloud Run).
 
 ## 1. System overview (two tiers)
 
@@ -12,7 +14,7 @@
 ┌─────────────────────────────────────────────────────────────────┐
 │  iOS APP  (Swift, on-device only)                               │
 │                                                                 │
-│  AVAudioEngine → Soniqo WakeWord → SFSpeechRecognizer          │
+│  AVAudioEngine → trigger phrase → SFSpeechRecognizer            │
 │       ↓                                                         │
 │  SocialGraphEngine (LIGHTWEIGHT — Swift only)                   │
 │  ├── NLTagger NER          → names, orgs                       │
@@ -20,38 +22,55 @@
 │  ├── ICP keyword proximity → fast rule-based pre-score         │
 │  └── PersonNode dict       → in-memory only, session-scoped    │
 │       ↓                                                         │
-│  Package signal as JSON payload                                 │
-│  URLSession POST (async, fire-and-forget)                       │
+│  Package CapturedSignal as JSON                                 │
+│  SignalClient POST (async, fire-and-forget + retry queue)       │
 └──────────────────────┬──────────────────────────────────────────┘
                        │  HTTPS  ·  POST /api/signals
                        ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  COMPUTE HOST  (Python, Modal / cloud server)   ← backend agent │
+│  COMPUTE HOST  (Python, GCP Cloud Run)                          │
+│  https://warmth-api-30164818817.us-central1.run.app             │
 │                                                                 │
-│  FastAPI receives signal payload                                │
+│  FastAPI receives CapturedSignal                                │
 │       ↓                                                         │
-│  KnowledgeGraphBuilder (NetworkX) — persistent across sessions │
-│  TGN memory update → temporal signal decay                     │
-│  Spectral GCN → P(ICP fit)                                     │
-│  Social path scorer → warm intro path                          │
-│  Eigenvector centrality                                         │
+│  MeetStageAgent → warmth / lead / cluster models                 │
+│  KnowledgeGraphBuilder (NetworkX)                               │
+│  HubSpot + Zero CRM sync · UnifyGTM enrichment                  │
 │       ↓                                                         │
-│  Enrichment: UnifyGTM + Zero CRM contact lookup                │
-│       ↓                                                         │
-│  Score ≥ 70  → Zero CRM push                                   │
-│  Score ≥ 80  → Faxxing sequence trigger                        │
-│  Score ≥ 80  → Lightfern GTM workflow                          │
-│       ↓                                                         │
-│  WebSocket push → Dashboard UI (live updates)                  │
+│  Gmail draft (Lightfern handoff) · web dashboard update         │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-Tier 1 (this codebase: `iOS/`) is detailed below. Tier 2 (the compute host) is
-owned by the backend agent; §10–11 define the contract between them.
+**Shipped iOS app** (`iOS/Warmth-iOS/Warmth.xcodeproj`): Capture / Connections /
+Settings tabs, `CapturedSignal` + `SignalClient`. Legacy wake-word pipeline
+sources (`ConferenceListeningEngine`, `SignalAPIClient`) remain on disk but are
+**not** in the current Xcode target.
 
-Orchestration on the phone lives in `EventListeningEngine`.
+Orchestration on the phone lives in `EventListeningEngine` / Capture flow.
+Tier 2 is the Python backend in this repo; §11–14 define the contract and deployment.
 
-## 2. Components
+## 1.1 Repository layout
+
+Git root is **`gtmhackathon/`** (not a nested `warmth/` subfolder). Python
+imports use the `warmth.*` namespace; a `warmth/` directory at the repo root
+holds symlinks to `apps/`, `packages/`, `infra/`, and `services/` so
+`warmth.apps.api.main:app` resolves for uvicorn and Cloud Run.
+
+```
+gtmhackathon/
+├── apps/              # FastAPI backend, listener, lifecycle, agent
+├── packages/          # core models, integrations (Zero, HubSpot, Gmail MCP)
+├── infra/             # Firebase Firestore client
+├── services/          # Google MCP bridge (Gmail drafts)
+├── web/               # React dashboard (Vite)
+├── iOS/Warmth-iOS/    # Native iOS app
+├── warmth/            # Python package namespace (symlinks → ../apps, etc.)
+├── scripts/           # deploy, demo, e2e, Gmail OAuth
+├── Dockerfile         # Cloud Run image
+└── Makefile           # make run-api, run-web, run-gmail-mcp
+```
+
+## 2. Components (shipped iOS app)
 
 | Component | File | Responsibility |
 |-----------|------|----------------|
@@ -60,12 +79,16 @@ Orchestration on the phone lives in `EventListeningEngine`.
 | `CaptureWindow` | `Warmth/Services/CaptureWindow.swift` | 30 s on-device `SFSpeechRecognizer` session biased by `SFCustomLanguageModelData` (ICP vocab). Emits partial + final transcript. |
 | `ICPVocabulary` | `Warmth/Models/ICPVocabulary.swift` | Weighted ICP keywords; mirrors backend `packages/core/models/icp.py`. Used for LM bias and scoring. |
 | `SocialGraphEngine` | `Warmth/Services/SocialGraphEngine.swift` | `NLTagger` NER (people/orgs), relationship-cue detection, proximity-based ICP scoring, `PersonNode` graph accumulation. |
-| `Signal` / `PersonNode` | `Warmth/Models/Signal.swift` | Output model; `CodingKeys` map to the backend signal schema (snake_case). |
-| `SignalAPIClient` | `Warmth/Services/SignalAPIClient.swift` | `POST /api/signals` (snake_case keys, ISO-8601 dates). Base URL from `WARMTH_API_BASE_URL`. |
-| `EventListeningEngine` | `Warmth/Services/EventListeningEngine.swift` | State machine wiring all of the above; publishes `state`, `liveTranscript`, `lastSignal`. |
+| `CapturedSignal` | `Warmth/Models/CapturedSignal.swift` | Primary wire model POSTed to `/api/signals` (Firebase auth + snake_case). |
+| `SignalClient` | `Warmth/Services/Signal/SignalClient.swift` | Fire-and-forget uploader + retry queue; roster fetch + attendee match. |
+| `FirebaseAuthService` | `Warmth/Services/Auth/FirebaseAuthService.swift` | Firebase sign-in; `CapturedSignal.user` carries `uid` + `id_token`. |
+| `Signal` / `PersonNode` | `Warmth/Models/Signal.swift` | Legacy output model; `CodingKeys` map to the backend signal schema (snake_case). |
+| `SignalAPIClient` | `Warmth/Services/SignalAPIClient.swift` | Legacy `POST /api/signals` client. |
+| `EventListeningEngine` | `Warmth/Services/EventListeningEngine.swift` | State machine wiring wake-word capture; publishes `state`, `liveTranscript`, `lastSignal`. |
 | `WatchConnectivityService` | `Warmth/Services/…` + `WarmthWatch/Services/…` | Sends `wakeWord` / `leadDetected` messages; watch plays haptic + shows lead. |
 | `AudioSessionManager` | `Warmth/Services/AudioSessionManager.swift` | `AVAudioSession` config (`.playAndRecord`, `.measurement`). |
 | `WatchlistProvider` | `Warmth/Services/WatchlistProvider.swift` | Names the wake word listens for; seeded sample, hydrate from CRM contacts. |
+| `SettingsStore` | `Warmth/Services/Settings/SettingsStore.swift` | UserDefaults-backed backend base URL (default `http://127.0.0.1:8010`). |
 
 ## 3. State machine
 
@@ -100,24 +123,37 @@ device contention between wake-word and capture phases.
 - + 5 event-audio source bonus.
 - Capped at 100. `Signal.isLead` when `score >= 50`.
 
-## 6. Backend contract
+## 6. Backend contract (primary — CapturedSignal)
 
-`POST /api/signals` with `Signal` JSON:
+`POST /api/signals` with `CapturedSignal` JSON (schema:
+`packages/core/schemas/captured_signal.py`):
 
 ```json
 {
-  "id": "uuid",
-  "person": { "name": "Anna Lee", "company": "Acme", "icp_keywords_hit": ["RevOps"], … },
-  "company": { "name": "Acme", "icp_keywords_hit": ["Series B"] },
-  "relationships": [ { "subject": "Anna Lee", "kind": "works_at", "object": "Acme" } ],
-  "icp_pre_score": 65,
-  "raw_text": "…transcript…",
-  "source": "event_audio",
-  "detected_at": "2026-06-20T17:00:00Z"
+  "user": { "uid": "firebase-uid", "id_token": "…" },
+  "session_id": "uuid",
+  "captured_at": "2026-06-20T17:00:00Z",
+  "person": { "name": "Anna Lee", "org": "Acme", "role": "VP RevOps" },
+  "relations": [
+    { "subject": "Anna Lee", "predicate": "works_at", "object": "Acme" }
+  ],
+  "interests": ["RevOps", "Series B"],
+  "icp_keyword_score": 72,
+  "transcript_excerpt": "…transcript…",
+  "device": { "model": "iPhone", "os": "iOS 26.5" }
 }
 ```
 
-Field names align with `packages/core/models/signal.py` via `Signal.CodingKeys`.
+The backend also accepts the legacy **`ConferenceAudioSignal`** shape
+(`icp_pre_score`, `raw_text`, `source: conference_audio`) for the wake-word
+pipeline; the shipped app uses **`CapturedSignal`** only.
+
+### Other iOS-facing endpoints
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/api/v1/match/attendee` | Match spoken name → GTM Hackathon roster |
+| `GET` | `/api/v1/connections` | Roster first names for wake-word hydration |
 
 ## 7. Privacy
 
@@ -165,53 +201,46 @@ side effects.
 
 ## 11. Wire contract (iOS → backend)
 
-**Endpoint:** `POST {WARMTH_API_BASE_URL}/api/signals`
+**Endpoint:** `POST {baseURL}/api/signals`
 **Headers:** `Content-Type: application/json`
-**Semantics:** fire-and-forget; iOS sends **every** signal (no client-side
-gating). Backend must be idempotent on `id` (UUID) and tolerant of partial data
-(many fields optional). Return `2xx` quickly; do heavy work async.
+**Semantics:** fire-and-forget with client-side retry queue (`SignalClient`).
+Backend is idempotent on `session_id` + person + timestamp. Returns `202`
+(accepted) or `200` (duplicate).
 
-**Encoding:** `JSONEncoder` with `keyEncodingStrategy = .convertToSnakeCase` and
-`dateEncodingStrategy = .iso8601`.
+**Base URL configuration:**
+
+| Environment | URL |
+|-------------|-----|
+| iOS Simulator (local) | `http://127.0.0.1:8010` |
+| Physical iPhone (local) | `http://<mac-lan-ip>:8010` (same Wi‑Fi) |
+| **Production (Cloud Run)** | `https://warmth-api-30164818817.us-central1.run.app` |
+
+Set in app: **Settings → Backend → Base URL** (`SettingsStore.defaultBaseURL`).
+On a physical device, `localhost` refers to the phone — always use the Mac LAN
+IP for local dev, or the Cloud Run HTTPS URL for production.
+
+**Encoding:** `CapturedSignal.makeEncoder()` — ISO-8601 dates, snake_case keys.
 
 ```jsonc
 {
-  "id": "0f4e…",                       // UUID, idempotency key
-  "person": {
-    "name": "Anna Lee",
-    "company": "Acme",                 // nullable
-    "title": null,
-    "related_names": ["James Ford"],   // array (from a Set)
-    "icp_keywords_hit": ["RevOps"],
-    "first_seen": "2026-06-20T17:00:00Z",
-    "last_seen":  "2026-06-20T17:00:30Z",
-    "mention_count": 2
-  },
-  "company": {                         // nullable
-    "name": "Acme",
-    "icp_keywords_hit": ["Series B"]
-  },
-  "relationships": [
-    { "subject": "Anna Lee", "kind": "works_at", "object": "Acme" }
+  "user": { "uid": "…", "id_token": "…" },
+  "session_id": "…",
+  "captured_at": "2026-06-20T17:00:30Z",
+  "person": { "name": "Anna Lee", "org": "Acme", "role": null },
+  "relations": [
+    { "subject": "Anna Lee", "predicate": "works_at", "object": "Acme" }
   ],
-  "icp_pre_score": 65,                 // 0–100, ADVISORY pre-score
-  "raw_text": "…full transcript…",
-  "source": "event_audio",
-  "detected_at": "2026-06-20T17:00:30Z"
+  "interests": ["RevOps"],
+  "icp_keyword_score": 72,
+  "transcript_excerpt": "…full transcript…",
+  "device": { "model": "iPhone", "os": "iOS 26.5" }
 }
 ```
 
-`relationship.kind` enum: `works_with` · `works_at` · `reports_to` · `knows` ·
-`introduced_by`.
-
-> **Backend-agent action items to stay aligned:**
-> 1. FastAPI route `POST /api/signals` accepting the schema above (snake_case).
->    It maps cleanly onto `packages/core/models/signal.py` — keep them in sync.
-> 2. Treat `icp_pre_score` as a hint; compute the authoritative score in the
->    graph layer. Apply 70 / 80 thresholds backend-side only.
-> 3. Idempotency on `id`; tolerate null `company` / `title` and empty arrays.
-> 4. (Future) expose a push/WebSocket channel so confirmed leads can buzz the
->    phone/watch authoritatively; today the watch buzzes on the local pre-score.
+> **Backend alignment:**
+> 1. FastAPI route `POST /api/signals` in `apps/api/routers/signals.py`.
+> 2. Ingest via `apps/lifecycle/signal_ingest.py` → meet pipeline → Gmail draft.
+> 3. Secrets loaded from Google Secret Manager at boot (`packages/core/secrets.py`).
 
 ## 12. Per-person context pipeline (Tier 2, backend)
 
@@ -276,7 +305,7 @@ Wired in the MEET stage at `apps/lifecycle/meet.py`; `MeetingSignal` carries
 > pipeline visibility. Recently learned HubSpot has AI forecasting. High pain
 > intensity around manual data entry.
 
-Reproduce end-to-end (from the repo root): `python warmth/scripts/demo_person_context.py`.
+Reproduce end-to-end (from repo root): `uv run python scripts/demo_person_context.py`.
 
 ## 13. Outreach drafting (Lightfern → Gmail)
 
@@ -306,3 +335,92 @@ generate draft (subject/body) in-app
   into the draft body under a `--- CONTEXT FOR LIGHTFERN ---` marker, so Lightfern
   reads it directly from the Gmail draft. See `_render_context_brief()`; strip
   below the marker before actually sending.
+
+---
+
+## 14. Local development
+
+From repo root (`gtmhackathon/`):
+
+```bash
+uv sync                          # install deps
+make run-api                     # FastAPI on http://0.0.0.0:8010
+make run-gmail-mcp               # Gmail MCP bridge on :3000 (optional)
+cd web && npm run dev            # dashboard on http://localhost:5173
+```
+
+| Service | Port | Notes |
+|---------|------|-------|
+| Warmth API | **8010** | Default (`API_PORT` in Makefile). Port 8000 is often taken by other local projects. |
+| Web dashboard | **5173** | Vite; set `web/.env` → `VITE_API_BASE_URL=http://127.0.0.1:8010` |
+| Gmail MCP | **3000** | Required for real Gmail drafts (`GOOGLE_MCP_SERVER_URL`) |
+
+Run uvicorn as `warmth.apps.api.main:app` (the `warmth/` namespace symlinks are
+required). Secrets resolve from local `.env` first, then Google Secret Manager.
+
+---
+
+## 15. Production deployment (GCP Cloud Run)
+
+The FastAPI backend is deployed to **Google Cloud Run** in project
+`warmth-gtm-hackathon` (same GCP project as Firebase).
+
+| | |
+|---|---|
+| **Service** | `warmth-api` |
+| **Region** | `us-central1` |
+| **URL** | https://warmth-api-30164818817.us-central1.run.app |
+| **Health** | `{URL}/health` |
+| **Deploy script** | `scripts/deploy_cloud_run.sh` |
+
+```bash
+# Redeploy from repo root
+bash scripts/deploy_cloud_run.sh
+
+# Or directly:
+gcloud run deploy warmth-api --source . --project warmth-gtm-hackathon \
+  --region us-central1 --allow-unauthenticated --quiet
+```
+
+**How it works:**
+- `Dockerfile` builds a Python 3.11 image; copies `apps/` under `warmth/` for imports.
+- Cloud Run sets `PORT=8080`; container runs `uvicorn warmth.apps.api.main:app`.
+- Env vars: `GCP_PROJECT_ID`, `FIREBASE_PROJECT_ID`, `WEB_ALLOWED_ORIGINS=*`.
+- API keys load from **Secret Manager** at startup (no secrets baked into the image).
+- Firebase Firestore + Auth remain on Firebase; Cloud Run is the compute layer.
+
+**Not yet deployed:** Gmail MCP bridge (still local `:3000`). Deploy as a second
+Cloud Run service when Gmail draft automation is needed in production.
+
+---
+
+## 16. Connecting clients
+
+### iOS app
+
+1. Open `iOS/Warmth-iOS/Warmth.xcodeproj` in Xcode.
+2. Run on a **physical device** (mic/speech unreliable in Simulator).
+3. **Settings → Backend → Base URL:**
+   - Production: `https://warmth-api-30164818817.us-central1.run.app`
+   - Local device: `http://<your-mac-ip>:8010` (find IP: `ipconfig getifaddr en0`)
+4. Sign in with Firebase; capture a conversation → check delivery status in Settings.
+5. For local HTTP on device, add `NSAllowsLocalNetworking` to `Info.plist` if ATS blocks cleartext.
+
+### Web dashboard
+
+```bash
+# web/.env
+VITE_API_BASE_URL=https://warmth-api-30164818817.us-central1.run.app
+# local: http://127.0.0.1:8010
+```
+
+```bash
+cd web && npm run dev    # http://localhost:5173
+```
+
+### Verify connectivity
+
+```bash
+curl https://warmth-api-30164818817.us-central1.run.app/health
+curl https://warmth-api-30164818817.us-central1.run.app/api/v1/dashboard
+```

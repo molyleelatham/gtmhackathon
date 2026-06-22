@@ -2,33 +2,33 @@
 """GTM Hackathon pull — calendar attendees only + Tavily (LinkedIn / Google).
 
 Does NOT merge the investor CSV. Uses only invitees on the GTM Hackathon
-London calendar event, enriches each via Tavily, then runs pre-meet drafts.
+London calendar event, enriches each via Tavily LinkedIn research, then runs
+pre-meet drafts.
 
 Usage:
   make run-gmail-mcp
-  PYTHONPATH=. warmth/.venv/bin/python warmth/scripts/run_gtm_hackathon_pull.py
+  PYTHONPATH=. uv run python scripts/run_gtm_hackathon_pull.py
 """
 from __future__ import annotations
 
 import asyncio
 import json
 import os
-import re
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-WARMTH_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
-load_dotenv(WARMTH_ROOT / ".env")
+load_dotenv(REPO_ROOT / ".env")
 
 from warmth.apps.api.integration_helpers import (  # noqa: E402
     gmail_client_optional,
     hubspot_client_optional,
+    tavily_client_optional,
     unify_client_optional,
     zero_client_optional,
     warmth_client_email,
@@ -40,12 +40,26 @@ from warmth.packages.core.models.event import DetectedEvent, EventType, Lifecycl
 from warmth.packages.integrations.google_calendar.attendees import calendar_attendees_from_raw  # noqa: E402
 from warmth.packages.integrations.google_calendar.client import GoogleCalendarClient  # noqa: E402
 from warmth.packages.integrations.tavily.client import TavilyClient  # noqa: E402
+from warmth.packages.integrations.tavily.linkedin_enricher import LinkedInEnricher  # noqa: E402
 
-sys.path.insert(0, str(WARMTH_ROOT / "scripts"))
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
 from run_premeet_e2e import _render_briefing  # noqa: E402
 
 GTM_HINTS = ("gtm", "hackathon")
 TOP_N = 10
+GTM_NAME_OVERRIDES = {
+    "molyleelatham@gmail.com": "Moly Leelatham",
+    "nicholasyswong@googlemail.com": "Nick Wong",
+    "dzakwan1844@gmail.com": "Zamir",
+}
+GTM_PROFILE_HINTS = {
+    "molyleelatham@gmail.com": {
+        "linkedin": "https://uk.linkedin.com/in/moly-leelatham",
+    },
+    "nicholasyswong@googlemail.com": {
+        "linkedin": "https://uk.linkedin.com/in/nicholasyswong",
+    },
+}
 
 
 def _pick_gtm_event(events: list) -> tuple[Any, dict]:
@@ -57,83 +71,28 @@ def _pick_gtm_event(events: list) -> tuple[Any, dict]:
     return events[0], events[0].raw or {}
 
 
-def _linkedin_from_results(results: list[dict]) -> Optional[str]:
-    for r in results:
-        url = (r.get("url") or "").split("?")[0]
-        if "linkedin.com/in/" in url.lower():
-            return url
-    return None
-
-
-async def tavily_enrich(tavily: TavilyClient, att: dict[str, Any]) -> dict[str, Any]:
-    name = att.get("name") or ""
-    email = att.get("email") or ""
-    company = att.get("company") or ""
-
-    queries = [
-        f'"{name}" site:linkedin.com/in',
-        f'"{name}" {email.split("@")[0]} GTM hackathon London',
-        f'"{name}" Google GTM event intelligence',
-    ]
-
-    linkedin: Optional[str] = None
-    snippets: list[str] = []
-    interests: list[str] = []
-
-    for q in queries:
-        try:
-            res = await tavily.search(q, search_depth="basic", max_results=5)
-            for row in res.get("results", []):
-                if not linkedin:
-                    linkedin = _linkedin_from_results([row])
-                text = f"{row.get('title', '')} {row.get('content', '')}".strip()
-                if text and text not in snippets:
-                    snippets.append(text[:280])
-                for kw in ("gtm", "revops", "saas", "event", "crm", "ai"):
-                    if kw in text.lower() and kw not in interests:
-                        interests.append(kw)
-        except Exception as exc:
-            print(f"      Tavily warn ({name}): {exc}")
-
-    # Refine name from LinkedIn title if we got a hit
-    if linkedin and snippets:
-        m = re.search(r"([A-Z][a-z]+(?: [A-Z][a-z]+)+)", snippets[0])
-        if m:
-            name = m.group(1)
-
-    notes = " | ".join(snippets[:2])
-    if linkedin:
-        notes = (notes + " | " if notes else "") + f"LinkedIn: {linkedin}"
-
-    return {
-        **att,
-        "name": name,
-        "linkedin": linkedin,
-        "interests": interests[:5] or ["GTM", "hackathon"],
-        "research_notes": notes or f"GTM Hackathon London invitee ({email})",
-        "source": "calendar+tavily",
-    }
-
-
 async def run() -> dict[str, Any]:
     print("\n" + "=" * 60)
-    print("  GTM HACKATHON PULL (calendar-only + Tavily)")
+    print("  GTM HACKATHON PULL (calendar-only + Tavily LinkedIn)")
     print("=" * 60 + "\n")
 
     cal = GoogleCalendarClient()
     now = datetime.now(timezone.utc)
     events = await cal.list_events(
-        time_min=now.replace(tzinfo=None),
+        time_min=(now - timedelta(days=30)).replace(tzinfo=None),
         time_max=(now + timedelta(days=60)).replace(tzinfo=None),
     )
     cal_ev, raw = _pick_gtm_event(events)
 
-    # Real invitees only — exclude Warmth bot inbox from attendee list
     warmth_inbox = warmth_client_email().lower()
     attendees = calendar_attendees_from_raw(
         raw,
         exclude_emails={warmth_inbox},
     )
+    for attendee in attendees:
+        override = GTM_NAME_OVERRIDES.get(attendee["email"].lower())
+        if override:
+            attendee["name"] = override
 
     print(f"[1/5] Calendar: {cal_ev.title}")
     print(f"      Location: {cal_ev.location}")
@@ -141,13 +100,25 @@ async def run() -> dict[str, Any]:
     for a in attendees:
         print(f"        • {a['name']} <{a['email']}>")
 
-    print("[2/5] Tavily enrichment (LinkedIn + Google)…")
+    print("[2/5] Tavily LinkedIn enrichment…")
     tavily = TavilyClient()
-    enriched = await asyncio.gather(*[tavily_enrich(tavily, a) for a in attendees])
+    enricher = LinkedInEnricher(tavily)
+    enriched = await asyncio.gather(*[enricher.enrich_attendee(a) for a in attendees])
+    for attendee in enriched:
+        email = attendee["email"].lower()
+        if email in GTM_NAME_OVERRIDES:
+            attendee["name"] = GTM_NAME_OVERRIDES[email]
+        hints = GTM_PROFILE_HINTS.get(email) or {}
+        if hints.get("linkedin"):
+            attendee["linkedin"] = hints["linkedin"]
     for a in enriched:
-        print(f"        → {a['name']}: {a.get('linkedin') or 'no LinkedIn'}")
+        print(
+            f"        → {a['name']}: {a.get('linkedin') or 'no LinkedIn'} | "
+            f"{a.get('industry') or 'unknown industry'} | "
+            f"interests: {', '.join(a.get('interests') or [])[:60]}"
+        )
 
-    out_dir = WARMTH_ROOT / "data"
+    out_dir = REPO_ROOT / "data"
     out_dir.mkdir(exist_ok=True)
     out_path = out_dir / "gtm_hackathon_attendees.json"
     out_path.write_text(json.dumps(enriched, indent=2))
@@ -172,6 +143,7 @@ async def run() -> dict[str, Any]:
         hubspot_client=hubspot_client_optional(),
         unify_client=unify_client_optional(),
         zero_client=zero_client_optional(),
+        tavily_client=tavily,
     )
     sync_result = await contact_sync.process_batch(
         attendees=enriched,
@@ -191,6 +163,7 @@ async def run() -> dict[str, Any]:
         unify_client=unify_client_optional(),
         zero_client=zero_client_optional(),
         gmail_client=gmail_client_optional(),
+        tavily_client=tavily,
     )
     top = await pipeline.run(event, manual_attendees=enriched, top_n=min(TOP_N, len(enriched)))
 
@@ -204,6 +177,10 @@ async def run() -> dict[str, Any]:
             body += f"  • {a['name']} <{a['email']}>\n"
             if a.get("linkedin"):
                 body += f"    LinkedIn: {a['linkedin']}\n"
+            if a.get("industry"):
+                body += f"    Industry: {a['industry']}\n"
+            if a.get("interests"):
+                body += f"    Interests: {', '.join(a['interests'])}\n"
         draft = await gmail.create_email_draft(to=warmth_client_email(), subject=subj, body=body)
         briefing_id = draft.get("id")
 
@@ -211,7 +188,6 @@ async def run() -> dict[str, Any]:
     print("  Done")
     print("=" * 60 + "\n")
 
-    # Sync dashboard store for web UI
     from warmth.apps.api.store import store
 
     store.refresh_gtm_hackathon(

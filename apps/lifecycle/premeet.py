@@ -32,6 +32,8 @@ from ...packages.integrations.unify_gtm.client import UnifyGTMClient
 from ...packages.integrations.zero_crm.client import ZeroCRMClient
 from ...packages.integrations.google_mcp.client import GoogleMCPClient
 from ...packages.integrations.lightfern.workflow import LightfernClient
+from ...packages.integrations.tavily.client import TavilyClient
+from ...packages.integrations.tavily.linkedin_enricher import LinkedInEnricher
 
 
 class PreMeetPipeline:
@@ -42,6 +44,7 @@ class PreMeetPipeline:
         zero_client: Optional[ZeroCRMClient] = None,
         gmail_client: Optional[GoogleMCPClient] = None,
         lightfern_client: Optional[LightfernClient] = None,
+        tavily_client: Optional[TavilyClient] = None,
         lead_scorer: Optional[LeadScorer] = None,
         warmth_model: Optional[WarmthModel] = None,
     ):
@@ -52,6 +55,9 @@ class PreMeetPipeline:
         self.zero_client = zero_client
         self.gmail_client = gmail_client
         self.lightfern_client = lightfern_client or LightfernClient()
+        self.linkedin_enricher = (
+            LinkedInEnricher(tavily_client) if tavily_client else None
+        )
         self.lead_scorer = lead_scorer or LeadScorer(self.icp_config)
         self.warmth_model = warmth_model or WarmthModel()
 
@@ -96,6 +102,14 @@ class PreMeetPipeline:
 
         connections: list[PreMeetConnection] = []
         for att in raw:
+            notes_raw = att.get("research_notes")
+            if isinstance(notes_raw, list):
+                research_notes = [str(x) for x in notes_raw if x]
+            elif notes_raw:
+                research_notes = [str(notes_raw)]
+            else:
+                research_notes = []
+
             connections.append(
                 PreMeetConnection(
                     event_id=event.id,
@@ -103,9 +117,12 @@ class PreMeetPipeline:
                     name=att.get("name"),
                     email=att.get("email"),
                     title=att.get("title"),
+                    linkedin=att.get("linkedin"),
                     company_name=att.get("company") or att.get("company_name"),
                     company_domain=att.get("company_domain"),
+                    industry=att.get("industry"),
                     interests=att.get("interests", []),
+                    research_notes=research_notes,
                     source=att.get("source", "manual"),
                 )
             )
@@ -115,6 +132,12 @@ class PreMeetPipeline:
     # 2. Enrich via UnifyGTM
     # ------------------------------------------------------------------ #
     async def enrich(self, connection: PreMeetConnection) -> PreMeetConnection:
+        if self.linkedin_enricher:
+            try:
+                connection = await self.linkedin_enricher.enrich_connection(connection)
+            except Exception as e:  # pragma: no cover
+                print(f"PreMeet LinkedIn/Tavily enrich fallback: {e}")
+
         if not self.unify_client or not connection.company_name:
             return connection
         try:

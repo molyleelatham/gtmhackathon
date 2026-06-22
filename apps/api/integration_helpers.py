@@ -7,6 +7,7 @@ from ...packages.integrations.unify_gtm.client import UnifyGTMClient
 from ...packages.integrations.hubspot.client import HubSpotClient
 from ...packages.integrations.google_mcp.client import GoogleMCPClient
 from ...packages.integrations.lightfern.workflow import LightfernClient
+from ...packages.integrations.tavily.client import TavilyClient
 from ...packages.integrations.faxxing.client import FaxxingClient
 from ...packages.core.models.lead import Lead
 from ...packages.core.models.pre_connection import PreMeetConnection
@@ -52,6 +53,16 @@ def gmail_client_optional() -> Optional[GoogleMCPClient]:
         return GoogleMCPClient()
     except Exception as e:
         print(f"Google MCP client unavailable: {e}")
+        return None
+
+
+def tavily_client_optional() -> Optional[TavilyClient]:
+    if not os.getenv("TAVILY_API_KEY"):
+        return None
+    try:
+        return TavilyClient()
+    except Exception as e:
+        print(f"Tavily client unavailable: {e}")
         return None
 
 

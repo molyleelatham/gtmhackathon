@@ -13,6 +13,7 @@ from ..integration_helpers import (
     hubspot_client_optional,
     unify_client_optional,
     zero_client_optional,
+    tavily_client_optional,
 )
 from ..store import get_store
 from ..user_context import get_user_id
@@ -183,6 +184,7 @@ async def sync_contacts():
         hubspot_client=hubspot_client_optional(),
         unify_client=unify_client_optional(),
         zero_client=zero_client_optional(),
+        tavily_client=tavily_client_optional(),
     )
     sync_result = await pipeline.process_batch(
         attendees=attendees,

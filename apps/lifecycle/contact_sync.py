@@ -6,6 +6,8 @@ from typing import Any, Optional
 
 from ...packages.core.models.pre_connection import PreMeetConnection, PreMeetStatus
 from ...packages.integrations.hubspot.client import HubSpotClient
+from ...packages.integrations.tavily.client import TavilyClient
+from ...packages.integrations.tavily.linkedin_enricher import LinkedInEnricher
 from ...packages.integrations.unify_gtm.client import UnifyGTMClient
 from ...packages.integrations.zero_crm.client import ZeroCRMClient
 from ...packages.ml.lead_scorer import LeadScorer
@@ -21,12 +23,16 @@ class ContactSyncPipeline:
         hubspot_client: Optional[HubSpotClient] = None,
         unify_client: Optional[UnifyGTMClient] = None,
         zero_client: Optional[ZeroCRMClient] = None,
+        tavily_client: Optional[TavilyClient] = None,
         lead_scorer: Optional[LeadScorer] = None,
         warmth_model: Optional[WarmthModel] = None,
     ) -> None:
         self.hubspot_client = hubspot_client
         self.unify_client = unify_client
         self.zero_client = zero_client
+        self.linkedin_enricher = (
+            LinkedInEnricher(tavily_client) if tavily_client else None
+        )
         self.lead_scorer = lead_scorer or LeadScorer()
         self.warmth_model = warmth_model or WarmthModel()
 
@@ -196,6 +202,7 @@ class ContactSyncPipeline:
             linkedin=attendee.get("linkedin"),
             company_name=attendee.get("company") or attendee.get("company_name") or event_name,
             company_domain=attendee.get("company_domain"),
+            industry=attendee.get("industry"),
             interests=attendee.get("interests") or [],
             research_notes=self._notes_list(attendee.get("research_notes")),
             source=attendee.get("source", "calendar+tavily"),
@@ -220,6 +227,10 @@ class ContactSyncPipeline:
         zero_summary = {"pushed": 0, "failed": 0}
 
         for attendee in attendees:
+            needs_linkedin = not attendee.get("linkedin") or not attendee.get("industry")
+            if self.linkedin_enricher and needs_linkedin:
+                attendee = await self.linkedin_enricher.enrich_attendee(attendee)
+
             conn = self._attendee_to_connection(
                 attendee,
                 event_id=event_id,

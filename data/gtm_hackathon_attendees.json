@@ -3,50 +3,66 @@
     "name": "Moly Leelatham",
     "email": "molyleelatham@gmail.com",
     "title": "Organizer",
-    "company": null,
+    "company": "CLARK",
     "company_domain": null,
     "response_status": "accepted",
-    "source": "calendar+tavily",
+    "source": "calendar+tavily+linkedin",
+    "company_name": "CLARK",
     "linkedin": "https://uk.linkedin.com/in/moly-leelatham",
+    "industry": "Analytics",
     "interests": [
-      "ai",
-      "gtm",
-      "revops"
+      "Marketing",
+      "Ai",
+      "Founder"
     ],
-    "research_notes": "Moly Leelatham - Marketing Analytics @ CLARK | UK & DACH Moly Leelatham\nPerformance Marketing Data Analyst @ CLARK | UK & DACH | InsurTech | Co-Founder @ Fynco\nUnited Kingdom\n500 connections, 1395 followers\n\n\nAbout\nDouble Degree Graduate; Economics and Management BSc at the Unive | GTM Hackathon London \u2014 The Building Centre ... - Somo Build and launch real GTM campaigns and get your first customer traction in less than 12 hours. One day where builders, operators, and GTM | LinkedIn: https://uk.linkedin.com/in/moly-leelatham"
+    "research_notes": [
+      "2000+ \"Moly\" profiles - LinkedIn Moly Leelatham. Marketing Analytics @ CLARK | UK & DACH | InsurTech. United Kingdom. CLARK, +7 more. University of Bristol, +2 more. Moly Hung. | Moly Leelatham - Performance Marketing Data Analyst @ CLARK | UK & DACH | InsurTech | Co-Founder @ Fynco Moly Leelatham\nPerformance Marketing Data Analyst @ CLARK | UK & DACH | InsurTech | Co-Founder @ Fynco\nUnited Kingdom\n500 connections, 1395 followers\n\n\nAbout\nDouble Degree Graduate; Economics and Management BSc at t | LinkedIn: https://uk.linkedin.com/in/moly-leelatham"
+    ]
   },
   {
-    "name": "Dzakwan Nabil",
+    "name": "Zamir",
     "email": "dzakwan1844@gmail.com",
-    "title": null,
-    "company": null,
+    "title": "Assistant Professor",
+    "company": "Tel Aviv University",
     "company_domain": null,
     "response_status": "needsAction",
-    "source": "calendar+tavily",
-    "linkedin": "https://id.linkedin.com/in/dzakwannabil",
+    "source": "calendar+tavily+linkedin",
+    "company_name": "Tel Aviv University",
+    "linkedin": "https://il.linkedin.com/in/or-zamir",
+    "industry": "B2B SaaS",
     "interests": [
-      "ai",
-      "gtm",
-      "revops",
-      "event",
-      "crm"
+      "Gtm",
+      "Saas",
+      "Sales",
+      "Founder",
+      "Revops",
+      "Crm",
+      "Ai",
+      "Marketing"
     ],
-    "research_notes": "Dzakwan Nabil - 9K+ | Sales & Engineering Director @Aldzama | Strategy & Operations | Mining & Smelter - PT Aldzama Dzakwan Nabil\n9K+ | Sales & Engineering Director @Aldzama | Strategy & Operations | Mining & Smelter\nSurabaya, East Java, Indonesia\n500 connections, 9213 followers\n | Dzakwan Arkan - Fresh Graduate in Business Economics from Erasmus School of Economics and Universitas Gadjah Mada - PPI Rotterdam (Indonesian Student Association in Rotterdam) Dzakwan Arkan\nFresh Graduate in Business Economics from Erasmus School of Economics and Universitas Gadj | LinkedIn: https://id.linkedin.com/in/dzakwannabil"
+    "research_notes": [
+      "Or Zamir - Assistant Professor at Tel Aviv University Or Zamir\nAssistant Professor at Tel Aviv University\nTel Aviv District, Israel\n500 connections, 791 followers\n\n\nAbout\nI'm a computer scientist and mathematician specializing in algorithms, data structures\u2026\n\n\nExperience\nAssistant Professor (\"Senior Lecturer\")\n[Tel Avi | Amir Zamir - EPFL Amir Zamir\nEPFL\nUnited States\n500 connections, 3934 followers\n\n\nAbout\nhttps://vilab.epfl.ch/zamir/\n\n\nExperience\nEPFL\n[EPFL](N/A)  \nN/A - Present\nN/A\n\n\n\nEducation\nStanford University\nN/A\n2015 - 2019\nNone | LinkedIn: https://il.linkedin.com/in/or-zamir"
+    ]
   },
   {
-    "name": "Nicholas Wong",
+    "name": "Nick Wong",
     "email": "nicholasyswong@googlemail.com",
-    "title": null,
-    "company": null,
+    "title": "Strategic Account Director",
+    "company": "LinkedIn Marketing ...",
     "company_domain": null,
     "response_status": "needsAction",
-    "source": "calendar+tavily",
+    "source": "calendar+tavily+linkedin",
+    "company_name": "LinkedIn Marketing ...",
     "linkedin": "https://uk.linkedin.com/in/nicholasyswong",
+    "industry": "Analytics",
     "interests": [
-      "ai",
-      "gtm",
-      "revops"
+      "Marketing",
+      "Gtm",
+      "Ai",
+      "Sales"
     ],
-    "research_notes": "Nicholas Wong | First-Class BSc Chemistry | Deloitte Summer Analyst Nicholas Wong\nChemistry and Chemical Engineering @ Imperial College London\nLondon Area, United Kingdom\n500 connections, 1707 followers\n\n\nAbout\nNicholas is completing a Master\u2019s in Chemistry and Engineering at Imp | GTM Hackathon in London on June 20: Join Founders and Tech ... hey folks, we're hosting a GTM hackathon in London if anyone is in town on June 20: hosting a big gtm hackathon in london on june 20 at the | LinkedIn: https://uk.linkedin.com/in/nicholasyswong"
+    "research_notes": [
+      "Nick Wong - Strategic Account Director @ LinkedIn Marketing ... Nick Wong\nLinkedIn\nToronto, Ontario, Canada\n500 connections, 2222 followers\n\n\nAbout\nI am a marketing strategist with a passion for working collaboratively with my partners\u2026\n\n\nExperience\nLinkedIn\n[LinkedIn](N/A)  \nN/A - Present\nN/A\n\n\n\nEducation\nThe Universi | 1300+ \"Nick Wong\" profiles - LinkedIn Nick Wong. Data & AI advisor for Public sector | Data coach | Business Development-GtM | Verbinder | Data Strateeg | Passion for Data, Analytics and AI! | LinkedIn: https://ca.linkedin.com/in/nickavwong"
+    ]
   }
 ]

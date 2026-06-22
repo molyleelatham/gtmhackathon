@@ -40,31 +40,41 @@ test-mic: ## Test microphone pipeline
 	@echo "🧪 Testing microphone pipeline..."
 	uv run python scripts/test_mic_pipeline.py
 
+API_PORT ?= 8010
+
 run-api: ## Run the FastAPI server
-	@echo "🚀 Starting FastAPI server..."
-	uv run python scripts/run_dev_api.py
+	@echo "🚀 Starting FastAPI server on port $(API_PORT)..."
+	API_PORT=$(API_PORT) uv run python scripts/run_dev_api.py
+
+run-web: ## Run the web dashboard (Vite)
+	@echo "🌐 Starting web dashboard..."
+	cd web && npm run dev
+
+run-local: ## Run API + web dashboard together
+	@echo "🚀 Starting Warmth locally (API :$(API_PORT) + web :5173)..."
+	@$(MAKE) run-api & $(MAKE) run-web
 
 run-meet-local: ## Run the lightweight MEET test server
 	@echo "🚀 Starting MEET local server..."
-	cd .. && uv run --directory warmth python warmth/scripts/serve_meet_local.py
+	uv run python scripts/serve_meet_local.py
 
 run-gmail-mcp: ## Run the Gmail MCP bridge (port 3000)
 	@echo "📬 Starting Gmail MCP bridge..."
-	cd .. && PYTHONPATH=. warmth/.venv/bin/uvicorn warmth.services.google_mcp_server.main:app --reload --host 0.0.0.0 --port $${GOOGLE_MCP_PORT:-3000}
+	uv run python -c "import runpy; runpy.run_module('services.google_mcp_server.main', run_name='__main__')" 2>/dev/null || uv run uvicorn services.google_mcp_server.main:app --reload --host 0.0.0.0 --port $${GOOGLE_MCP_PORT:-3000}
 
 setup-gmail-mcp: ## OAuth setup for getwarmth@gmail.com Gmail MCP
 	@echo "🔐 Gmail OAuth setup..."
 	@echo "Download Desktop OAuth JSON from:"
 	@echo "  https://console.cloud.google.com/apis/credentials?project=warmth-gtm-hackathon"
-	@echo "Save as warmth/google-oauth-client.json then run this target again."
-	cd .. && PYTHONPATH=. warmth/.venv/bin/python warmth/scripts/setup_gmail_oauth.py
+	@echo "Save as google-oauth-client.json then run this target again."
+	uv run python scripts/setup_gmail_oauth.py
 
 test-gmail-draft: ## Send test draft to WARMTH_CLIENT_EMAIL via MCP bridge
-	cd .. && PYTHONPATH=. warmth/.venv/bin/python warmth/scripts/test_gmail_mcp_draft.py
+	uv run python scripts/test_gmail_mcp_draft.py
 
 install-gmail: ## Install Gmail MCP Python dependencies
 	@echo "📦 Installing Gmail MCP deps..."
-	cd .. && uv pip install --directory warmth google-api-python-client google-auth-oauthlib google-auth-httplib2
+	uv pip install google-api-python-client google-auth-oauthlib google-auth-httplib2
 
 run-listener: ## Run the listener service
 	@echo "🚀 Starting listener service..."

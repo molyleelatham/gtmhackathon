@@ -25,8 +25,8 @@ GTM_DATA_FILE = Path(__file__).resolve().parents[2] / "data" / "gtm_hackathon_at
 # Stable ids so dashboard links survive refreshes
 GTM_ATTENDEE_IDS = {
     "molyleelatham@gmail.com": "premeet_moly_leelatham",
-    "dzakwan1844@gmail.com": "premeet_dzakwan_nabil",
-    "nicholasyswong@googlemail.com": "premeet_nicholas_wong",
+    "dzakwan1844@gmail.com": "premeet_zamir",
+    "nicholasyswong@googlemail.com": "premeet_nick_wong",
 }
 
 GTM_SCORES = {
@@ -160,7 +160,7 @@ class DemoStore:
                 linkedin=att.get("linkedin") or (merged.linkedin if merged else None),
                 company_name=_company_from_attendee(att) or (merged.company_name if merged else None),
                 company_domain=att.get("company_domain"),
-                industry="GTM / SaaS",
+                industry=att.get("industry") or (merged.industry if merged else None) or "GTM / SaaS",
                 interests=att.get("interests") or [],
                 research_notes=_notes_list(att.get("research_notes")),
                 icp_score=merged.icp_score if merged else scores["icp"],
